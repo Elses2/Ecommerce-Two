@@ -1,0 +1,39 @@
+{
+  "name": "ecommerce",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/mateo-ast/ecommerce#readme",
+  "bugs": {
+    "url": "https://github.com/mateo-ast/ecommerce/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mateo-ast/ecommerce.git"
+  },
+  "type": "module",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev": "tsx --watch src/app.ts",
+    "build": "tsc && cpx \"src/views/**/*.ejs\" dist/views",
+    "start": "node dist/app.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "ejs": "^6.0.1",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.3.0",
+    "cpx2": "^9.0.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-ejs": "^1.0.3",
+    "tsx": "^4.23.12",
+    "typescript": "^6.0.3"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}
