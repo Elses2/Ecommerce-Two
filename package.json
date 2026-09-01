@@ -2,47 +2,38 @@
   "name": "ecommerce",
   "version": "1.0.0",
   "description": "",
-  "homepage": "https://github.com/Elses2/Ecommerce-Two#readme",
+  "homepage": "https://github.com/mateo-ast/ecommerce#readme",
   "bugs": {
-    "url": "https://github.com/Elses2/Ecommerce-Two/issues"
+    "url": "https://github.com/mateo-ast/ecommerce/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Elses2/Ecommerce-Two.git"
+    "url": "git+https://github.com/mateo-ast/ecommerce.git"
   },
   "type": "module",
   "main": "dist/app.js",
   "scripts": {
-    "dev": "concurrently \"npm:dev:tailwind\" \"npm:dev:server\"",
-    "dev:server": "tsx --watch src/app.ts",
-    "dev:tailwind": "tailwindcss -i ./src/views/styles.css -o ./dist/public/css/styles.css --watch",
-    "build:tailwind": "tailwindcss -i ./src/views/styles.css -o ./dist/public/css/styles.css --minify",
-    "build": "tsc && npm run build:tailwind && cpx \"src/views/**/*.ejs\" dist/views",
+    "dev": "tsx --watch src/app.ts",
+    "build": "tsc && cpx \"src/views/**/*.ejs\" dist/views",
     "start": "node dist/app.js",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "ejs": "^3.1.10",
-    "express": "^5.0.1",
-    "express-ejs-layouts": "^2.5.1",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "ejs": "^6.0.1",
+    "express": "^5.2.1"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.0.0",
     "@types/ejs": "^3.1.5",
-    "@types/express": "^5.0.0",
-    "@types/express-ejs-layouts": "^2.5.4",
-    "@types/node": "^22.0.0",
-    "@types/swagger-jsdoc": "^6.0.4",
-    "@types/swagger-ui-express": "^4.1.7",
-    "concurrently": "^9.1.2",
-    "cpx2": "^8.0.0",
-    "prettier": "^3.5.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.3.0",
+    "cpx2": "^9.0.0",
+    "prettier": "^3.9.6",
     "prettier-plugin-ejs": "^1.0.3",
-    "tailwindcss": "^4.0.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "tsx": "^4.23.12",
+    "typescript": "^6.0.3"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
   }
 }
