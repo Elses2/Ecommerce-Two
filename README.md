@@ -6,7 +6,7 @@ Proyecto desarrollado para la asignatura de **Programación Web** de la **Univer
 
 Este es un ecommerce sencillo inspirado en Mercado Libre, desarrollado como trabajo práctico de la materia.
 
-### 👥 Equipo de desarrollo
+### Equipo de desarrollo
 
 **Estudiantes:**
 
