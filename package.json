@@ -13,7 +13,10 @@
   "type": "module",
   "main": "dist/app.js",
   "scripts": {
-    "dev": "concurrently \"npm:dev:tailwind\" \"npm:dev:server\"",
+    "forest": "concurrently \"npm:forest:tailwind\" \"npm:forest:server\"",
+    "forest:server": "tsx --watch src/app.ts",
+    "forest:tailwind": "tailwindcss -i ./src/views/styles.css -o ./dist/public/css/styles.css --watch",
+    "dev": "concurrently \"npm:forest:tailwind\" \"npm:forest:server\"",
     "dev:server": "tsx --watch src/app.ts",
     "dev:tailwind": "tailwindcss -i ./src/views/styles.css -o ./dist/public/css/styles.css --watch",
     "build:tailwind": "tailwindcss -i ./src/views/styles.css -o ./dist/public/css/styles.css --minify",
