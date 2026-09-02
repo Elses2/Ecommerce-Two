@@ -1,66 +1,34 @@
 import express from "express";
 import path from "path";
+import pagesRoutes from "./routes/pages.routes";
+import apiRoutes from "./routes/index.routes";
 import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
 
-// Truco para tener __dirname en ES Modules
+// Truquito con url para que funconen bien los path: re molesto, hay una forma mas moderna y corta de hacerlo pero lo dejo asi para mas claridad
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// ==========================================
-// CONFIGURACIÓN DE EJS Y LAYOUTS
-// ==========================================
-//app.use(expressLayouts);          despues decomentar
+// --- Configuración de vistas ---
 app.set("view engine", "ejs");
-// Le decimos que la carpeta de vistas es /src/views
 app.set("views", path.join(__dirname, "views"));
-// Por defecto, express-ejs-layouts buscará un archivo llamado 'layout.ejs' en la raíz de 'views'
-// app.set("layout", "layout");     despues descomentar
+app.use(express.static(path.join(__dirname, "../public")));
 
-// Carpeta de archivos estáticos (Acá irá el CSS compilado de Tailwind)
-app.use(express.static(path.join(__dirname, "../dist/public")));
+// --- Middlewares globales ---
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ==========================================
-// RUTAS (Sprint 1 - Sin Express Router por ahora)
-// ==========================================
+// Activamos el sistema de layouts
+app.use(expressLayouts);
+app.set("layout", "layout"); // busca views/layout.ejs por defecto
 
-// 🏠 Página de Inicio
-app.get("/", (req, res) => {
-  res.render("pages/index", { title: "Inicio" });
-});
+// --- Routers (acá usamos imports relativos, sin `path`) ---
+app.use("/", pagesRoutes); // Frontend: /, /products, /cart, /login, etc.
+app.use("/api", apiRoutes); // Backend: /api/products, /api/categories, etc.
 
-// 📦 Página de un producto en particular
-app.get("/products", (req, res) => {
-  res.render("pages/products", { title: "Producto" });
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
 
-// 🛒 Página del carrito (Esta es la que vas a probar ahora)
-app.get("/cart", (req, res) => {
-  res.render("pages/cart", { title: "Carrito de Compras" });
-});
-
-// 💵 Página de pago
-app.get("/checkout", (req, res) => {
-  res.render("pages/checkout", { title: "Pago" });
-});
-
-// ➕ Página de registro
-app.get("/register", (req, res) => {
-  res.render("pages/register", { title: "Crear Cuenta" });
-});
-
-// 🔑 Página de inicio de sesión
-app.get("/login", (req, res) => {
-  res.render("pages/login", { title: "Iniciar Sesión" });
-});
-
-// ==========================================
-// INICIAR SERVIDOR
-// ==========================================
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`🛒 Probá tu carrito en: http://localhost:${PORT}/cart`);
-});
+export default app;
