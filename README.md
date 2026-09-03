@@ -23,7 +23,7 @@ Este es un ecommerce sencillo inspirado en Mercado Libre, desarrollado como trab
 
 ### Landing Page
 
-![Landing Page](./images/landingPage.png)
+![Landing Page](./assets/images/landingPage.png)
 
 Diseños no propios, dados como recursos en la clase.
 
