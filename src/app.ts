@@ -1,10 +1,19 @@
+<<<<<<< HEAD
 import path from 'path';
 import express, { type Express } from 'express';
+=======
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import expressLayouts from "express-ejs-layouts";
+>>>>>>> eb46408ee8b57ac8e56d83bebde8e42b3e627c8e
 
-const PORT: number = 3000;
-const HOST: string = '0.0.0.0';
+// Truco para tener __dirname en ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const app: Express = express();
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Apuntamos 'views' directamente a 'src/views/pages'
 app.set('views', path.join(import.meta.dirname, 'views', 'pages'));
