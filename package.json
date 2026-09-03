@@ -15,10 +15,10 @@
   "scripts": {
     "forest": "concurrently \"npm:forest:tailwind\" \"npm:forest:server\"",
     "forest:server": "tsx --watch src/app.ts",
-    "forest:tailwind": "tailwindcss -i ./src/views/styles.css -o ./dist/public/css/styles.css --watch",
+    "forest:tailwind": "tailwindcss -i ./src/styles.css -o ./dist/public/css/styles.css --watch",
     "dev": "concurrently \"npm:forest:tailwind\" \"npm:forest:server\"",
     "dev:server": "tsx --watch src/app.ts",
-    "dev:tailwind": "tailwindcss -i ./src/views/styles.css -o ./dist/public/css/styles.css --watch",
+    "dev:tailwind": "tailwindcss -i ./src/styles.css -o ./dist/public/css/styles.css --watch",
     "build:tailwind": "tailwindcss -i ./src/views/styles.css -o ./dist/public/css/styles.css --minify",
     "build": "tsc && npm run build:tailwind && cpx \"src/views/**/*.ejs\" dist/views",
     "start": "node dist/app.js",

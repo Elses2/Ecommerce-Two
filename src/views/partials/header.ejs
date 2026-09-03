@@ -1,12 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Base EJS</title>
-</head>
-<body>
-    <header>
-        <div>
-            <h2>logo</h2>
-        </div>
-    </header>
+<header class="w-full border-b border-gray-200 bg-white">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
+
+    <!-- Logo -->
+    <a href="/" class="flex items-center shrink-0">
+      <span class="text-2xl font-extrabold text-gray-900">Mi</span>
+      <span class="text-2xl font-extrabold text-emerald-500">Ecommerce</span>
+    </a>
+
+    <!-- Buscador -->
+    <div class="flex-1 max-w-xl">
+      <form action="/buscar" method="GET" class="relative">
+        <input
+          type="text"
+          name="q"
+          placeholder="Buscar productos..."
+          class="w-full rounded-full border border-gray-300 bg-white py-2.5 pl-5 pr-11 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+        />
+        <button
+          type="submit"
+          aria-label="Buscar"
+          class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-2 text-gray-400 hover:text-gray-600"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0a7.5 7.5 0 10-10.6 0 7.5 7.5 0 0010.6 0z" />
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- Carrito + Usuario -->
+    <div class="flex items-center gap-4 shrink-0">
+
+      <!-- Carrito -->
+      <a href="/carrito" class="relative flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.836l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.981-4.706 2.57-7.234a1.125 1.125 0 00-1.11-1.331H5.106M7.5 14.25L5.106 5.272M6 21a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+        </svg>
+        <span class="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white"></span>
+      </a>
+
+      <!-- Usuario -->
+      <a href="/perfil" class="flex items-center gap-2">
+        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-sm font-medium text-white">
+          <%= (typeof usuario !== 'undefined' && usuario?.nombre) ? usuario.nombre.charAt(0).toUpperCase() : 'O' %>
+        </span>
+        <span class="text-sm font-semibold text-gray-900">
+          <%= (typeof usuario !== 'undefined' && usuario?.nombre) ? usuario.nombre : 'Olivia' %>
+        </span>
+      </a>
+
+    </div>
+
+  </div>
+</header>
