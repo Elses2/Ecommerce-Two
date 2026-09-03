@@ -14,8 +14,8 @@ const app = express();
 // --- Configuración de vistas ---
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(express.static(path.join(__dirname, "../public")));
-
+//  --- Aca tuve problemas para que me leyera el css de tailwinds no es lo ideal pero esto hace que devamos ejecutar desde el package.json ---
+app.use(express.static(path.join(process.cwd(), "dist/public")));
 // --- Middlewares globales ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
