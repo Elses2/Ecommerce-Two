@@ -1,7 +1,12 @@
+<<<<<<< HEAD
+import path from 'path';
+import express, { type Express } from 'express';
+=======
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
+>>>>>>> eb46408ee8b57ac8e56d83bebde8e42b3e627c8e
 
 // Truco para tener __dirname en ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -10,57 +15,69 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ==========================================
-// CONFIGURACIÓN DE EJS Y LAYOUTS
-// ==========================================
-//app.use(expressLayouts);          despues decomentar
-app.set("view engine", "ejs");
-// Le decimos que la carpeta de vistas es /src/views
-app.set("views", path.join(__dirname, "views"));
-// Por defecto, express-ejs-layouts buscará un archivo llamado 'layout.ejs' en la raíz de 'views'
-// app.set("layout", "layout");     despues descomentar
+// Apuntamos 'views' directamente a 'src/views/pages'
+app.set('views', path.join(import.meta.dirname, 'views', 'pages'));
+app.set('view engine', 'ejs');
 
-// Carpeta de archivos estáticos (Acá irá el CSS compilado de Tailwind)
-app.use(express.static(path.join(__dirname, "../dist/public")));
+// Middlewares
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// ==========================================
-// RUTAS (Sprint 1 - Sin Express Router por ahora)
-// ==========================================
+// Listado global de categorías
+const categories = [
+    { id: 'electronica', name: 'Electrónica', icon: '💻' },
+    { id: 'alimentos', name: 'Alimentos', icon: '🍎' },
+    { id: 'bebidas', name: 'Bebidas', icon: '🥤' },
+    { id: 'indumentaria', name: 'Indumentaria', icon: '👕' },
+    { id: 'juegos', name: 'Juegos', icon: '🎮' },
+    { id: 'automotor', name: 'Automotor', icon: '🚗' },
+    { id: 'hogar', name: 'Hogar', icon: '🏠' },
+    { id: 'otros', name: 'Otros', icon: '📦' },
+];
 
-// 🏠 Página de Inicio
-app.get("/", (req, res) => {
-  res.render("pages/index", { title: "Inicio" });
+// Listado de productos destacados (ProductHero)
+const heroProducts = [
+    {
+        id: 101,
+        title: 'Auriculares Premium Wireless',
+        description: 'Cancelación de ruido activa y batería de 30 horas.',
+        points: 15000,
+        imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'
+    },
+    {
+        id: 102,
+        title: 'Smartwatch Sport Edition',
+        description: 'Monitoreo de salud continuo y GPS integrado.',
+        points: 22000,
+        imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'
+    }
+];
+
+// Listado general de productos
+const products = [
+    { id: 1, title: 'Teclado Mecánico RGB', points: 4500, imageUrl: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&q=80' },
+    { id: 2, title: 'Mochila Urbana Impermeable', points: 3200, imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&q=80' },
+    { id: 3, title: 'Botella Térmica Stainless Steel', points: 1800, imageUrl: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&q=80' },
+    { id: 4, title: 'Silla Gamer Ergonómica', points: 38000, imageUrl: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400&q=80' }
+];
+
+// 1. Página de Inicio (ahora renderiza 'index')
+app.get('/', (req, res) => {
+    res.render('index', { categories, heroProducts, products });
 });
 
-// 📦 Página de un producto en particular
-app.get("/products", (req, res) => {
-  res.render("pages/products", { title: "Producto" });
+// 2. Página de Login
+app.get('/login', (req, res) => {
+    res.render('login');
 });
 
-// 🛒 Página del carrito (Esta es la que vas a probar ahora)
-app.get("/cart", (req, res) => {
-  res.render("pages/cart", { title: "Carrito de Compras" });
+// Procesar Login
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    console.log('Usuario:', username, 'Contraseña:', password);
+    res.redirect('/');
 });
 
-// 💵 Página de pago
-app.get("/checkout", (req, res) => {
-  res.render("pages/checkout", { title: "Pago" });
-});
-
-// ➕ Página de registro
-app.get("/register", (req, res) => {
-  res.render("pages/register", { title: "Crear Cuenta" });
-});
-
-// 🔑 Página de inicio de sesión
-app.get("/login", (req, res) => {
-  res.render("pages/login", { title: "Iniciar Sesión" });
-});
-
-// ==========================================
-// INICIAR SERVIDOR
-// ==========================================
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`🛒 Probá tu carrito en: http://localhost:${PORT}/cart`);
+app.listen(PORT, HOST, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
