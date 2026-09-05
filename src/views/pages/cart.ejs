@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carrito de compras | MiEcommerce</title>
-
-  <style>
+<style>
     :root {
       --color-teal: #1abc9c;
       --color-dark: #2d3436;
@@ -30,10 +23,6 @@
       font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--color-bg);
       color: var(--color-dark);
-    }
-
-    a {
-      color: inherit;
     }
 
     img {
@@ -78,141 +67,6 @@
     input:focus-visible {
       outline: var(--focus-ring);
       outline-offset: 2px;
-    }
-
-    /* ---------- Header ---------- */
-    .site-header {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      background: var(--color-white);
-      padding: 14px 32px;
-      border-bottom: 1px solid var(--color-border);
-    }
-
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;800;900&display=swap');
-
-.logo {
-  font-family: 'Poppins', sans-serif; /* Tipografía limpia y moderna similar a la imagen */
-  font-size: 24px;
-  white-space: nowrap;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-}
-
-.logo .logo-mi {
-  color: #00b386; /* Verde/turquesa principal */
-  font-weight: 800; /* Peso más marcado para "Mi" */
-}
-
-.logo .logo-ecommerce {
-  color: #12c295; /* Mismo tono o ligeramente más claro */
-  font-weight: 300; /* Peso ligero (light) para "Ecommerce" */
-  letter-spacing: -0.5px; /* Ajuste opcional para acercar las letras */
-}
-
-    .search-form {
-      flex: 1;
-      max-width: 640px;
-      margin: 0 auto;
-    }
-
-    .search-field {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .search-field input[type="search"] {
-      width: 100%;
-      padding: 10px 44px 10px 18px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--color-border);
-      font-size: 14px;
-      background: var(--color-white);
-    }
-
-    .search-field input[type="search"]::placeholder {
-      color: #a7adb1;
-    }
-
-    .search-field button {
-      position: absolute;
-      right: 6px;
-      background: none;
-      border: none;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--color-muted);
-      border-radius: 50%;
-    }
-
-    .search-field button:hover {
-      background: var(--color-bg);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      white-space: nowrap;
-    }
-
-    .cart-link {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--color-bg);
-      text-decoration: none;
-      color: var(--color-dark);
-    }
-
-    .cart-badge {
-      position: absolute;
-      top: 4px;
-      right: 5px;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #e74c3c;
-      border: 1.5px solid var(--color-white);
-    }
-
-    .user-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-      color: var(--color-dark);
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .user-avatar {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: var(--color-dark);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      overflow: hidden;
-    }
-
-    .user-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
     }
 
     /* ---------- Main ---------- */
@@ -467,92 +321,73 @@
       color: var(--color-muted);
     }
 
-    /* ---------- Footer ---------- */
-    .site-footer {
-      background: var(--color-bg);
-      border-top: 1px solid var(--color-border);
-      padding: 22px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .footer-social {
-      display: flex;
-      gap: 16px;
-    }
-
-    .footer-social a {
-      color: var(--color-muted);
-      display: flex;
-    }
-
-    .footer-social a:hover {
-      color: var(--color-dark);
-    }
-
-    .footer-copy {
-      font-size: 13px;
-      color: var(--color-muted);
-      margin: 0;
-    }
-
-    .footer-stores {
-      display: flex;
-      gap: 18px;
-    }
-
-    .footer-stores a {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: var(--color-muted);
-      text-decoration: none;
-    }
-
-    .footer-stores a:hover {
-      color: var(--color-dark);
-    }
-
     /* ---------- Responsive ---------- */
     @media (max-width: 640px) {
-      .site-header {
-        flex-wrap: wrap;
-        padding: 12px 16px;
-      }
-
-      .search-form {
-        order: 3;
-        max-width: 100%;
-        width: 100%;
-      }
-
       main {
         padding: 20px 16px 40px;
       }
 
+      .page-title {
+        font-size: 22px;
+        margin-bottom: 16px;
+      }
+
       .cart-item {
         flex-wrap: wrap;
+        padding: 12px 14px;
+        gap: 10px;
+      }
+
+      .item-thumb {
+        width: 44px;
+        height: 44px;
       }
 
       .item-name {
-        width: 100%;
-        order: -1;
+        flex: 1;
+        min-width: 0;
+        font-size: 14px;
       }
 
       .item-controls {
-        margin-left: auto;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-top: 8px;
+        border-top: 1px solid var(--color-border);
+      }
+
+      .btn-remove {
+        padding: 7px 14px;
+        font-size: 12px;
+      }
+
+      .stepper {
+        padding: 4px 8px;
+        gap: 6px;
+      }
+
+      .stepper button {
+        width: 28px;
+        height: 28px;
+        font-size: 18px;
+      }
+
+      .item-price {
+        width: auto;
+        font-size: 15px;
       }
 
       .cart-summary {
         align-items: stretch;
+        padding: 20px 16px;
       }
 
       .summary-row {
         justify-content: space-between;
+        width: 100%;
       }
 
       .discount-form {
@@ -563,15 +398,29 @@
 
       .discount-form input {
         width: 100%;
+        border-radius: var(--radius-pill);
+        padding: 10px 14px;
+      }
+
+      .discount-form button {
+        width: 100%;
+        margin-top: 6px;
+        padding: 10px;
       }
 
       .cart-actions {
         flex-direction: column-reverse;
+        gap: 10px;
       }
 
-      .site-footer {
-        flex-direction: column;
+      .cart-actions .btn {
+        width: 100%;
         text-align: center;
+        padding: 14px;
+      }
+
+      .empty-cart {
+        padding: 30px 16px;
       }
     }
 
@@ -581,48 +430,8 @@
       }
     }
   </style>
-</head>
-<body>
 
   <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
-
-  <!-- ====== Encabezado esto es algo que despues deberemos de reutilizar ====== -->
-  <header class="site-header">
-    <a class="logo" href="/" aria-label="MiEcommerce, ir al inicio">
-      <span class="logo-mi">Mi</span><span class="logo-ecommerce">Ecommerce</span>
-    </a>
-
-    <form class="search-form" role="search" action="/buscar" method="get">
-      <label for="search-input" class="sr-only">Buscar productos</label>
-      <div class="search-field">
-        <input type="search" id="search-input" name="q" placeholder="Buscar productos...">
-        <button type="submit" aria-label="Buscar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </button>
-      </div>
-    </form>
-
-    <div class="header-actions">
-      <a class="cart-link" href="/cart" aria-label="Ver carrito, <%= (typeof cartItems !== 'undefined' ? cartItems.length : 3) %> productos">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L22 8H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="9.5" cy="21" r="1.4" fill="currentColor"/>
-          <circle cx="18" cy="21" r="1.4" fill="currentColor"/>
-        </svg>
-        <span class="cart-badge" aria-hidden="true"></span>
-      </a>
-
-      <a class="user-link" href="/perfil">
-        <span class="user-avatar" aria-hidden="true">
-          <img src="/images/avatar-olivia.jpg" alt="">
-        </span>
-        <span><%= (typeof userName !== 'undefined' ? userName : 'Olivia') %></span>
-      </a>
-    </div>
-  </header>
 
   <!-- ====== Contenido principal ====== -->
   <main id="main-content">
@@ -696,31 +505,6 @@
       </div>
     <% } %>
   </main>
-
-  <!-- ====== Pie de página ====== -->
-  <footer class="site-footer">
-    <div class="footer-social">
-      <a href="https://twitter.com" aria-label="Twitter" target="_blank" rel="noopener noreferrer">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 4.9c-.8.4-1.7.6-2.6.8a4.5 4.5 0 0 0 2-2.5c-.9.5-1.8.9-2.9 1.1a4.5 4.5 0 0 0-7.7 4.1A12.8 12.8 0 0 1 2.4 3.9a4.5 4.5 0 0 0 1.4 6 4.4 4.4 0 0 1-2-.6v.1a4.5 4.5 0 0 0 3.6 4.4 4.5 4.5 0 0 1-2 .1 4.5 4.5 0 0 0 4.2 3.1A9 9 0 0 1 1 19.6a12.8 12.8 0 0 0 6.9 2c8.3 0 12.8-6.9 12.8-12.8v-.6c.9-.6 1.6-1.4 2.3-2.3z"/></svg>
-      </a>
-      <a href="https://facebook.com" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12z"/></svg>
-      </a>
-      <a href="https://instagram.com" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 2 .3 2.4.5.6.2 1 .5 1.5 1 .4.4.7.9 1 1.5.2.4.4 1.2.5 2.4.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 2-.5 2.4-.3.6-.6 1-1 1.5-.5.4-.9.7-1.5 1-.4.2-1.2.4-2.4.5-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-2-.3-2.4-.5-.6-.3-1-.6-1.5-1-.4-.5-.7-.9-1-1.5-.2-.4-.4-1.2-.5-2.4-.1-1.3-.1-1.7-.1-4.9s0-3.6.1-4.9c.1-1.2.3-2 .5-2.4.2-.6.6-1 1-1.5.5-.4.9-.7 1.5-1 .4-.2 1.2-.4 2.4-.5C8.4 2.2 8.8 2.2 12 2.2zm0 3.5a6.3 6.3 0 1 0 0 12.6 6.3 6.3 0 0 0 0-12.6zm0 10.4a4.1 4.1 0 1 1 0-8.2 4.1 4.1 0 0 1 0 8.2zm6.5-10.6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
-      </a>
-      <a href="https://youtube.com" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.6-.5-5.3c-.3-1-1-1.7-2-2C18.9 4.2 12 4.2 12 4.2s-6.9 0-8.5.5c-1 .3-1.7 1-2 2C1 8.4 1 12 1 12s0 3.6.5 5.3c.3 1 1 1.7 2 2 1.6.5 8.5.5 8.5.5s6.9 0 8.5-.5c1-.3 1.7-1 2-2 .5-1.7.5-5.3.5-5.3zM9.8 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
-      </a>
-    </div>
-
-    <p class="footer-copy">© MiEcommerce. Todos los derechos reservados.</p>
-
-    <div class="footer-stores">
-      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 1.4c.1 1.1-.3 2.1-.9 2.9-.7.8-1.7 1.4-2.7 1.3-.1-1 .3-2.1 1-2.8.7-.8 1.8-1.4 2.6-1.4zM19.9 17c-.3.7-.6 1.3-1 1.9-.6.9-1.2 2-2.2 2-1 0-1.2-.6-2.4-.6s-1.5.6-2.4.6c-1 0-1.7-1-2.3-1.9-1.5-2.2-2.6-6.1-1.1-8.8.7-1.3 2-2.2 3.4-2.2 1 0 1.9.7 2.4.7s1.6-.8 2.7-.7c.5 0 1.9.2 2.8 1.5-.1 0-1.7 1-1.7 2.9 0 2.3 2 3.1 2 3.1-.1.2-.3.9-1.2 1.5z"/></svg>App Store</a>
-      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.6c-.3.3-.5.7-.5 1.3v16.2c0 .6.2 1 .5 1.3l.1.1L13 12 3.7 2.5l-.1.1zM16 15l-2.6-2.6L3.7 22l12.3-7zM20 12l-3-1.7-2.7 2.7 2.7 2.7 3.1-1.8c.6-.4.6-1.5-.1-1.9zM13.4 11.6l2.6-2.6-12.3-7 9.7 9.6z"/></svg>Google Play</a>
-    </div>
-  </footer>
 
   <script>
     (function () {
@@ -803,5 +587,3 @@
       }
     })();
   </script>
-</body>
-</html>
