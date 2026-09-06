@@ -1,221 +1,151 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - MiEcommerce</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
+<style>
+  /* Contenido principal y tarjeta */
+  main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 40px;
+    flex-grow: 1;
+    padding: 20px;
+  }
 
-        body {
-            background-color: #f0f0f0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+  .login-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 380px;
+    padding: 40px 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    text-align: center;
+  }
 
-        /* Banner superior verde */
-        .top-banner {
-            background-color: #00b094;
-            height: 220px;
-            width: 100%;
-            position: absolute;
-            top: 60px;
-            left: 0;
-            z-index: 1;
-        }
+  .login-card h1 {
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: #1a1a1a;
+    margin-bottom: 28px;
+    text-align: left;
+    padding-left: 10px;
+  }
 
-        /* Header con el logo */
-        header {
-            background-color: #f0f0f0;
-            padding: 15px 40px;
-            position: relative;
-            z-index: 2;
-        }
+  .form-group {
+    margin-bottom: 16px;
+  }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #00b094;
-        }
+  /* Ocultar accesiblemente los label sin romper la estructura */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
 
-        .logo-bold {
-            color: #008771;
-        }
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+    padding: 12px 18px;
+    border: 1px solid #767676;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    outline: none;
+    color: #333;
+    background-color: transparent;
+  }
 
-        /* Contenido principal y tarjeta */
-        main {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-top: 40px;
-            flex-grow: 1;
-        }
+  input[type="text"]::placeholder,
+  input[type="password"]::placeholder {
+    color: #8e8e8e;
+  }
 
-        .login-card {
-            background: #ffffff;
-            width: 100%;
-            max-width: 380px;
-            padding: 40px 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            text-align: center;
-        }
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+    border-color: #00b094;
+  }
 
-        .login-card h1 {
-            font-size: 2.2rem;
-            font-weight: 400;
-            color: #1a1a1a;
-            margin-bottom: 28px;
-            text-align: left;
-            padding-left: 10px;
-        }
+  .btn-submit {
+    width: 100%;
+    padding: 12px;
+    background-color: #4a5356;
+    color: #ffffff;
+    border: none;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s ease;
+  }
 
-        .form-group {
-            margin-bottom: 16px;
-        }
+  .btn-submit:hover {
+    background-color: #383e41;
+  }
 
-        /* Ocultar accesiblemente los labels sin romper la estructura */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
+  /* Enlace de navegación */
+  nav {
+    margin-top: 25px;
+    font-size: 0.9rem;
+    color: #4a4a4a;
+  }
 
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px 18px;
-            border: 1px solid #767676;
-            border-radius: 25px;
-            font-size: 0.9rem;
-            outline: none;
-            color: #333;
-            background-color: transparent;
-        }
+  nav a {
+    color: #333333;
+    text-decoration: underline;
+    font-weight: 600;
+  }
 
-        input[type="text"]::placeholder,
-        input[type="password"]::placeholder {
-            color: #8e8e8e;
-        }
+  /* --- Mobile --- */
+  @media (max-width: 640px) {
+    main {
+      margin-top: 24px;
+      padding: 16px;
+    }
 
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            border-color: #00b094;
-        }
+    .login-card {
+      padding: 28px 20px;
+      border-radius: 16px;
+    }
 
-        .btn-submit {
-            width: 100%;
-            padding: 12px;
-            background-color: #4a5356;
-            color: #ffffff;
-            border: none;
-            border-radius: 25px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.2s ease;
-        }
+    .login-card h1 {
+      font-size: 1.7rem;
+      margin-bottom: 22px;
+    }
 
-        .btn-submit:hover {
-            background-color: #383e41;
-        }
+    input[type="text"],
+    input[type="password"] {
+      padding: 11px 16px;
+      font-size: 0.88rem;
+    }
 
-        /* Enlace de navegación */
-        nav {
-            margin-top: 25px;
-            font-size: 0.9rem;
-            color: #4a4a4a;
-        }
+    .btn-submit {
+      padding: 11px;
+      font-size: 0.9rem;
+    }
+  }
+</style>
 
-        nav a {
-            color: #333333;
-            text-decoration: underline;
-            font-weight: 600;
-        }
+<section class="login-card">
+  <h1>¡Hola!</h1>
 
-        /* Footer simulado según la imagen */
-        footer {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 50px;
-            font-size: 0.8rem;
-            color: #8e8e8e;
-            border-top: 1px solid #e5e5e5;
-            margin-top: 40px;
-        }
+  <form action="/login" method="POST">
+    <div class="form-group">
+      <label for="username" class="sr-only">Usuario:</label>
+      <input type="text" id="username" name="username" placeholder="Tu nombre de usuario" required autocomplete="username">
+    </div>
 
-        .social-icons, .app-stores {
-            display: flex;
-            gap: 15px;
-        }
-    </style>
-</head>
-<body>
+    <div class="form-group">
+      <label for="password" class="sr-only">Contraseña:</label>
+      <input type="password" id="password" name="password" placeholder="Tu contraseña" required autocomplete="current-password">
+    </div>
 
-    <header>
-        <div class="logo">Mi<span class="logo-bold">Ecommerce</span></div>
-    </header>
+    <button type="submit" class="btn-submit">Iniciar Sesión</button>
+  </form>
+</section>
 
-    <div class="top-banner"></div>
-
-    <main>
-        <section class="login-card">
-            <h1>¡Hola!</h1>
-
-            <form action="/login" method="POST">
-                <div class="form-group">
-                    <label for="username" class="sr-only">Usuario:</label>
-                    <input type="text" id="username" name="username" placeholder="Tu nombre de usuario" required autocomplete="username">
-                </div>
-
-                <div class="form-group">
-                    <label for="password" class="sr-only">Contraseña:</label>
-                    <input type="password" id="password" name="password" placeholder="Tu contraseña" required autocomplete="current-password">
-                </div>
-
-                <button type="submit" class="btn-submit">Iniciar Sesión</button>
-            </form>
-        </section>
-
-        <nav aria-label="Navegación secundaria">
-            <p><a href="/">Volver a la página de inicio</a></p>
-        </nav>
-    </main>
-
-    <footer>
-        <div class="social-icons">
-            <span>🐦</span>
-            <span>📘</span>
-            <span>📷</span>
-            <span>▶</span>
-        </div>
-        <div>
-            © MiEcommerce. Todos los derechos reservados.
-        </div>
-        <div class="app-stores">
-            <span>🍏 App Store</span>
-            <span>▶ Google Play</span>
-        </div>
-    </footer>
-
-</body>
-</html>
+<nav aria-label="Navegación secundaria">
+  <p><a href="/">Volver a la página de inicio</a></p>
+</nav>
