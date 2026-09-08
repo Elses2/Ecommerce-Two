@@ -49,7 +49,7 @@ export class CartService {
     const items: CartItemView[] = [];
     const kept: SessionCartItem[] = [];
     for (const entry of cart) {
-      const product = productService.getById(entry.productId);
+      const product = productService.findById(entry.productId);
       if (!product) continue;
       kept.push(entry);
       items.push({

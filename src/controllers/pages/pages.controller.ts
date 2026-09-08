@@ -3,6 +3,7 @@ import { categoryService } from "../../services/category.service.js";
 import { productService } from "../../services/product.service.js";
 import { promoService } from "../../services/promo.service.js";
 import { cartService } from "../../services/cart.service.js";
+import { normalizeId } from "../../utils/normalizeId.js";
 
 // Controller de páginas: consolida los handlers de vistas que antes vivían
 // en pages.routes (rutas finas: route → controller). Home según spec §4.1:
@@ -26,6 +27,38 @@ export const pagesController = {
     res.render("templates/pages/cart", {
       title: "Carrito de Compras",
       cart: cartService.getCartWithDetails(req.session),
+    });
+  },
+
+  // Detalle de producto (spec §6.8/Paso 8): id validado con el helper puro
+  // normalizeId (§6.9 — solo formato, 400 si no numérico) y existencia
+  // resuelta acá tras consultar el servicio (404 si no está). pages/400 y
+  // pages/404 llegan en el Paso 10; por ahora respuesta de texto plano.
+  // Relacionados: hasta 4 que comparten categoría, al azar si hay más (§6.8).
+  getProductDetail(req: Request, res: Response): void {
+    const rawId = req.params.id;
+    // @types/express 5 tipa params como string | string[] (con undefined bajo
+    // noUncheckedIndexedAccess) — cualquier forma rara cae en normalizeId,
+    // que devuelve null (→ 400) para lo que no sea entero > 0.
+    const raw = Array.isArray(rawId) ? (rawId[0] ?? "") : (rawId ?? "");
+    const id = normalizeId(raw);
+    if (id === null) {
+      res.status(400).send("ID inválido");
+      return;
+    }
+
+    const product = productService.findById(id);
+    if (!product) {
+      res.status(404).send("Producto no encontrado");
+      return;
+    }
+
+    const related = productService.getRelated(product.id, product.categories);
+
+    res.render("templates/pages/product-detail", {
+      title: product.name,
+      product,
+      related,
     });
   },
 };

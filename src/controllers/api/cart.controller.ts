@@ -23,7 +23,7 @@ export const cartController = {
     }
     // Existencia → 404 (§6.9) y stock → rechazo con mensaje (§6.10), ambos
     // ANTES de mutar la sesión.
-    const product = productService.getById(productId);
+    const product = productService.findById(productId);
     if (!product) {
       res.status(404).json({ error: "Product not found" });
       return;
