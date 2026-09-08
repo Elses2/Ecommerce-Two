@@ -1,1 +1,25 @@
-<!-- Placeholder organismo: header (Atomic Design, scaffold inicial; layout.ejs NO se toca) -->
+<%
+  // Organism: desktop header (spectsEccomerce/layouts/Header.png).
+  // Logo + search molecule + header-right molecule. Hidden below md; the
+  // mobile variant renders instead (visibility handled by CSS classes).
+%>
+<header class="hidden md:block">
+  <div class="mx-auto flex h-16 w-full max-w-screen-2xl items-center gap-6 px-4 md:px-6 lg:px-8">
+    <a
+      href="/"
+      class="shrink-0 text-2xl leading-none text-brand"
+      aria-label="MiEcommerce, ir a la página de inicio"
+    >
+      <span class="font-bold">Mi</span><span class="font-light">Ecommerce</span>
+    </a>
+
+    <div class="min-w-0 flex-1">
+      <%- include("../molecules/search", {
+        placeholder: "Buscar productos...",
+        value: typeof searchQuery === "string" ? searchQuery : "",
+      }) %>
+    </div>
+
+    <%- include("../molecules/header-right", { cartCount, userName }) %>
+  </div>
+</header>
