@@ -13,10 +13,10 @@
   >
     <% navCategories.forEach((category) => { %>
       <li class="min-w-[7.5rem] flex-1 shrink-0">
-        <a
-          href="/products?category=<%= category.id %>"
-          class="flex h-full flex-col items-center gap-1 px-4 py-3 transition-opacity hover:opacity-70"
-        >
+          <a
+            href="/categories/<%= category.id %>"
+            class="flex h-full flex-col items-center gap-1 px-4 py-3 transition-opacity hover:opacity-70"
+          >
           <span class="[&_svg]:h-6 [&_svg]:w-6" aria-hidden="true"><%- getCategoryIconSvg(category.name) %></span>
           <span class="text-sm"><%= category.name %></span>
         </a>

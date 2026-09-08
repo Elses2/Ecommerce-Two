@@ -8,7 +8,8 @@
   // Data arrives via locals — categories: Array<{ id, name, description? }> —
   // icons resolve through utils/category-icons.ts exposed in app.locals; the
   // generic `tag` icon covers unmapped names (spec §6.6b). Link targets mirror
-  // categories-nav's forward-compatible convention (/products?category=<id>).
+  // categories-nav's canonical category page (spec §4.6, /categories/:category)
+  // — live since Paso 11; the old /products?category= deferred target is gone.
   const dropdownCategories = Array.isArray(categories) ? categories : [];
 %>
 <nav aria-label="Categorías de productos" class="w-full max-w-xs">
@@ -16,7 +17,7 @@
     <% dropdownCategories.forEach((category) => { %>
       <li>
         <a
-          href="/products?category=<%= category.id %>"
+          href="/categories/<%= category.id %>"
           class="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/10"
         >
           <span class="[&_svg]:h-5 [&_svg]:w-5" aria-hidden="true"><%- getCategoryIconSvg(category.name) %></span>
