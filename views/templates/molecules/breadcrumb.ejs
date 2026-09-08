@@ -1,0 +1,25 @@
+<%
+  // Molecule: breadcrumb (spectsEccomerce/layouts/BreadCrumb.png, spec §3 —
+  // "← Volver al Listado > Category"; el mockup product.page.png confirma la
+  // variante de flecha: "← Volver al listado > Alimentos"). Data via locals —
+  // back: { href, label } opcional (link de retorno con flecha); items:
+  // { label, href? }[] separados por chevrones (item con href → link, sin
+  // href → texto plano de la ubicación actual). Sin datos hardcodeados:
+  // cada página arma su propio rastro (Paso 8 detalle, Paso 11 categoría).
+%>
+<nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-2 text-sm text-muted">
+  <% if (locals.back) { %>
+    <a
+      href="<%= back.href %>"
+      class="inline-flex items-center gap-2 font-medium text-ink transition-colors hover:text-brand"
+    >← <%= back.label %></a>
+  <% } %>
+  <% (locals.items ?? []).forEach((item) => { %>
+    <span aria-hidden="true">›</span>
+    <% if (item.href) { %>
+      <a href="<%= item.href %>" class="transition-colors hover:text-brand"><%= item.label %></a>
+    <% } else { %>
+      <span aria-current="page" class="text-ink"><%= item.label %></span>
+    <% } %>
+  <% }) %>
+</nav>
