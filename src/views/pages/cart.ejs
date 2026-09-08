@@ -14,15 +14,14 @@
       --focus-ring: 3px solid #1abc9c;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
       font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--color-bg);
       color: var(--color-dark);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
     img {
@@ -74,6 +73,8 @@
       max-width: 900px;
       margin: 0 auto;
       padding: 28px 24px 60px;
+      flex-grow: 1;
+      width: 100%;
     }
 
     .back-link {
