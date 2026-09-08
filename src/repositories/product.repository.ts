@@ -60,6 +60,22 @@ export class ProductRepository {
       )
       .all(productId) as unknown as Category[];
   }
+
+  // Candidatos a "relacionados" (spec §6.8/Paso 8): productos que comparten
+  // al menos una categoría con el producto dado, excluyéndolo. DISTINCT evita
+  // duplicados cuando comparten varias categorías; better-sqlite3 no acepta
+  // arrays, así que los placeholders del IN se generan por categoría.
+  findRelatedByCategories(categoryIds: number[], excludeProductId: number): Product[] {
+    const placeholders = categoryIds.map(() => "?").join(", ");
+    return this.database
+      .prepare(
+        `SELECT DISTINCT p.* FROM products p
+         JOIN product_categories pc ON pc.product_id = p.id
+         WHERE pc.category_id IN (${placeholders}) AND p.id <> ?
+         ORDER BY p.id`,
+      )
+      .all(...categoryIds, excludeProductId) as unknown as Product[];
+  }
 }
 
 export const productRepository = new ProductRepository();

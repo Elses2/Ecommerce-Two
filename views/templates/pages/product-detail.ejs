@@ -1,0 +1,78 @@
+<%
+  // Page: Detalle de producto (spectsEccomerce/pages/product.page.png, spec
+  // §4.3 tabla en orden exacto: header (layout) → breadcrumb → info principal
+  // → badge "Sin stock" → botón "Agregar al carrito" → productos relacionados
+  // → footer (layout). Data via locals from pagesController.getProductDetail —
+  // product: ProductView (imageUrl ya resuelta con fallback §2.3, inStock
+  // §6.10, categorías N:M); related: ProductView[] (hasta 4, §6.8). Sin datos
+  // hardcodeados. Precio con el mismo formato es-AR de la card de producto
+  // (valor bold + caption "PUNTOS" en pequeño, según el mockup). El botón
+  // lleva el contrato §5 (data-cart-action="add" + data-product-id) y el
+  // script de carrito se incluye al pie (igual que pages/cart.ejs) para que
+  // el alta funcione por AJAX desde esta página.
+  const firstCategory = product.categories[0];
+%>
+<div class="mx-auto w-full max-w-screen-2xl px-4 py-6 md:px-6 md:py-8 lg:px-8">
+  <%- include("../molecules/breadcrumb", {
+    back: { href: "/products", label: "Volver al listado" },
+    items: firstCategory
+      ? [{ label: firstCategory.name, href: `/products?category=${firstCategory.id}` }]
+      : [],
+  }) %>
+
+  <section
+    aria-label="<%= product.name %>"
+    class="mt-6 grid grid-cols-1 gap-6 md:mt-8 md:grid-cols-2 md:gap-8"
+  >
+    <img
+      src="<%= product.imageUrl %>"
+      alt="<%= product.name %>"
+      class="aspect-square w-full rounded-2xl object-cover shadow-sm"
+    />
+
+    <div class="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm md:p-8">
+      <h1 class="text-h3 font-bold text-ink md:text-h2"><%= product.name %></h1>
+
+      <p class="flex items-baseline gap-2">
+        <span class="text-h2 font-bold text-ink md:text-h1"><%= product.price.toLocaleString("es-AR") %></span>
+        <span class="text-xs text-muted">PUNTOS</span>
+      </p>
+
+      <% if (product.description) { %>
+        <p class="text-sm leading-relaxed text-ink/80"><%= product.description %></p>
+      <% } %>
+
+      <% if (product.categories.length > 0) { %>
+        <ul class="flex flex-wrap gap-2" aria-label="Categorías">
+          <% product.categories.forEach((category) => { %>
+            <li class="rounded-full bg-ink/5 px-3 py-1 text-xs font-medium text-muted"><%= category.name %></li>
+          <% }) %>
+        </ul>
+      <% } %>
+
+      <% if (!product.inStock) { %>
+        <span class="badge badge-out-of-stock">Sin stock</span>
+      <% } %>
+
+      <button
+        class="<%= product.inStock ? "btn-primary" : "btn-disabled" %> w-full"
+        data-cart-action="add"
+        data-product-id="<%= product.id %>"
+        <%= !product.inStock ? "disabled" : "" %>
+      >
+        Agregar al carrito
+      </button>
+    </div>
+  </section>
+
+  <% if (related.length > 0) { %>
+    <div class="mt-8 md:mt-12">
+      <%- include("../organisms/product-grid", { title: "Productos relacionados", products: related }) %>
+    </div>
+  <% } else { %>
+    <p class="mt-8 text-sm text-muted md:mt-12">No hay productos relacionados por ahora.</p>
+  <% } %>
+</div>
+
+<!-- Cart AJAX (spec §5/§6.4): public/ is served statically; the build copies public/** → dist/public -->
+<script src="/js/cart.js" defer></script>

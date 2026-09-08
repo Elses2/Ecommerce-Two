@@ -52,7 +52,7 @@ app.locals.getCategoryIconSvg = getCategoryIconSvg;
 app.set("views", [path.join(process.cwd(), "views"), path.join(__dirname, "views")]);
 
 // --- Middlewares cross-cutting (orden: ver design D6) ---
-app.use(injectCartCount); // expone cartCount a las vistas (0 hasta Paso 6)
+app.use(injectCartCount); // expone cartCount a las vistas (suma de cantidades en req.session.cart, §6.11)
 app.use(normalizeId); // valida :id numérico, 400 si no
 
 // --- Routers (acá usamos imports relativos, sin `path`) ---

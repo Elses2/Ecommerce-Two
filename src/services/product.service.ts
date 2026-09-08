@@ -35,7 +35,10 @@ export class ProductService {
     return this.repository.list().map((p) => this.withDerivedAttrs(p));
   }
 
-  getById(id: number): ProductView | null {
+  // Detalle de producto (spec §6.8/Paso 8): el spec nombra a este método
+  // findById — ProductView completo (imageUrl con fallback §2.3, inStock
+  // §6.10, categorías N:M). null → el controller responde 404.
+  findById(id: number): ProductView | null {
     const product = this.repository.findById(id);
     return product ? this.withDerivedAttrs(product) : null;
   }
@@ -59,6 +62,31 @@ export class ProductService {
   getMostOrdered(limit = 10): ProductView[] {
     return this.repository.listRandom(limit).map((p) => this.withDerivedAttrs(p));
   }
+
+  // Productos relacionados (spec §6.8/Paso 8): comparten al menos una
+  // categoría con el producto dado, excluyéndolo; hasta `limit` resultados y,
+  // si hay más candidatos, se eligen al azar. La selección aleatoria vive acá
+  // (Fisher-Yates — el sort(() => Math.random() - 0.5) del pseudo-código del
+  // spec es un barajado sesgado); el SQL queda en el repository. Cada related
+  // sale como ProductView completo (fallback de imagen §2.3 + inStock §6.10).
+  getRelated(productId: number, categories: Category[], limit = 4): ProductView[] {
+    const categoryIds = categories.map((category) => category.id);
+    if (categoryIds.length === 0) return [];
+    const candidates = this.repository.findRelatedByCategories(categoryIds, productId);
+    return shuffle(candidates)
+      .slice(0, limit)
+      .map((p) => this.withDerivedAttrs(p));
+  }
+}
+
+// Barajado Fisher-Yates: uniforme y sin mutar el arreglo original.
+function shuffle<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j]!, copy[i]!];
+  }
+  return copy;
 }
 
 // withImageFallback (spec §2.3): producto de entrada → producto con image_url
