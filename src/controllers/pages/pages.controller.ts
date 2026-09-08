@@ -63,4 +63,47 @@ export const pagesController = {
       related,
     });
   },
+
+  // Categoría (spec §4.6/Paso 11): listado de productos por categoría. La
+  // validación replica getProductDetail (§6.9): id no numérico → 400 texto
+  // plano (§6.1/§6.2 solo definen páginas para 404/500); id numérico pero
+  // inexistente → 404 con la página 404 del árbol atómico (misma decisión de
+  // Paso 8/Paso 10 para el detalle de producto). Productos N:M con atributos
+  // derivados ya resueltos por productService.findByCategory (Paso 1).
+  getCategory(req: Request, res: Response): void {
+    const rawId = req.params.categoryId;
+    // @types/express 5 tipa params como string | string[] — misma defensa que
+    // getProductDetail: cualquier forma rara cae en normalizeId (null → 400).
+    const raw = Array.isArray(rawId) ? (rawId[0] ?? "") : (rawId ?? "");
+    const categoryId = normalizeId(raw);
+    if (categoryId === null) {
+      res.status(400).send("ID inválido");
+      return;
+    }
+
+    const category = categoryService.findById(categoryId);
+    if (!category) {
+      res.status(404).render("templates/pages/404", { title: "Página no encontrada" });
+      return;
+    }
+
+    const products = productService.findByCategory(categoryId);
+
+    res.render("templates/pages/category", {
+      title: category.name,
+      categoryName: category.name,
+      products,
+    });
+  },
+
+  // Checkout placeholder (spec §6.5/Paso 11): vista estática sin lógica —
+  // "Nada de lógica de negocio ni de sesión acá — es un placeholder
+  // deliberado". El message viaja como local desde acá, tal como el
+  // pseudo-código de §6.5.
+  getCheckout(_req: Request, res: Response): void {
+    res.render("templates/pages/checkout", {
+      title: "Checkout",
+      message: "Checkout disponible en el próximo sprint",
+    });
+  },
 };

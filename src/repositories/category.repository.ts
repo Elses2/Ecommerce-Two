@@ -13,6 +13,16 @@ export class CategoryRepository {
       .prepare("SELECT * FROM categories ORDER BY id")
       .all() as unknown as Category[];
   }
+
+  // Búsqueda por id (spec §4.6/Paso 11): el listado de categoría necesita la
+  // fila para título/breadcrumb. undefined sigue la semántica de .get() de
+  // better-sqlite3 — misma convención que ProductRepository.findById; el
+  // service la mapea a null (contrato de productService.findById).
+  findById(id: number): Category | undefined {
+    return this.database
+      .prepare("SELECT * FROM categories WHERE id = ?")
+      .get(id) as unknown as Category | undefined;
+  }
 }
 
 export const categoryRepository = new CategoryRepository();
