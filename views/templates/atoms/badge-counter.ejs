@@ -1,1 +1,11 @@
-<!-- Placeholder atómico: badge-counter (Atomic Design, scaffold inicial; rebuild de vistas diferido a Paso 6+) -->
+<%
+  // Atom: numeric cart badge (spectsEccomerce/layouts/Cart/Badge.svg).
+  // Red pill with a white digit; purely visual, the accessible name lives on
+  // the parent control. Renders only the value received via include locals.
+  const badgeCount = typeof count === "number" && count >= 0 ? count : 0;
+%>
+<span
+  data-cart-count="<%= badgeCount %>"
+  aria-hidden="true"
+  class="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-alert px-1 text-[10px] font-semibold leading-none text-white shadow-sm"
+><%= badgeCount %></span>

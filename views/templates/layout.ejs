@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= locals.title ?? "MiEcommerce" %></title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="flex min-h-screen flex-col bg-white font-sans text-ink antialiased">
+  <%
+    // Shell defaults: cartCount comes from injectCartCount (res.locals);
+    // userName stays a mockup placeholder until the session step lands.
+    // Desktop and mobile variants are both rendered here; Tailwind
+    // visibility classes (hidden md:block / md:hidden) pick the active one.
+    const shellCartCount = typeof locals.cartCount === "number" ? locals.cartCount : 0;
+    const shellUserName = typeof locals.userName === "string" ? locals.userName : "Olivia";
+  %>
+  <%- include("organisms/header", { cartCount: shellCartCount, userName: shellUserName }) %>
+  <%- include("organisms/header-mobile", { cartCount: shellCartCount, userName: shellUserName }) %>
+
+  <main class="flex-grow">
+    <%- body %>
+  </main>
+
+  <%- include("organisms/footer") %>
+  <%- include("organisms/footer-mobile") %>
+</body>
+</html>

@@ -1,1 +1,20 @@
-<!-- Placeholder atómico: profile-pic (Atomic Design, scaffold inicial; rebuild de vistas diferido a Paso 6+) -->
+<%
+  // Atom: circular user picture (spectsEccomerce/layouts/ProfilePic.png).
+  // Photo when `src` is provided, initial-letter fallback otherwise.
+  // All data arrives via include locals; no real data lives here.
+  const picSrc = typeof src === "string" && src ? src : "";
+  const picName = typeof name === "string" && name.trim() ? name.trim() : "";
+  const picAlt = typeof alt === "string" && alt ? alt : picName;
+%>
+<% if (picSrc) { %>
+  <img
+    src="<%= picSrc %>"
+    alt="<%= picAlt %>"
+    class="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white"
+  />
+<% } else { %>
+  <span
+    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-graphite text-xs font-semibold text-white ring-2 ring-white"
+    aria-hidden="true"
+  ><%= picName.charAt(0).toUpperCase() %></span>
+<% } %>

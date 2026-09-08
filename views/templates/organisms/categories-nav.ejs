@@ -1,0 +1,26 @@
+<%
+  // Organism: horizontal categories bar with icon (spectsEccomerce/layouts/
+  // Categories.png, spec §6.6b). Dark strip: Lucide icon + name per category,
+  // thin dividers between items. Scrollable row on mobile, distributed across
+  // the bar on desktop. Data arrives via locals — categories: Array<{ id, name,
+  // description? }> — icons resolve through utils/category-icons.ts exposed in
+  // app.locals; unmapped names take the generic `tag` icon (spec §6.6b).
+  const navCategories = Array.isArray(categories) ? categories : [];
+%>
+<nav aria-label="Categorías de productos" class="mx-auto w-full max-w-screen-2xl px-4 md:px-6 lg:px-8">
+  <ul
+    class="flex items-stretch divide-x divide-white/70 overflow-x-auto rounded-xl bg-ink text-white"
+  >
+    <% navCategories.forEach((category) => { %>
+      <li class="min-w-[7.5rem] flex-1 shrink-0">
+        <a
+          href="/products?category=<%= category.id %>"
+          class="flex h-full flex-col items-center gap-1 px-4 py-3 transition-opacity hover:opacity-70"
+        >
+          <span class="[&_svg]:h-6 [&_svg]:w-6" aria-hidden="true"><%- getCategoryIconSvg(category.name) %></span>
+          <span class="text-sm"><%= category.name %></span>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+</nav>

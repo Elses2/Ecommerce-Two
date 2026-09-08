@@ -5,8 +5,9 @@ import type { ProductView } from "../dtos/product.dto.js";
 import type { Category } from "../models/category.model.js";
 import type { Product } from "../models/product.model.js";
 
-// Fallback de imagen (spec §2.3): local mientras Cloudinary no esté configurado;
-// una vez configurado, el fallback vive en la carpeta de Cloudinary (D7)
+// Fallback de imagen (spec §2.3): mientras Cloudinary no esté configurado se
+// sirve la estática local /img/fallback.png (alternativa permitida por §2.2);
+// una vez configurado, el fallback vive en la nube de la cuenta (D7)
 function fallbackImageUrl(): string {
   if (isCloudinaryConfigured) {
     const { cloudName, folder } = env.cloudinary;
@@ -21,11 +22,12 @@ export class ProductService {
   constructor(private repository: ProductRepository = productRepository) {}
 
   private withDerivedAttrs(product: Product): ProductView {
+    const resolved = withImageFallback(product);
     return {
-      ...product,
-      categories: this.repository.findCategoriesByProduct(product.id),
-      inStock: product.stock > 0,
-      imageUrl: withImageFallback(product.image_url),
+      ...resolved,
+      categories: this.repository.findCategoriesByProduct(resolved.id),
+      inStock: resolved.stock > 0,
+      imageUrl: resolved.image_url,
     };
   }
 
@@ -47,10 +49,15 @@ export class ProductService {
   }
 }
 
-// withImageFallback (spec §2.3): en TODO lugar donde se resuelve la imagen del producto
-export function withImageFallback(imageUrl: string | null): string {
-  const set = imageUrl !== null && imageUrl.trim() !== "";
-  return set ? (imageUrl as string) : fallbackImageUrl();
+// withImageFallback (spec §2.3): producto de entrada → producto con image_url
+// resuelta. Se aplica en TODO lugar donde se devuelven productos a una vista
+// (home, listado, detalle, relacionados, sugeridos). El fallback se resuelve
+// con fallbackImageUrl() — la URL de nube solo si hay credenciales reales.
+export function withImageFallback(product: Product): Product & { image_url: string } {
+  return {
+    ...product,
+    image_url: product.image_url?.trim() ? product.image_url : fallbackImageUrl(),
+  };
 }
 
 export const productService = new ProductService();

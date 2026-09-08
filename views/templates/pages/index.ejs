@@ -1,0 +1,8 @@
+<%
+  // Page: Home (spectsEccomerce/pages/home1.page.png, spec §4.1). Atomic-tree
+  // shell; only block 2 (categories nav, top) is assembled so far — the rest
+  // of the Home blocks (banners, grids, bottom nav) land with Paso 5. Data:
+  // categories from categoryService.findAll() via pages routes; the layout
+  // supplies header/footer and cartCount.
+%>
+<%- include("../organisms/categories-nav", { categories }) %>

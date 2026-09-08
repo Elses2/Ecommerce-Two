@@ -1,1 +1,44 @@
 @import "tailwindcss";
+
+/*
+ * Design tokens extracted from the mockups (spectsEccomerce/layouts/):
+ * - brand   #0cb093 → green CTA/logo (Button.png, Header.png)
+ * - graphite #494f51 → dark gray buttons, header-right pill, mobile bar (Button.png, Header-Right.png)
+ * - ink     #333333 → charcoal text (H1.png)
+ * - muted   #999999 → footer icons and secondary text (Footer.png)
+ * - alert   #ff0000 → cart badge (Cart/Badge.svg)
+ *
+ * `static` keeps every token in the compiled CSS even before pages start
+ * using the text-h1/h2/h3 utilities (Tailwind v4 prunes unused tokens).
+ */
+@theme static {
+  --color-brand: #0cb093;
+  --color-graphite: #494f51;
+  --color-ink: #333333;
+  --color-muted: #999999;
+  --color-alert: #ff0000;
+
+  /* Typographic scale from H1.png / H2.png / H3.png (regular weight, ink color) */
+  --text-h1: 2.5rem;
+  --text-h1--line-height: 1.15;
+  --text-h2: 2rem;
+  --text-h2--line-height: 1.2;
+  --text-h3: 1.5rem;
+  --text-h3--line-height: 1.25;
+}
+
+@layer components {
+  /* Button.png variants: primary (green fill), secondary (graphite fill),
+     disabled (outlined, muted — no affordance, not clickable). */
+  .btn-primary {
+    @apply inline-flex h-10 cursor-pointer items-center justify-center rounded-full bg-brand px-6 text-sm font-medium text-white transition-colors hover:bg-brand/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
+  }
+
+  .btn-secondary {
+    @apply inline-flex h-10 cursor-pointer items-center justify-center rounded-full bg-graphite px-6 text-sm font-medium text-white transition-colors hover:bg-graphite/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-graphite;
+  }
+
+  .btn-disabled {
+    @apply inline-flex h-10 cursor-not-allowed items-center justify-center rounded-full border border-muted/60 bg-transparent px-6 text-sm font-medium text-muted/70;
+  }
+}
