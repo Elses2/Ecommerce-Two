@@ -21,7 +21,7 @@
     "dev:tailwind": "tailwindcss -i ./src/styles.css -o ./dist/public/css/styles.css --watch",
     "build:tailwind": "tailwindcss -i ./src/styles.css -o ./dist/public/css/styles.css --minify",
     "seed": "tsx scripts/seed.ts",
-    "build": "tsc && npm run build:tailwind && cpx \"src/views/**/*.ejs\" dist/views",
+    "build": "tsc && npm run build:tailwind && cpx \"src/views/**/*.ejs\" dist/views && cpx \"public/**/*\" dist/public",
     "start": "node dist/app.js",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

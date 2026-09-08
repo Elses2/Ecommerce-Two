@@ -2,9 +2,9 @@ import type { NextFunction, Request, Response } from "express";
 
 // normalizeId: valida que el :id del request sea numérico; rechaza con 400 lo contrario.
 // Cuando se monta globalmente (antes de los routers), Express aún no pobló
-// req.params: como fallback se interpreta el segmento de id de rutas
-// tipo /recurso/:id para poder rechazar valores no numéricos igualmente.
-const ID_PATH_PATTERN = /^\/(?:api\/)?[a-z]+\/([^/]+)$/;
+// req.params: como fallback se interpreta el segmento de id de rutas API
+// tipo /api/recurso/:id para poder rechazar valores no numéricos igualmente.
+const ID_PATH_PATTERN = /^\/api\/[a-z]+\/([^/]+)$/;
 
 export function normalizeId(req: Request, res: Response, next: NextFunction): void {
   // @types/express 5 tipa params/path como string | string[]
