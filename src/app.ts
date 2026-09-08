@@ -8,6 +8,7 @@ import { injectCartCount } from "./middlewares/injectCartCount.middleware.js";
 import { normalizeId } from "./middlewares/normalizeId.middleware.js";
 import { errorHandler } from "./middlewares/error-handler.middleware.js";
 import { productService } from "./services/product.service.js";
+import { getCategoryIconSvg } from "./utils/category-icons.js";
 
 // Truquito con url para que funconen bien los path: re molesto, hay una forma mas moderna y corta de hacerlo pero lo dejo asi para mas claridad
 const __filename = fileURLToPath(import.meta.url);
@@ -27,6 +28,9 @@ app.use(express.urlencoded({ extended: true }));
 // Activamos el sistema de layouts
 app.use(expressLayouts);
 app.set("layout", "templates/layout"); // layout atómico: header + slot + footer
+// Helper de vista (spec §6.6b): nombre de categoría → SVG de Lucide, disponible
+// para todos los templates (organisms/categories-nav.ejs lo consume)
+app.locals.getCategoryIconSvg = getCategoryIconSvg;
 // Primer root: árbol atómico nuevo (views/templates). Segundo: páginas heredadas
 // (src/views/pages) mientras se migran al nuevo árbol en pasos siguientes.
 app.set("views", [path.join(process.cwd(), "views"), path.join(__dirname, "views")]);

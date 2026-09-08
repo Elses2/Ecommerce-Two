@@ -1,8 +1,14 @@
 import { Router } from "express";
+import { categoryService } from "../services/category.service.js";
 
 const router = Router();
 
-router.get("/", (req, res) => res.render("pages/index", { title: "Inicio" }));
+router.get("/", (req, res) =>
+  res.render("templates/pages/index", {
+    title: "Inicio",
+    categories: categoryService.findAll(), // spec §4.1 bloque 2 / §6.6b
+  }),
+);
 router.get("/products", (req, res) =>
   res.render("pages/products", { title: "Producto" }),
 );
