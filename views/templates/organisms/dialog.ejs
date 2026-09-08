@@ -1,0 +1,62 @@
+<%
+  // Organism: generic modal (spectsEccomerce/layouts/Dialog.png, spec §3 row
+  // "Dialog.png" — "sin uso en el alcance actual — queda listo para futuro
+  // (ej. confirmar 'vaciar carrito')", checklist Paso 13). Dark backdrop over
+  // the viewport, white rounded card, bold title, rich-text body area, and an
+  // action row aligned right: secondary button LEFT of primary button, per
+  // mockup. Both buttons reuse the .btn-secondary/.btn-primary classes
+  // (styles.css @layer components).
+  //
+  // Static markup only — open/close, focus trap and submit behavior are
+  // future JS. Per the mockup, the body copy mixes plain and enriched text
+  // across multiple lines, so the body arrives as a raw-HTML slot.
+  //
+  // Locals contract:
+  // - title (required): dialog title text
+  // - body: raw HTML string for the card body (rendered unescaped on purpose
+  //   — slot pattern. Callers compose it from trusted markup; EJS include
+  //   params are the project-wide pattern for partial composition, so the
+  //   slot travels the same path as every other local)
+  // - dialogId?: id prefix for aria wiring (defaults to "dialog")
+  // - secondaryLabel?/secondaryHref?: secondary action (.btn-secondary);
+  //   renders <a> when href is provided, <button type="button"> otherwise
+  // - primaryLabel?/primaryHref?: primary action (.btn-primary); same rule
+  const dialogTitle = typeof locals.title === "string" ? locals.title : "";
+  const dialogBody = typeof locals.body === "string" ? locals.body : "";
+  const dialogId = typeof locals.dialogId === "string" && locals.dialogId ? locals.dialogId : "dialog";
+  const secondaryLabel = typeof locals.secondaryLabel === "string" ? locals.secondaryLabel : "";
+  const secondaryHref = typeof locals.secondaryHref === "string" && locals.secondaryHref ? locals.secondaryHref : "";
+  const primaryLabel = typeof locals.primaryLabel === "string" ? locals.primaryLabel : "";
+  const primaryHref = typeof locals.primaryHref === "string" && locals.primaryHref ? locals.primaryHref : "";
+%>
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="<%= dialogId %>-title"
+>
+  <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+    <h2 id="<%= dialogId %>-title" class="text-h3 font-semibold text-ink"><%= dialogTitle %></h2>
+    <% if (dialogBody) { %>
+      <div class="mt-2 text-sm leading-relaxed text-graphite"><%- dialogBody %></div>
+    <% } %>
+    <% if (secondaryLabel || primaryLabel) { %>
+      <div class="mt-6 flex items-center justify-end gap-3">
+        <% if (secondaryLabel) { %>
+          <% if (secondaryHref) { %>
+            <a href="<%= secondaryHref %>" class="btn-secondary"><%= secondaryLabel %></a>
+          <% } else { %>
+            <button type="button" class="btn-secondary"><%= secondaryLabel %></button>
+          <% } %>
+        <% } %>
+        <% if (primaryLabel) { %>
+          <% if (primaryHref) { %>
+            <a href="<%= primaryHref %>" class="btn-primary"><%= primaryLabel %></a>
+          <% } else { %>
+            <button type="button" class="btn-primary"><%= primaryLabel %></button>
+          <% } %>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+</div>
