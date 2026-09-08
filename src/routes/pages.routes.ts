@@ -5,9 +5,12 @@ const router = Router();
 
 // Ruta fina (spec Paso 5): la lógica de ensamblado de datos vive en el controller
 router.get("/", pagesController.getHome);
-router.get("/products", (req, res) =>
-  res.render("pages/products", { title: "Producto" }),
-);
+// Productos con orden por precio (spec §6.12/Paso 12): el render inline legacy
+// se reemplaza por el controller del árbol atómico — una sola ruta /products.
+router.get("/products", pagesController.getProducts);
+// Buscador (spec §6.13/Paso 12): server-rendered, hermana de /products —
+// molecules/search.ejs ya apunta acá (GET, input name="query").
+router.get("/search", pagesController.searchProducts);
 // Detalle de producto (spec §6.8/Paso 8): va después de /products — el match
 // exacto de /products no se ve afectado y :id solo captura el segmento extra.
 router.get("/products/:id", pagesController.getProductDetail);
