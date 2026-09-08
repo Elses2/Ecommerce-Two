@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
-import pagesRoutes from "./routes/pages.routes";
-import apiRoutes from "./routes/index.routes";
+import pagesRoutes from "./routes/pages.routes.js";
+import apiRoutes from "./routes/index.routes.js";
 import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
 
