@@ -41,4 +41,14 @@
   .btn-disabled {
     @apply inline-flex h-10 cursor-not-allowed items-center justify-center rounded-full border border-muted/60 bg-transparent px-6 text-sm font-medium text-muted/70;
   }
+
+  /* Badge base + "Sin stock" indicator (spec §6.10) on molecules/product.ejs.
+     Style unspecified in the spec — uses the existing alert token. */
+  .badge {
+    @apply inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-medium;
+  }
+
+  .badge-out-of-stock {
+    @apply bg-alert/10 text-alert;
+  }
 }
