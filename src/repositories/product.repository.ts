@@ -14,6 +14,17 @@ export class ProductRepository {
       .all() as unknown as Product[];
   }
 
+  // Listado ordenado por precio (spec §6.12/Paso 12): el controller normaliza
+  // sort a "asc" | "desc" (whitelist) — acá el ternario fija ASC como default
+  // y JAMÁS interpola input crudo del usuario en el SQL. Queda separado de
+  // list() porque Home (sugeridos/más pedidos) necesita el orden estable por id.
+  findAll(sort?: "asc" | "desc"): Product[] {
+    const order = sort === "desc" ? "DESC" : "ASC";
+    return this.database
+      .prepare(`SELECT * FROM products ORDER BY price ${order}`)
+      .all() as unknown as Product[];
+  }
+
   findById(id: number): Product | undefined {
     return this.database
       .prepare("SELECT * FROM products WHERE id = ?")
@@ -28,6 +39,15 @@ export class ProductRepository {
         "SELECT * FROM products WHERE name LIKE ? OR description LIKE ? ORDER BY id",
       )
       .all(pattern, pattern) as unknown as Product[];
+  }
+
+  // Buscador server-rendered (spec §6.13/Paso 12): LIKE solo por name — el
+  // patrón %query% viaja como parámetro (placeholder ?), nunca concatenado
+  // al SQL.
+  searchByName(query: string): Product[] {
+    return this.database
+      .prepare("SELECT * FROM products WHERE name LIKE ?")
+      .all(`%${query}%`) as unknown as Product[];
   }
 
   // Selección aleatoria (spec §6.7, fallback sin flag is_featured — la tabla

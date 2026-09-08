@@ -1,0 +1,27 @@
+<%
+  // Page: Todos los productos (Paso 12, spec §6.12 — sin mockup propio, mismo
+  // lenguaje visual que el resto): breadcrumb "Inicio > Productos", H1 y el
+  // grid reutilizado (mismo organism que Home/Categoría/Relacionados).
+  // Server-rendered, NO AJAX: el orden viaja por query string (?sort=asc|desc)
+  // y el controller lo normaliza con whitelist (cualquier otra cosa → "asc").
+  // §6.12 no define un control de orden en la página, solo el parámetro — así
+  // que no se agrega UI de sort (decisión documentada en el reporte). Data via
+  // locals — products: ProductView[] (fallback/derived attrs ya resueltos por
+  // el service). Elección documentada: product-grid NO maneja estado vacío (el
+  // patrón del proyecto lo deja en la página, igual que categoría §4.6).
+%>
+<div class="mx-auto w-full max-w-screen-2xl px-4 py-6 md:px-6 md:py-8 lg:px-8">
+  <%- include("../molecules/breadcrumb", {
+    items: [{ label: "Inicio", href: "/" }, { label: "Productos" }],
+  }) %>
+
+  <h1 class="mt-6 text-h1 font-bold text-ink md:mt-8">Todos los Productos</h1>
+
+  <% if (products.length > 0) { %>
+    <div class="mt-6 md:mt-8">
+      <%- include("../organisms/product-grid", { title: "Productos", products }) %>
+    </div>
+  <% } else { %>
+    <p class="mt-8 text-sm text-muted">No hay productos disponibles por ahora.</p>
+  <% } %>
+</div>
