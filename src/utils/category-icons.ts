@@ -17,9 +17,9 @@ export const CATEGORY_ICONS: Record<string, string> = {
   "Automotor": "car",
   "Hogar": "home",
   // Spec §6.6b says "gift-box", but lucide-static@1.42.0 ships no such icon
-  // (verified: icons/gift-box.svg does not exist, icons/gift.svg does) —
-  // resolved to the closest real icon instead of inventing a file name.
-  "Otros": "gift",
+  // (verified: icons/gift-box.svg does not exist). Maintainer override: use
+  // "package" for "Otros" (icons/package.svg exists, verified).
+  "Otros": "package",
 };
 
 // Generic icon for any category name not present in the mapping (spec §6.6b).
