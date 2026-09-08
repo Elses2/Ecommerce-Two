@@ -1,0 +1,15 @@
+<%
+  // Page: Checkout placeholder (spec §4.6 + §6.5/Paso 11 — sin mockup propio).
+  // "Vista simple centrada": card estilo 404/login, título, mensaje del spec y
+  // dos botones (volver al carrito / volver al inicio). No es AJAX, sin
+  // lógica de negocio ni de sesión — placeholder deliberado del §6.5. El
+  // mensaje llega como local `message` desde pagesController.getCheckout.
+%>
+<section class="flex min-h-[60vh] items-center justify-center px-4 py-16">
+  <div class="flex w-full max-w-sm flex-col items-center rounded-2xl bg-white p-6 text-center shadow-md md:p-8">
+    <h2 class="text-h2 text-ink">Checkout</h2>
+    <p class="mt-3 text-muted"><%= message %></p>
+    <a href="/cart" class="btn-primary mt-6">Volver al carrito</a>
+    <a href="/" class="btn-secondary mt-3">Volver al inicio</a>
+  </div>
+</section>

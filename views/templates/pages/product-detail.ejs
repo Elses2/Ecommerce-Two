@@ -16,7 +16,7 @@
   <%- include("../molecules/breadcrumb", {
     back: { href: "/products", label: "Volver al listado" },
     items: firstCategory
-      ? [{ label: firstCategory.name, href: `/products?category=${firstCategory.id}` }]
+      ? [{ label: firstCategory.name, href: `/categories/${firstCategory.id}` }]
       : [],
   }) %>
 
