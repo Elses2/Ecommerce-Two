@@ -15,11 +15,14 @@ router.get("/cart", pagesController.getCart); // render inicial (spec §6.4), mu
 router.get("/checkout", (req, res) =>
   res.render("pages/checkout", { title: "Pago" }),
 );
+// Login/Register (spec §4.4/§4.5, Paso 9): atomic templates from the new tree
+// (multi-root views, cwd root first). Legacy src/views/pages/*.ejs stay as
+// dead code — deletion is deferred to a later cleanup.
 router.get("/register", (req, res) =>
-  res.render("pages/register", { title: "Crear Cuenta" }),
+  res.render("templates/pages/register", { title: "Crear Cuenta" }),
 );
 router.get("/login", (req, res) =>
-  res.render("pages/login", { title: "Iniciar Sesión" }),
+  res.render("templates/pages/login", { title: "Iniciar Sesión" }),
 );
 
 export default router;
