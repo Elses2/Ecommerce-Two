@@ -1,0 +1,28 @@
+<%
+  // Organism: vertical categories dropdown with icon (spectsEccomerce/layouts/
+  // Categories-1.png, spec §3 "variante dropdown" of Categories.png). Dark
+  // rounded panel: one row per category with Lucide icon + name, left aligned.
+  // Per spec §3 it has no assigned page yet ("menú mobile / filtro lateral —
+  // sin página asignada todavía") — shipped as a reusable partial, include it
+  // with: include("../organisms/categories-dropdown", { categories }).
+  // Data arrives via locals — categories: Array<{ id, name, description? }> —
+  // icons resolve through utils/category-icons.ts exposed in app.locals; the
+  // generic `tag` icon covers unmapped names (spec §6.6b). Link targets mirror
+  // categories-nav's forward-compatible convention (/products?category=<id>).
+  const dropdownCategories = Array.isArray(categories) ? categories : [];
+%>
+<nav aria-label="Categorías de productos" class="w-full max-w-xs">
+  <ul class="overflow-hidden rounded-xl bg-ink py-1 text-white">
+    <% dropdownCategories.forEach((category) => { %>
+      <li>
+        <a
+          href="/products?category=<%= category.id %>"
+          class="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/10"
+        >
+          <span class="[&_svg]:h-5 [&_svg]:w-5" aria-hidden="true"><%- getCategoryIconSvg(category.name) %></span>
+          <span class="text-sm"><%= category.name %></span>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+</nav>
