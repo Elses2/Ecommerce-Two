@@ -1,14 +1,10 @@
 import { Router } from "express";
-import { categoryService } from "../services/category.service.js";
+import { pagesController } from "../controllers/pages/pages.controller.js";
 
 const router = Router();
 
-router.get("/", (req, res) =>
-  res.render("templates/pages/index", {
-    title: "Inicio",
-    categories: categoryService.findAll(), // spec §4.1 bloque 2 / §6.6b
-  }),
-);
+// Ruta fina (spec Paso 5): la lógica de ensamblado de datos vive en el controller
+router.get("/", pagesController.getHome);
 router.get("/products", (req, res) =>
   res.render("pages/products", { title: "Producto" }),
 );

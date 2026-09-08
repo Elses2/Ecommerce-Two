@@ -30,6 +30,15 @@ export class ProductRepository {
       .all(pattern, pattern) as unknown as Product[];
   }
 
+  // Selección aleatoria (spec §6.7, fallback sin flag is_featured — la tabla
+  // products no tiene columna de destacados): "Los más pedidos" toma hasta
+  // `limit` productos al azar; el azar vive en el SQL, acá en el repositorio
+  listRandom(limit: number): Product[] {
+    return this.database
+      .prepare("SELECT * FROM products ORDER BY RANDOM() LIMIT ?")
+      .all(limit) as unknown as Product[];
+  }
+
   // Join N:M por categoría (spec §1.2)
   findByCategory(categoryId: number): Product[] {
     return this.database
