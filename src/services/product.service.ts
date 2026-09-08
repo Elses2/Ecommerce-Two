@@ -47,6 +47,18 @@ export class ProductService {
   findByCategory(categoryId: number): ProductView[] {
     return this.repository.findByCategory(categoryId).map((p) => this.withDerivedAttrs(p));
   }
+
+  // "Te puede interesar" (spec §6.6): primeros `limit` productos — la
+  // selección aleatoria queda como BONUS del spec, no se implementa ahora.
+  getSuggested(limit = 5): ProductView[] {
+    return this.repository.list().slice(0, limit).map((p) => this.withDerivedAttrs(p));
+  }
+
+  // "Los más pedidos" (spec §6.7): hasta `limit` productos al azar — la tabla
+  // no tiene is_featured, así que aplica el fallback del spec (aleatorio)
+  getMostOrdered(limit = 10): ProductView[] {
+    return this.repository.listRandom(limit).map((p) => this.withDerivedAttrs(p));
+  }
 }
 
 // withImageFallback (spec §2.3): producto de entrada → producto con image_url

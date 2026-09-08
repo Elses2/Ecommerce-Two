@@ -1,8 +1,17 @@
 <%
-  // Page: Home (spectsEccomerce/pages/home1.page.png, spec §4.1). Atomic-tree
-  // shell; only block 2 (categories nav, top) is assembled so far — the rest
-  // of the Home blocks (banners, grids, bottom nav) land with Paso 5. Data:
-  // categories from categoryService.findAll() via pages routes; the layout
-  // supplies header/footer and cartCount.
+  // Page: Home (spectsEccomerce/pages/home1.page.png + home2.page.png, spec
+  // §4.1). Assembles blocks 2-6 of the table in the exact spec order; block 1
+  // (header) and 7 (footer) come from templates/layout.ejs. Data via locals
+  // from pagesController.getHome — no hardcoded products/categories/banners:
+  // categories (2/6, same include re-used per spec), banners (3, §6.6b),
+  // suggested (4, §6.6) and mostOrdered (5, §6.7). Section titles are the
+  // literal strings of the §4.1 table. Wrapper adds only vertical rhythm;
+  // each organism handles its own horizontal padding.
 %>
-<%- include("../organisms/categories-nav", { categories }) %>
+<div class="space-y-8 py-6 md:py-8">
+  <%- include("../organisms/categories-nav", { categories }) %>
+  <%- include("../organisms/product-hero", { banners }) %>
+  <%- include("../organisms/product-grid", { title: "Te puede interesar", products: suggested }) %>
+  <%- include("../organisms/product-grid", { title: "Los más pedidos", products: mostOrdered }) %>
+  <%- include("../organisms/categories-nav", { categories }) %>
+</div>
