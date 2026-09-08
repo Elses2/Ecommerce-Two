@@ -96,6 +96,44 @@ export const pagesController = {
     });
   },
 
+  // Listado de productos con orden por precio (spec §6.12/Paso 12):
+  // server-rendered, NO AJAX — el orden viaja por query string. sort se
+  // normaliza con whitelist: cualquier valor distinto de "desc" (incluido
+  // garbage o ausente) cae en "asc", default del spec; nunca viaja crudo
+  // hacia el SQL del repositorio. §6.12 no define un control de orden en la
+  // página, solo el parámetro — sin UI de sort (decisión documentada).
+  getProducts(req: Request, res: Response): void {
+    const sort = req.query.sort === "desc" ? "desc" : "asc";
+    const products = productService.findAllWithSort(sort);
+
+    res.render("templates/pages/products", { title: "Productos", products, sort });
+  },
+
+  // Buscador (spec §6.13/Paso 12): server-rendered, NO AJAX. La query se
+  // recorta; vacía o ausente → resultados vacíos ([]) con el mensaje
+  // amigable de la vista — el spec renderiza, no redirige. La query viaja a
+  // la vista y ahí se re-imprime SIEMPRE con <%= %> (escapado) — jamás <%- %> —
+  // para que texto tipo "<script>" quede inerte en el HTML.
+  searchProducts(req: Request, res: Response): void {
+    // @types/express 5 tipa query como ParsedQs — misma defensa que en params:
+    // cualquier forma rara (array/objeto) se reduce a la primera string.
+    const rawQuery = req.query.query;
+    const raw =
+      typeof rawQuery === "string"
+        ? rawQuery
+        : Array.isArray(rawQuery)
+          ? String(rawQuery[0] ?? "")
+          : "";
+    const query = raw.trim();
+    const products = query ? productService.searchByName(query) : [];
+
+    res.render("templates/pages/search-results", {
+      title: `Resultados para "${query}"`,
+      products,
+      query,
+    });
+  },
+
   // Checkout placeholder (spec §6.5/Paso 11): vista estática sin lógica —
   // "Nada de lógica de negocio ni de sesión acá — es un placeholder
   // deliberado". El message viaja como local desde acá, tal como el

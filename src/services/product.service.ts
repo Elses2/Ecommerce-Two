@@ -47,6 +47,20 @@ export class ProductService {
     return this.repository.search(q).map((p) => this.withDerivedAttrs(p));
   }
 
+  // Listado con orden por precio (spec §6.12/Paso 12): sort ya normalizado por
+  // el controller ("asc" | "desc"); cada producto sale como ProductView
+  // completo (fallback de imagen §2.3 + inStock), igual que el resto de los
+  // listados del sitio.
+  findAllWithSort(sort?: "asc" | "desc"): ProductView[] {
+    return this.repository.findAll(sort).map((p) => this.withDerivedAttrs(p));
+  }
+
+  // Buscador server-rendered (spec §6.13/Paso 12): resultados por nombre con
+  // atributos derivados ya resueltos.
+  searchByName(query: string): ProductView[] {
+    return this.repository.searchByName(query).map((p) => this.withDerivedAttrs(p));
+  }
+
   findByCategory(categoryId: number): ProductView[] {
     return this.repository.findByCategory(categoryId).map((p) => this.withDerivedAttrs(p));
   }
