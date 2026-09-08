@@ -1,0 +1,43 @@
+<%
+  // Organism: promotional banner carousel (spectsEccomerce/layouts/
+  // ProductHero.png, spec §3 + §6.6b). Full-width rounded banner: background
+  // image, dark gradient overlay from the bottom, promo title (bold) +
+  // subtitle (up to two lines) bottom-left, all in white.
+  // Data arrives via locals — banners: Array<{ title, subtitle?, imageUrl,
+  // linkUrl? }> — the exact shape promoService.getActiveBanners() returns
+  // (spec §6.6b; that backend lands with Paso 5, the organism is
+  // include-ready today). Carousel is CSS-only (horizontal scroll + snap),
+  // no JS in scope. No data hardcoded here.
+%>
+<section
+  aria-label="Promociones"
+  class="mx-auto w-full max-w-screen-2xl px-4 md:px-6 lg:px-8"
+>
+  <ul class="flex snap-x snap-mandatory gap-4 overflow-x-auto">
+    <% banners.forEach((banner) => { %>
+      <li class="w-full shrink-0 snap-center">
+        <a
+          href="<%= banner.linkUrl || "#" %>"
+          class="group relative block h-56 overflow-hidden rounded-2xl md:h-72"
+        >
+          <img
+            src="<%= banner.imageUrl %>"
+            alt="<%= banner.title %>"
+            class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent"
+            aria-hidden="true"
+          ></div>
+          <div class="absolute inset-x-0 bottom-0 p-4 text-white md:p-6">
+            <h2 class="font-bold md:text-h3"><%= banner.title %></h2>
+            <% if (banner.subtitle) { %>
+              <p class="mt-1 max-w-md text-sm md:text-base"><%= banner.subtitle %></p>
+            <% } %>
+          </div>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+</section>
