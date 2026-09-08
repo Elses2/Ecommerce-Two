@@ -26,7 +26,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // Activamos el sistema de layouts
 app.use(expressLayouts);
-app.set("layout", "layout"); // busca views/layout.ejs por defecto
+app.set("layout", "templates/layout"); // layout atómico: header + slot + footer
+// Primer root: árbol atómico nuevo (views/templates). Segundo: páginas heredadas
+// (src/views/pages) mientras se migran al nuevo árbol en pasos siguientes.
+app.set("views", [path.join(process.cwd(), "views"), path.join(__dirname, "views")]);
 
 // --- Middlewares cross-cutting (orden: ver design D6) ---
 app.use(injectCartCount); // expone cartCount a las vistas (0 hasta Paso 6)
