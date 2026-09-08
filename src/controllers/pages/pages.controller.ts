@@ -32,8 +32,10 @@ export const pagesController = {
 
   // Detalle de producto (spec §6.8/Paso 8): id validado con el helper puro
   // normalizeId (§6.9 — solo formato, 400 si no numérico) y existencia
-  // resuelta acá tras consultar el servicio (404 si no está). pages/400 y
-  // pages/404 llegan en el Paso 10; por ahora respuesta de texto plano.
+  // resuelta acá tras consultar el servicio (404 si no está). El 404
+  // renderiza la página 404 del árbol atómico (Paso 10, spec §6.1). El 400
+  // queda como texto plano: §6.1/§6.2 solo definen páginas para 404/500 y
+  // §6.9 trata el id inválido como respuesta de validación, no de vista.
   // Relacionados: hasta 4 que comparten categoría, al azar si hay más (§6.8).
   getProductDetail(req: Request, res: Response): void {
     const rawId = req.params.id;
@@ -49,7 +51,7 @@ export const pagesController = {
 
     const product = productService.findById(id);
     if (!product) {
-      res.status(404).send("Producto no encontrado");
+      res.status(404).render("templates/pages/404", { title: "Página no encontrada" });
       return;
     }
 

@@ -59,6 +59,18 @@ app.use(normalizeId); // valida :id numérico, 400 si no
 app.use("/", pagesRoutes); // Frontend: /, /products, /cart, /login, etc.
 app.use("/api", apiRoutes); // Backend: /api/products, /api/categories, etc.
 
+// --- 404 catch-all (spec §6.1): después de TODAS las rutas, antes del
+// errorHandler. /api/* responde JSON (los consumidores AJAX nunca reciben
+// HTML); el resto renderiza la página 404 del árbol atómico. Si el render
+// de la 404 fallara, Express reenvía el error al errorHandler de abajo.
+app.use((req, res) => {
+  if (req.path.startsWith("/api")) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  res.status(404).render("templates/pages/404", { title: "Página no encontrada" });
+});
+
 // --- Error handler: SIEMPRE al final ---
 app.use(errorHandler);
 
