@@ -1,1 +1,48 @@
-<!-- Placeholder atómico: menu-item (Atomic Design, scaffold inicial; rebuild de vistas diferido a Paso 6+) -->
+<%
+  // Atom: single menu row (spec §3 row "MenuItem.png", checklist Paso 13).
+  // NOTE: the MenuItem.png asset is a 206x28 fully transparent PNG — it carries
+  // no visual content. Row styling is therefore derived from how items appear
+  // inside MenuDesktop.png / MenuMobile.png: left-aligned text-sm rows with
+  // comfortable padding. Hover/active states are not shown in any mockup; the
+  // subtle hover tint and active treatment below are extrapolated using the
+  // brand/graphite tokens and are subject to change when the consuming
+  // sections (Mis Compras, Favoritos, Historial) are specified.
+  //
+  // Renders an <a> when `href` is provided, a <button type="button"> otherwise.
+  // Static markup only — no open/close or routing logic lives here.
+  //
+  // Locals contract:
+  // - label (required): row text
+  // - href?: renders a link when provided; omit for a button row
+  // - icon?: raw SVG string rendered via raw-output (caller may pass
+  //   app.locals.getCategoryIconSvg(name) or any inline SVG; the menu mockups
+  //   show iconless nav rows and an iconed footer row)
+  // - active?: marks the row as the current page (aria-current + brand tint)
+  const itemLabel = typeof locals.label === "string" ? locals.label : "";
+  const itemHref = typeof locals.href === "string" && locals.href ? locals.href : "";
+  const itemIcon = typeof locals.icon === "string" && locals.icon ? locals.icon : "";
+  const itemActive = locals.active === true;
+  const menuItemClasses = [
+    "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+    itemActive ? "bg-brand/10 font-medium text-brand" : "text-graphite hover:bg-neutral-100 hover:text-ink",
+  ].join(" ");
+%>
+<% if (itemHref) { %>
+  <a
+    href="<%= itemHref %>"
+    class="<%= menuItemClasses %>"
+    <% if (itemActive) { %>aria-current="page"<% } %>
+  >
+    <% if (itemIcon) { %><span class="[&_svg]:h-4 [&_svg]:w-4" aria-hidden="true"><%- itemIcon %></span><% } %>
+    <span><%= itemLabel %></span>
+  </a>
+<% } else { %>
+  <button
+    type="button"
+    class="<%= menuItemClasses %>"
+  >
+    <% if (itemIcon) { %><span class="[&_svg]:h-4 [&_svg]:w-4" aria-hidden="true"><%- itemIcon %></span><% } %>
+    <span><%= itemLabel %></span>
+  </button>
+<% } %>

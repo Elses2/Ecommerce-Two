@@ -1,0 +1,53 @@
+<%
+  // Organism: desktop user dropdown (spectsEccomerce/layouts/MenuDesktop.png,
+  // spec §3 row "MenuDesktop.png", checklist Paso 13). White rounded panel:
+  // header with the avatar atom + user name, divider, group of menu rows
+  // (atoms/menu-item), divider, optional footer row (the mockup shows a gear
+  // icon + "Cambiar a Tema Claro" separated from the nav items).
+  //
+  // Per spec §3 it "se abre desde ProfileBtn — bonus/futuro": anchoring,
+  // open/close and focus management belong to the future parent/JS. Shipped as
+  // an unpositioned, include-ready partial with zero hardcoded content.
+  //
+  // Locals contract:
+  // - name (required): user display name (header text + avatar fallback)
+  // - avatarSrc?: photo URL for atoms/profile-pic; initial-letter fallback
+  //   when omitted (profile-pic contract)
+  // - items (required): Array<{ label, href?, icon?, active? }> — nav rows
+  // - footerItem?: { label, icon?, href?, active? } — single row below a
+  //   divider (mockup: theme toggle); omitted when not provided
+  const menuUserName = typeof locals.name === "string" ? locals.name.trim() : "";
+  const menuAvatarSrc = typeof locals.avatarSrc === "string" && locals.avatarSrc ? locals.avatarSrc : "";
+  const menuItems = Array.isArray(locals.items) ? locals.items : [];
+  const menuFooterItem = locals.footerItem && typeof locals.footerItem === "object" ? locals.footerItem : null;
+%>
+<div class="w-56 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5">
+  <div class="flex items-center gap-3 px-4 py-3">
+    <%- include("../atoms/profile-pic", { src: menuAvatarSrc, name: menuUserName }) %>
+    <span class="text-sm text-ink"><%= menuUserName %></span>
+  </div>
+  <nav aria-label="Menú de usuario" class="border-t border-neutral-200 py-1">
+    <ul>
+      <% menuItems.forEach((item) => { %>
+        <li>
+          <%- include("../atoms/menu-item", {
+            label: item.label,
+            href: item.href,
+            icon: item.icon,
+            active: item.active,
+          }) %>
+        </li>
+      <% }) %>
+    </ul>
+  </nav>
+  <% if (menuFooterItem) { %>
+    <div class="border-t border-neutral-200 py-1">
+      <%- include("../atoms/menu-item", {
+        label: menuFooterItem.label,
+        href: menuFooterItem.href,
+        icon: menuFooterItem.icon,
+        active: menuFooterItem.active,
+      }) %>
+    </div>
+  <% } %>
+</div>

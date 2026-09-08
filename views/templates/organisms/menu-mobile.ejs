@@ -1,0 +1,53 @@
+<%
+  // Organism: mobile user menu (spectsEccomerce/layouts/MenuMobile.png, spec
+  // §3 row "MenuMobile.png" — "Igual, versión fullscreen/mobile", checklist
+  // Paso 13). Same content contract as menu-desktop, mounted on a fullscreen
+  // white sheet per the spec wording. The mockup shows no close affordance and
+  // no dark backdrop — none is invented here; open/close (and any close button
+  // the future design adds) is future JS.
+  //
+  // Shipped as an include-ready partial with zero hardcoded content.
+  //
+  // Locals contract (identical to menu-desktop.ejs):
+  // - name (required): user display name (header text + avatar fallback)
+  // - avatarSrc?: photo URL for atoms/profile-pic
+  // - items (required): Array<{ label, href?, icon?, active? }> — nav rows
+  // - footerItem?: { label, icon?, href?, active? } — single row below a
+  //   divider (mockup: theme toggle)
+  const menuUserName = typeof locals.name === "string" ? locals.name.trim() : "";
+  const menuAvatarSrc = typeof locals.avatarSrc === "string" && locals.avatarSrc ? locals.avatarSrc : "";
+  const menuItems = Array.isArray(locals.items) ? locals.items : [];
+  const menuFooterItem = locals.footerItem && typeof locals.footerItem === "object" ? locals.footerItem : null;
+%>
+<div class="fixed inset-0 z-50 overflow-y-auto bg-white">
+  <div class="mx-auto w-full max-w-sm overflow-hidden">
+    <div class="flex items-center gap-3 px-4 py-3">
+      <%- include("../atoms/profile-pic", { src: menuAvatarSrc, name: menuUserName }) %>
+      <span class="text-sm text-ink"><%= menuUserName %></span>
+    </div>
+    <nav aria-label="Menú de usuario" class="border-t border-neutral-200 py-1">
+      <ul>
+        <% menuItems.forEach((item) => { %>
+          <li>
+            <%- include("../atoms/menu-item", {
+              label: item.label,
+              href: item.href,
+              icon: item.icon,
+              active: item.active,
+            }) %>
+          </li>
+        <% }) %>
+      </ul>
+    </nav>
+    <% if (menuFooterItem) { %>
+      <div class="border-t border-neutral-200 py-1">
+        <%- include("../atoms/menu-item", {
+          label: menuFooterItem.label,
+          href: menuFooterItem.href,
+          icon: menuFooterItem.icon,
+          active: menuFooterItem.active,
+        }) %>
+      </div>
+    <% } %>
+  </div>
+</div>
