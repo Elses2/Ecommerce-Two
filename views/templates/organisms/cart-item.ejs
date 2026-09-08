@@ -1,0 +1,38 @@
+<%
+  // Organism: cart item row (spectsEccomerce/layouts/CartItem.png, spec §4.2).
+  // White rounded card: thumbnail, name, then "Quitar" (graphite pill →
+  // .btn-secondary), the numeric molecule and the bold line subtotal on the
+  // right. Desktop is a single row; below sm it wraps into the stacked mobile
+  // variant of the mockup (controls row under the name, subtotal bottom-right).
+  // Data via locals — item: CartItemView (productId, quantity, name, imageUrl,
+  // subtotal; price/stock already resolved from the DB by cart.service).
+  // data-* contract (spec §5): root carries data-cart-item="<productId>",
+  // the remove button carries data-cart-action="remove" + data-product-id and
+  // the subtotal span carries data-subtotal — cart.js matches and rewrites
+  // this row from the JSON response.
+%>
+<li
+  data-cart-item="<%= item.productId %>"
+  class="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:gap-4"
+>
+  <div class="flex min-w-0 flex-1 items-center gap-3">
+    <img
+      src="<%= item.imageUrl %>"
+      alt="<%= item.name %>"
+      class="h-12 w-12 shrink-0 rounded-lg bg-ink/5 object-contain sm:h-14 sm:w-14"
+      loading="lazy"
+    />
+    <h3 class="min-w-0 font-medium text-ink"><%= item.name %></h3>
+  </div>
+  <div class="flex flex-wrap items-center gap-3">
+    <button
+      type="button"
+      class="btn-secondary h-9 px-5 text-xs"
+      data-cart-action="remove"
+      data-product-id="<%= item.productId %>"
+      aria-label="Quitar <%= item.name %> del carrito"
+    >Quitar</button>
+    <%- include("../molecules/numeric", { productId: item.productId, quantity: item.quantity }) %>
+    <span class="ml-auto text-lg font-bold text-ink sm:ml-2" data-subtotal><%= item.subtotal.toLocaleString("es-AR") %></span>
+  </div>
+</li>

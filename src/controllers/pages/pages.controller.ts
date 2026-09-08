@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { categoryService } from "../../services/category.service.js";
 import { productService } from "../../services/product.service.js";
 import { promoService } from "../../services/promo.service.js";
+import { cartService } from "../../services/cart.service.js";
 
 // Controller de páginas: consolida los handlers de vistas que antes vivían
 // en pages.routes (rutas finas: route → controller). Home según spec §4.1:
@@ -16,6 +17,15 @@ export const pagesController = {
       banners: promoService.getActiveBanners(), // spec §4.1 bloque 3, §6.6b
       suggested: productService.getSuggested(), // spec §4.1 bloque 4, §6.6
       mostOrdered: productService.getMostOrdered(), // spec §4.1 bloque 5, §6.7
+    });
+  },
+
+  // Carrito (spec §4.2/§6.4): render inicial con los ítems ya pintados desde
+  // el server (sesión + datos reales); las mutaciones son AJAX vía /api/cart/*.
+  getCart(req: Request, res: Response): void {
+    res.render("templates/pages/cart", {
+      title: "Carrito de Compras",
+      cart: cartService.getCartWithDetails(req.session),
     });
   },
 };
