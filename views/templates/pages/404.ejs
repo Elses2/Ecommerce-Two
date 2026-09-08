@@ -1,0 +1,20 @@
+<%
+  // Page: 404 (spec §6.1 + §4.6): página centrada, mensaje corto y botón
+  // "Volver al inicio" (bonus sugerido por §6.1). Sin mockup propio (§4.6):
+  // mismo lenguaje visual que el resto — card estilo login/register, título
+  // con tokens tipográficos, texto secundario --color-muted y .btn-primary
+  // (copia idéntica al botón de estado vacío del carrito, pages/cart.ejs).
+  //
+  // Nota de rutas: el spec nombra `views/pages/404.ejs` (árbol legacy); el
+  // árbol atómico del proyecto renderiza desde `views/templates/pages`
+  // (mismo intento, misma herencia de layout.ejs vía express-ejs-layouts).
+  // Se invoca con res.status(404) desde el catch-all de app.ts (§6.1) y
+  // desde pagesController.getProductDetail (producto inexistente, §6.9).
+%>
+<section class="flex min-h-[60vh] items-center justify-center px-4 py-16">
+  <div class="flex w-full max-w-sm flex-col items-center rounded-2xl bg-white p-6 text-center shadow-md md:p-8">
+    <h1 class="text-h2 text-ink">Página no encontrada</h1>
+    <p class="mt-3 text-muted">La página que buscas no existe o fue movida.</p>
+    <a href="/" class="btn-primary mt-6">Volver al inicio</a>
+  </div>
+</section>
