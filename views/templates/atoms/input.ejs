@@ -1,1 +1,45 @@
-<!-- Placeholder atómico: input (Atomic Design, scaffold inicial; rebuild de vistas diferido a Paso 6+) -->
+<%
+  // Atom: text input (spectsEccomerce/layouts/Input.png, spec §3 row "Input.png",
+  // checklist Paso 9). Pill-shaped input with light/dark variants, no hardcoded
+  // data — everything arrives via locals.
+  //
+  // Locals contract:
+  // - name (required): input name attribute
+  // - id: input id attribute (defaults to name)
+  // - type: input type (defaults to "text")
+  // - label (required): accessible label text (rendered sr-only — the auth
+  //   mockups show placeholder-only fields, but a11y needs a real label)
+  // - placeholder?: visible placeholder copy
+  // - value?: initial value
+  // - variant?: "light" (default, white bg — login/register pages) | "dark"
+  //   (graphite fill per Input.png lower variant; no consuming page yet)
+  // - autocomplete?: autocomplete hint ("email", "current-password", ...)
+  // - errorSlot?: when true, renders an empty hidden <p data-error-for="{id}">
+  //   that register-validation.js (spec §6.3) fills with the per-field error
+  //   message. Omitted on pages without client validation (login, Paso 9).
+  const inputName = locals.name;
+  const inputId = locals.id ?? locals.name;
+  const inputType = locals.type ?? "text";
+  const inputVariant = locals.variant ?? "light";
+  const inputValue = locals.value ?? "";
+  const inputPlaceholder = locals.placeholder ?? "";
+  const inputAutocomplete = locals.autocomplete;
+  const withErrorSlot = locals.errorSlot === true;
+%>
+<div class="flex flex-col gap-1.5">
+  <% if (locals.label) { %>
+    <label for="<%= inputId %>" class="sr-only"><%= locals.label %></label>
+  <% } %>
+  <input
+    type="<%= inputType %>"
+    id="<%= inputId %>"
+    name="<%= inputName %>"
+    value="<%= inputValue %>"
+    placeholder="<%= inputPlaceholder %>"
+    <% if (inputAutocomplete) { %>autocomplete="<%= inputAutocomplete %>"<% } %>
+    class="h-10 w-full rounded-full border px-4 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-brand/40 <%= inputVariant === "dark" ? "border-white/25 bg-graphite text-white placeholder-white/50 focus:border-brand" : "border-neutral-300 bg-white text-ink placeholder-muted focus:border-brand" %>"
+  />
+  <% if (withErrorSlot) { %>
+    <p data-error-for="<%= inputId %>" class="hidden text-sm text-alert" role="alert"></p>
+  <% } %>
+</div>
