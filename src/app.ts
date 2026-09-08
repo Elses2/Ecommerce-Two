@@ -7,6 +7,7 @@ import expressLayouts from "express-ejs-layouts";
 import { injectCartCount } from "./middlewares/injectCartCount.middleware.js";
 import { normalizeId } from "./middlewares/normalizeId.middleware.js";
 import { errorHandler } from "./middlewares/error-handler.middleware.js";
+import { productService } from "./services/product.service.js";
 
 // Truquito con url para que funconen bien los path: re molesto, hay una forma mas moderna y corta de hacerlo pero lo dejo asi para mas claridad
 const __filename = fileURLToPath(import.meta.url);
@@ -39,6 +40,10 @@ app.use("/api", apiRoutes); // Backend: /api/products, /api/categories, etc.
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+  // Boot check (data-access R4): el servicio resuelve las filas seedeadas al arrancar
+  console.log(`Productos seedeados: ${productService.list().length}`);
+});
 
 export default app;
