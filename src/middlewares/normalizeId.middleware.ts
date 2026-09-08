@@ -4,7 +4,12 @@ import type { NextFunction, Request, Response } from "express";
 // Cuando se monta globalmente (antes de los routers), Express aún no pobló
 // req.params: como fallback se interpreta el segmento de id de rutas API
 // tipo /api/recurso/:id para poder rechazar valores no numéricos igualmente.
-const ID_PATH_PATTERN = /^\/api\/[a-z]+\/([^/]+)$/;
+// El fallback se limita a las rutas de colección con id (spec §6.9):
+// /api/products|categories|orders/:id. Las rutas de carrito llevan un verbo
+// (/api/cart/add|increase|decrease|remove/:productId) o un segmento estático
+// (/api/cart/clear) — "clear" no es un id y se validaba como tal por error;
+// la validación de esas rutas vive en su controller (cart.controller).
+const ID_PATH_PATTERN = /^\/api\/(products|categories|orders)\/([^/]+)$/;
 
 export function normalizeId(req: Request, res: Response, next: NextFunction): void {
   // @types/express 5 tipa params/path como string | string[]

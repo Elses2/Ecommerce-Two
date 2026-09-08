@@ -1,0 +1,56 @@
+<%
+  // Page: Cart (spectsEccomerce/pages/cart.page.png, spec §4.2). Blocks in
+  // table order: "← Volver" link (href="/", literal spec copy), item list
+  // (organisms/cart-item × N), total row and "Ir a Pagar" — a normal LINK to
+  // /checkout, NOT AJAX (§4.2). "Vaciar carrito" is not in the mockup but is
+  // required by the §5 contract (data-cart-action="clear" outside the item
+  // loop) — it sits in the summary area. The data-cart-empty block stays
+  // hidden while there are items; the server toggles it for the initial
+  // render of an empty cart and cart.js toggles it when the cart empties
+  // via AJAX. Data via locals from pagesController.getCart — cart: CartView
+  // ({ items, total, count }); no hardcoded data.
+  const isCartEmpty = cart.count === 0;
+%>
+<div class="mx-auto w-full max-w-screen-2xl px-4 py-6 md:px-6 md:py-8 lg:px-8">
+  <a href="/" class="inline-flex items-center gap-2 text-sm font-medium text-ink transition-colors hover:text-brand">← Volver</a>
+
+  <h1 class="mt-3 text-h3 text-ink">Productos en tu Carrito</h1>
+
+  <ul
+    id="cart-items"
+    aria-label="Productos en el carrito"
+    class="mt-6 flex flex-col gap-4 <%= isCartEmpty ? "hidden" : "" %>"
+  >
+    <% cart.items.forEach((item) => { %>
+      <%- include("../organisms/cart-item", { item }) %>
+    <% }) %>
+  </ul>
+
+  <section
+    data-cart-summary
+    aria-label="Resumen de compra"
+    class="mt-8 <%= isCartEmpty ? "hidden" : "" %>"
+  >
+    <div class="flex flex-col items-end gap-4">
+      <p class="flex items-baseline gap-3">
+        <span class="text-ink">Total de Puntos</span>
+        <span class="text-xl font-bold text-ink" data-cart-total><%= cart.total.toLocaleString("es-AR") %></span>
+      </p>
+      <div class="flex flex-wrap items-center gap-3">
+        <button type="button" class="btn-secondary" data-cart-action="clear">Vaciar carrito</button>
+        <a href="/checkout" class="btn-primary">Ir a Pagar</a>
+      </div>
+    </div>
+  </section>
+
+  <div
+    data-cart-empty
+    class="mt-8 rounded-2xl bg-white p-10 text-center shadow-sm <%= isCartEmpty ? "" : "hidden" %>"
+  >
+    <p class="text-muted">Tu carrito está vacío.</p>
+    <a href="/" class="btn-primary mt-4">Volver al inicio</a>
+  </div>
+</div>
+
+<!-- Cart AJAX (spec §6.4): public/ is served statically; the build copies public/** → dist/public -->
+<script src="/js/cart.js" defer></script>

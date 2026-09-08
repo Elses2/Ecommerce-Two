@@ -4,6 +4,8 @@ import pagesRoutes from "./routes/pages.routes.js";
 import apiRoutes from "./routes/index.routes.js";
 import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
+import session from "express-session";
+import { env } from "./config/env.js";
 import { injectCartCount } from "./middlewares/injectCartCount.middleware.js";
 import { normalizeId } from "./middlewares/normalizeId.middleware.js";
 import { errorHandler } from "./middlewares/error-handler.middleware.js";
@@ -24,6 +26,20 @@ app.use(express.static(path.join(process.cwd(), "dist/public")));
 // --- Middlewares globales ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// express-session (spec §6.4): se usa SOLO para el carrito, no para auth.
+// MemoryStore OK en desarrollo; cookie de sesión sin maxAge → el carrito se
+// pierde al cerrar el navegador. Debe correr antes de injectCartCount (lee
+// req.session.cart). saveUninitialized: false → la cookie solo se emite en
+// la primera mutación del carrito; los GET puros no crean sesión.
+app.use(
+  session({
+    secret: env.sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { httpOnly: true, sameSite: "lax" },
+  }),
+);
 
 // Activamos el sistema de layouts
 app.use(expressLayouts);

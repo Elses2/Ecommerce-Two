@@ -8,9 +8,7 @@ router.get("/", pagesController.getHome);
 router.get("/products", (req, res) =>
   res.render("pages/products", { title: "Producto" }),
 );
-router.get("/cart", (req, res) =>
-  res.render("pages/cart", { title: "Carrito de Compras" }),
-);
+router.get("/cart", pagesController.getCart); // render inicial (spec §6.4), mutaciones por /api/cart
 router.get("/checkout", (req, res) =>
   res.render("pages/checkout", { title: "Pago" }),
 );
