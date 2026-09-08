@@ -4,6 +4,9 @@ import pagesRoutes from "./routes/pages.routes.js";
 import apiRoutes from "./routes/index.routes.js";
 import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
+import { injectCartCount } from "./middlewares/injectCartCount.middleware.js";
+import { normalizeId } from "./middlewares/normalizeId.middleware.js";
+import { errorHandler } from "./middlewares/error-handler.middleware.js";
 
 // Truquito con url para que funconen bien los path: re molesto, hay una forma mas moderna y corta de hacerlo pero lo dejo asi para mas claridad
 const __filename = fileURLToPath(import.meta.url);
@@ -24,9 +27,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(expressLayouts);
 app.set("layout", "layout"); // busca views/layout.ejs por defecto
 
+// --- Middlewares cross-cutting (orden: ver design D6) ---
+app.use(injectCartCount); // expone cartCount a las vistas (0 hasta Paso 6)
+app.use(normalizeId); // valida :id numérico, 400 si no
+
 // --- Routers (acá usamos imports relativos, sin `path`) ---
 app.use("/", pagesRoutes); // Frontend: /, /products, /cart, /login, etc.
 app.use("/api", apiRoutes); // Backend: /api/products, /api/categories, etc.
+
+// --- Error handler: SIEMPRE al final ---
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
