@@ -24,5 +24,11 @@
 
   <%- include("organisms/footer") %>
   <%- include("organisms/footer-mobile") %>
+
+  <!-- Cart AJAX (spec §5/§6.4): loaded ONCE per page from the layout — every
+       view rendered through express-ejs-layouts gets the script exactly once;
+       pages/cart.ejs and pages/product-detail.ejs no longer ship their own
+       copy. public/ is served statically; the build copies public/** → dist/public -->
+  <script src="/js/cart.js" defer></script>
 </body>
 </html>
