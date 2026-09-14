@@ -1,0 +1,14 @@
+<%
+  // Page: 500 (spec §6.2 + §4.6): misma estructura centrada que la 404.
+  // Validación clave de §6.2: NUNCA se muestran err.message ni stack al
+  // usuario — el logueo vive server-side en
+  // middlewares/error-handler.middleware.ts y esta vista solo lleva copy
+  // estático. Se invoca con res.status(500) desde el errorHandler.
+%>
+<section class="flex min-h-[60vh] items-center justify-center px-4 py-16">
+  <div class="flex w-full max-w-sm flex-col items-center rounded-2xl bg-white p-6 text-center shadow-md md:p-8">
+    <h1 class="text-h2 text-ink">Error interno del servidor</h1>
+    <p class="mt-3 text-muted">Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde.</p>
+    <a href="/" class="btn-primary mt-6">Volver al inicio</a>
+  </div>
+</section>

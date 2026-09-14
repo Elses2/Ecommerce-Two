@@ -1,0 +1,43 @@
+<%
+  // Molecule: product card (spectsEccomerce/layouts/Product.png, spec §3).
+  // White rounded card: square image, name, price with "PUNTOS" caption, and
+  // the "Agregar al carrito" button (Button.png → .btn-primary).
+  // Data arrives via locals — product: ProductView (id, name, price, imageUrl,
+  // inStock, categories). The image fallback is already resolved by the service
+  // (withImageFallback, spec §2.3) — the view adds no fallback logic.
+  // data-* contract (spec §5): root carries data-product-id; the button carries
+  // data-cart-action="add" + data-product-id for the future cart.js (Paso 6).
+  // Stock rule (spec §6.10): !product.inStock → "Sin stock" badge + disabled
+  // button (.btn-disabled).
+  // Price format: the spec defines no format helper — minimal inline es-AR
+  // thousands separator (mockup shows "XX.XXX" over a muted "PUNTOS" caption).
+%>
+<article
+  data-product-id="<%= product.id %>"
+  class="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm"
+>
+  <img
+    src="<%= product.imageUrl %>"
+    alt="<%= product.name %>"
+    class="aspect-square w-full object-cover"
+    loading="lazy"
+  />
+  <div class="flex flex-col gap-3 p-4">
+    <h3 class="font-bold text-ink"><%= product.name %></h3>
+    <p class="flex items-baseline gap-2">
+      <span class="font-bold text-ink"><%= product.price.toLocaleString("es-AR") %></span>
+      <span class="text-xs text-muted">PUNTOS</span>
+    </p>
+    <% if (!product.inStock) { %>
+      <span class="badge badge-out-of-stock">Sin stock</span>
+    <% } %>
+    <button
+      class="<%= product.inStock ? "btn-primary" : "btn-disabled" %> w-full"
+      data-cart-action="add"
+      data-product-id="<%= product.id %>"
+      <%= !product.inStock ? "disabled" : "" %>
+    >
+      Agregar al carrito
+    </button>
+  </div>
+</article>

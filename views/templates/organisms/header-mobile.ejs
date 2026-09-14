@@ -1,0 +1,30 @@
+<%
+  // Organism: mobile header (spectsEccomerce/layouts/HeaderMobile.png, at-rest
+  // state: translucent graphite bar). Compact logo, search, cart + bare avatar.
+  // Visible below md only; the desktop variant renders instead via CSS.
+  const mobileCartCount = typeof cartCount === "number" && cartCount >= 0 ? cartCount : 0;
+  const mobileUserName = typeof userName === "string" ? userName : "";
+%>
+<header class="md:hidden">
+  <div class="flex items-center gap-3 bg-graphite/50 px-4 py-3 backdrop-blur-sm">
+    <a
+      href="/"
+      class="shrink-0 text-xl leading-none text-brand"
+      aria-label="MiEcommerce, ir a la página de inicio"
+    >
+      <span class="font-bold">Mi</span><span class="font-light">E</span>
+    </a>
+
+    <div class="min-w-0 flex-1">
+      <%- include("../molecules/search", {
+        placeholder: "Buscar productos...",
+        value: typeof searchQuery === "string" ? searchQuery : "",
+      }) %>
+    </div>
+
+    <div class="flex shrink-0 items-center gap-2">
+      <%- include("../molecules/cart-icon", { count: mobileCartCount }) %>
+      <%- include("../atoms/profile-pic", { name: mobileUserName }) %>
+    </div>
+  </div>
+</header>

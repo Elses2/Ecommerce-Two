@@ -1,0 +1,14 @@
+<%
+  // Molecule: profile button (spectsEccomerce/layouts/ProfileBtn.png).
+  // Graphite pill with the avatar atom and the user name, both via locals.
+  const profileName = typeof name === "string" ? name.trim() : "";
+  const profileHref = typeof href === "string" && href ? href : "#";
+%>
+<a
+  href="<%= profileHref %>"
+  class="flex h-10 shrink-0 items-center gap-2 rounded-full bg-graphite pl-1.5 pr-4 text-white transition-colors hover:bg-graphite/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-graphite"
+  aria-label="Perfil de <%= profileName || 'usuario' %>"
+>
+  <%- include("../atoms/profile-pic", { name: profileName }) %>
+  <span class="text-sm"><%= profileName %></span>
+</a>

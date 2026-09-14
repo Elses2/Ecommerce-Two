@@ -1,0 +1,30 @@
+<%
+  // Molecule: compact horizontal product row (spectsEccomerce/layouts/
+  // ProductRow.png, spec §3 — small image + name + id + ">" arrow). No page
+  // uses it yet ("sin página asignada todavía" — future Historial/Mis
+  // Compras/Favoritos); delivered as a reusable partial so the design system
+  // stays complete. Data arrives via locals — product: ProductView.
+  // Link target: the product-detail route (GET /products/:id) lands with
+  // Paso 8 — harmless "#" placeholder documented until then.
+%>
+<a
+  href="#"
+  class="flex items-center gap-4 rounded-2xl bg-white p-3 shadow-sm transition-colors hover:bg-graphite/5"
+>
+  <img
+    src="<%= product.imageUrl %>"
+    alt="<%= product.name %>"
+    class="h-16 w-16 shrink-0 rounded-xl object-cover"
+    loading="lazy"
+  />
+  <span class="min-w-0 flex-1">
+    <span class="block truncate text-ink"><%= product.name %></span>
+    <span class="block text-xs text-muted">#<%= product.id %></span>
+  </span>
+  <span class="shrink-0 text-ink [&_svg]:h-5 [&_svg]:w-5" aria-hidden="true">
+    <!-- Lucide chevron-right (inlined; icon helpers in app.locals are category-specific) -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  </span>
+</a>

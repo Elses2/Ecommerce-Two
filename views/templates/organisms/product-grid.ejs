@@ -1,0 +1,22 @@
+<%
+  // Organism: product grid with title (spec §3 — wraps N molecules/product.ejs
+  // via include). One component, four usages: "Te puede interesar", "Los más
+  // pedidos" (Home, spec §4.1), Categoría (§4.6/Paso 11) and Relacionados
+  // (§4.3/Paso 8). Data arrives via locals — title: string; products:
+  // ProductView[] (fallback/derived attrs already resolved by the service).
+%>
+<section
+  aria-label="<%= title %>"
+  class="mx-auto w-full max-w-screen-2xl px-4 md:px-6 lg:px-8"
+>
+  <h2 class="font-bold text-ink md:text-h3"><%= title %></h2>
+  <ul
+    class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+  >
+    <% products.forEach((product) => { %>
+      <li>
+        <%- include("../molecules/product", { product }) %>
+      </li>
+    <% }) %>
+  </ul>
+</section>

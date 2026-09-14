@@ -1,0 +1,54 @@
+<%
+  // Page: Login (spectsEccomerce/pages/login.page.png, spec §4.4).
+  // Blocks: teal full-width band on top + centered white card overlapping it;
+  // card holds the title "¡Hola!", two inputs (usuario/contraseña), the
+  // "Iniciar Sesión" submit and — below the card — the register link.
+  //
+  // Deviations documented per spec:
+  // - §4.4 "Desajuste a resolver": the mockup copy says "Tu nombre de
+  //   usuario" but the users table has no username column → the input keeps
+  //   the visible copy but is type="email" name="email" inside.
+  // - Submit uses .btn-primary (teal) though the mockup paints the button
+  //   graphite — spec §4.4 calls it "botón primario" and the user-approved
+  //   Paso 6 precedent (cart "Ir a Pagar") normalizes mockup graphite
+  //   primaries to the .btn-primary class.
+  // - No client validation on login at this paso (spec §6.3 only covers the
+  //   register form).
+  // - Auth backend does NOT exist yet (checklist line 136: "no hay que
+  //   construir auth en este alcance"). The form keeps a placeholder
+  //   action="/login" POST per §6.3 ("un POST normal con redirect") — wiring
+  //   a real endpoint is a later paso.
+%>
+<section class="relative">
+  <div class="absolute inset-x-0 top-0 h-64 bg-brand md:h-72" aria-hidden="true"></div>
+
+  <div class="relative mx-auto w-full max-w-sm px-4 pb-20 pt-10 md:pt-14">
+    <div class="rounded-2xl bg-white p-6 shadow-md md:p-8">
+      <h1 class="text-h3 text-ink">¡Hola!</h1>
+
+      <form action="/login" method="POST" class="mt-6 flex flex-col gap-4">
+        <%- include("../atoms/input", {
+          name: "email",
+          type: "email",
+          label: "Email",
+          placeholder: "Tu nombre de usuario",
+          autocomplete: "email",
+        }) %>
+        <%- include("../atoms/input", {
+          name: "password",
+          type: "password",
+          label: "Contraseña",
+          placeholder: "Tu contraseña",
+          autocomplete: "current-password",
+        }) %>
+
+        <button type="submit" class="btn-primary mt-2 w-full">Iniciar Sesión</button>
+      </form>
+    </div>
+
+    <p class="mt-6 text-center text-sm text-ink">
+      ¿No tienes cuenta?
+      <a href="/register" class="font-bold underline-offset-2 hover:underline">Regístrate</a>
+    </p>
+  </div>
+</section>

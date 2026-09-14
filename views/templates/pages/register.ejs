@@ -1,0 +1,69 @@
+<%
+  // Page: Register (spectsEccomerce/pages/register.page.png, spec §4.5).
+  // Same visual language as Login: teal band + centered white card.
+  //
+  // Deviations documented per spec:
+  // - Field set: the mockup shows only "Tu email / Tu nueva contraseña /
+  //   Repite tu contraseña", but §4.5 + checklist Paso 9 + §6.3 mandate the
+  //   exact name/id set `name`, `lastname`, `email`, `password` (the
+  //   validation script targets those names). No confirm-password field —
+  //   §6.3 rules don't include one. Spec wins over mockup.
+  // - Submit uses .btn-primary (teal) though the mockup paints it graphite —
+  //   same normalization as login (spec "botón primario", Paso 6 precedent).
+  // - novalidate disables native browser bubbles so §6.3 per-field specific
+  //   messages (rendered into the atoms' data-error-for slots) always run.
+  // - Auth backend does NOT exist yet — placeholder action="/register" POST
+  //   per §6.3 ("un POST normal con redirect"); endpoint lands in a later paso.
+%>
+<section class="relative">
+  <div class="absolute inset-x-0 top-0 h-64 bg-brand md:h-72" aria-hidden="true"></div>
+
+  <div class="relative mx-auto w-full max-w-sm px-4 pb-20 pt-10 md:pt-14">
+    <div class="rounded-2xl bg-white p-6 shadow-md md:p-8">
+      <h1 class="text-h3 text-ink">¡Registrate!</h1>
+
+      <form id="register-form" action="/register" method="POST" novalidate class="mt-6 flex flex-col gap-4">
+        <%- include("../atoms/input", {
+          name: "name",
+          label: "Nombre",
+          placeholder: "Tu nombre",
+          autocomplete: "given-name",
+          errorSlot: true,
+        }) %>
+        <%- include("../atoms/input", {
+          name: "lastname",
+          label: "Apellido",
+          placeholder: "Tu apellido",
+          autocomplete: "family-name",
+          errorSlot: true,
+        }) %>
+        <%- include("../atoms/input", {
+          name: "email",
+          type: "email",
+          label: "Email",
+          placeholder: "Tu email",
+          autocomplete: "email",
+          errorSlot: true,
+        }) %>
+        <%- include("../atoms/input", {
+          name: "password",
+          type: "password",
+          label: "Contraseña",
+          placeholder: "Tu nueva contraseña",
+          autocomplete: "new-password",
+          errorSlot: true,
+        }) %>
+
+        <button type="submit" class="btn-primary mt-2 w-full">Crear Cuenta</button>
+      </form>
+    </div>
+
+    <p class="mt-6 text-center text-sm text-ink">
+      ¿Ya tienes cuenta?
+      <a href="/login" class="font-bold underline underline-offset-2 hover:underline">Inicia Sesión</a>
+    </p>
+  </div>
+</section>
+
+<!-- Register client-side validation (spec §6.3): public/ is served statically; the build copies public/** → dist/public -->
+<script src="/js/register-validation.js" defer></script>

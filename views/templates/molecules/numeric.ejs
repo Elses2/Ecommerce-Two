@@ -1,0 +1,31 @@
+<%
+  // Molecule: numeric quantity control (spectsEccomerce/layouts/Numeric.png).
+  // Pill stepper "− quantity +": pill border, minus left, plus right, value in
+  // the middle. Data via locals — productId: number, quantity: number; no
+  // hardcoded data. The mockup also shows a dark variant; /cart only uses the
+  // light one (white cards), so only that variant is implemented.
+  // data-* contract (spec §5): buttons carry data-cart-action="decrease" /
+  // "increase" + data-product-id; the span carries data-quantity — cart.js
+  // rewrites it from the JSON response (AJAX, no reload).
+%>
+<div
+  class="inline-flex shrink-0 items-center gap-2 rounded-full border border-ink/15 bg-white px-2 py-1"
+  role="group"
+  aria-label="Cantidad del producto"
+>
+  <button
+    type="button"
+    class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-base leading-none text-ink transition-colors hover:bg-ink/5"
+    data-cart-action="decrease"
+    data-product-id="<%= productId %>"
+    aria-label="Reducir cantidad"
+  >−</button>
+  <span class="min-w-4 text-center text-sm font-semibold text-ink" data-quantity><%= quantity %></span>
+  <button
+    type="button"
+    class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-base leading-none text-ink transition-colors hover:bg-ink/5"
+    data-cart-action="increase"
+    data-product-id="<%= productId %>"
+    aria-label="Aumentar cantidad"
+  >+</button>
+</div>

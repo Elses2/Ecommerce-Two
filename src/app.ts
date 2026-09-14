@@ -1,66 +1,100 @@
 import express from "express";
 import path from "path";
+import pagesRoutes from "./routes/pages.routes.js";
+import apiRoutes from "./routes/index.routes.js";
 import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
+import session from "express-session";
+import { env } from "./config/env.js";
+import { injectCartCount } from "./middlewares/injectCartCount.middleware.js";
+import { normalizeId } from "./middlewares/normalizeId.middleware.js";
+import { errorHandler } from "./middlewares/error-handler.middleware.js";
+import { productService } from "./services/product.service.js";
+import { getCategoryIconSvg } from "./utils/category-icons.js";
+///database
+import SqliteStoreFactory from "better-sqlite3-session-store";
+import db from "./config/database.js";
 
-// Truco para tener __dirname en ES Modules
+// Truquito con url para que funconen bien los path: re molesto, hay una forma mas moderna y corta de hacerlo pero lo dejo asi para mas claridad
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const SqliteStore = SqliteStoreFactory(session);
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// ==========================================
-// CONFIGURACIÓN DE EJS Y LAYOUTS
-// ==========================================
-//app.use(expressLayouts);          despues decomentar
+// --- Configuración de vistas ---
 app.set("view engine", "ejs");
-// Le decimos que la carpeta de vistas es /src/views
 app.set("views", path.join(__dirname, "views"));
-// Por defecto, express-ejs-layouts buscará un archivo llamado 'layout.ejs' en la raíz de 'views'
-// app.set("layout", "layout");     despues descomentar
+//  --- Aca tuve problemas para que me leyera el css de tailwinds no es lo ideal pero esto hace que devamos ejecutar desde el package.json ---
+app.use(express.static(path.join(process.cwd(), "dist/public")));
+// --- Middlewares globales ---
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Carpeta de archivos estáticos (Acá irá el CSS compilado de Tailwind)
-app.use(express.static(path.join(__dirname, "../dist/public")));
+// express-session (spec §6.4): se usa SOLO para el carrito, no para auth.
+// MemoryStore OK en desarrollo; cookie de sesión sin maxAge → el carrito se
+// pierde al cerrar el navegador. Debe correr antes de injectCartCount (lee
+// req.session.cart). saveUninitialized: false → la cookie solo se emite en
+// la primera mutación del carrito; los GET puros no crean sesión.
+app.use(
+  session({
+    secret: env.sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    store: new SqliteStore({
+      client: db,
+      expired: {
+        clear: true,
+        intervalMs: 900000, // limpia sesiones vencidas cada 15 min
+      },
+    }),
+    cookie: { httpOnly: true, sameSite: "lax" },
+  }),
+);
 
-// ==========================================
-// RUTAS (Sprint 1 - Sin Express Router por ahora)
-// ==========================================
+// Activamos el sistema de layouts
+app.use(expressLayouts);
+app.set("layout", "templates/layout"); // layout atómico: header + slot + footer
+// Helper de vista (spec §6.6b): nombre de categoría → SVG de Lucide, disponible
+// para todos los templates (organisms/categories-nav.ejs lo consume)
+app.locals.getCategoryIconSvg = getCategoryIconSvg;
+// Primer root: árbol atómico nuevo (views/templates). Segundo: páginas heredadas
+// (src/views/pages) mientras se migran al nuevo árbol en pasos siguientes.
+app.set("views", [
+  path.join(process.cwd(), "views"),
+  path.join(__dirname, "views"),
+]);
 
-// 🏠 Página de Inicio
-app.get("/", (req, res) => {
-  res.render("pages/index", { title: "Inicio" });
+// --- Middlewares cross-cutting (orden: ver design D6) ---
+app.use(injectCartCount); // expone cartCount a las vistas (suma de cantidades en req.session.cart, §6.11)
+app.use(normalizeId); // valida :id numérico, 400 si no
+
+// --- Routers (acá usamos imports relativos, sin `path`) ---
+app.use("/", pagesRoutes); // Frontend: /, /products, /cart, /login, etc.
+app.use("/api", apiRoutes); // Backend: /api/products, /api/categories, etc.
+
+// --- 404 catch-all (spec §6.1): después de TODAS las rutas, antes del
+// errorHandler. /api/* responde JSON (los consumidores AJAX nunca reciben
+// HTML); el resto renderiza la página 404 del árbol atómico. Si el render
+// de la 404 fallara, Express reenvía el error al errorHandler de abajo.
+app.use((req, res) => {
+  if (req.path.startsWith("/api")) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  res
+    .status(404)
+    .render("templates/pages/404", { title: "Página no encontrada" });
 });
 
-// 📦 Página de un producto en particular
-app.get("/products", (req, res) => {
-  res.render("pages/products", { title: "Producto" });
-});
+// --- Error handler: SIEMPRE al final ---
+app.use(errorHandler);
 
-// 🛒 Página del carrito (Esta es la que vas a probar ahora)
-app.get("/cart", (req, res) => {
-  res.render("pages/cart", { title: "Carrito de Compras" });
-});
-
-// 💵 Página de pago
-app.get("/checkout", (req, res) => {
-  res.render("pages/checkout", { title: "Pago" });
-});
-
-// ➕ Página de registro
-app.get("/register", (req, res) => {
-  res.render("pages/register", { title: "Crear Cuenta" });
-});
-
-// 🔑 Página de inicio de sesión
-app.get("/login", (req, res) => {
-  res.render("pages/login", { title: "Iniciar Sesión" });
-});
-
-// ==========================================
-// INICIAR SERVIDOR
-// ==========================================
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`🛒 Probá tu carrito en: http://localhost:${PORT}/cart`);
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+  // Boot check (data-access R4): el servicio resuelve las filas seedeadas al arrancar
+  console.log(`Productos seedeados: ${productService.list().length}`);
 });
+
+export default app;

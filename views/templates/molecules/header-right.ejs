@@ -1,0 +1,10 @@
+<%
+  // Molecule: right cluster of the header (spectsEccomerce/layouts/Header-Right.png)
+  // = cart-icon molecule + profile-btn molecule with a small gap.
+  const rightCartCount = typeof cartCount === "number" && cartCount >= 0 ? cartCount : 0;
+  const rightUserName = typeof userName === "string" ? userName : "";
+%>
+<div class="flex shrink-0 items-center gap-2">
+  <%- include("./cart-icon", { count: rightCartCount }) %>
+  <%- include("./profile-btn", { name: rightUserName }) %>
+</div>
