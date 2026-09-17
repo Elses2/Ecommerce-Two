@@ -11,11 +11,15 @@ import { normalizeId } from "./middlewares/normalizeId.middleware.js";
 import { errorHandler } from "./middlewares/error-handler.middleware.js";
 import { productService } from "./services/product.service.js";
 import { getCategoryIconSvg } from "./utils/category-icons.js";
+///database
+import SqliteStoreFactory from "better-sqlite3-session-store";
+import db from "./config/database.js";
 
 // Truquito con url para que funconen bien los path: re molesto, hay una forma mas moderna y corta de hacerlo pero lo dejo asi para mas claridad
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const SqliteStore = SqliteStoreFactory(session);
 const app = express();
 
 // --- Configuración de vistas ---
@@ -37,6 +41,13 @@ app.use(
     secret: env.sessionSecret,
     resave: false,
     saveUninitialized: false,
+    store: new SqliteStore({
+      client: db,
+      expired: {
+        clear: true,
+        intervalMs: 900000, // limpia sesiones vencidas cada 15 min
+      },
+    }),
     cookie: { httpOnly: true, sameSite: "lax" },
   }),
 );
@@ -47,6 +58,12 @@ app.set("layout", "templates/layout"); // layout atómico: header + slot + foote
 // Helper de vista (spec §6.6b): nombre de categoría → SVG de Lucide, disponible
 // para todos los templates (organisms/categories-nav.ejs lo consume)
 app.locals.getCategoryIconSvg = getCategoryIconSvg;
+// Primer root: árbol atómico nuevo (views/templates). Segundo: páginas heredadas
+// (src/views/pages) mientras se migran al nuevo árbol en pasos siguientes.
+app.set("views", [
+  path.join(process.cwd(), "views"),
+  path.join(__dirname, "views"),
+]);
 
 // --- Middlewares cross-cutting (orden: ver design D6) ---
 app.use(injectCartCount); // expone cartCount a las vistas (suma de cantidades en req.session.cart, §6.11)
@@ -65,7 +82,9 @@ app.use((req, res) => {
     res.status(404).json({ error: "Not found" });
     return;
   }
-  res.status(404).render("templates/pages/404", { title: "Página no encontrada" });
+  res
+    .status(404)
+    .render("templates/pages/404", { title: "Página no encontrada" });
 });
 
 // --- Error handler: SIEMPRE al final ---
