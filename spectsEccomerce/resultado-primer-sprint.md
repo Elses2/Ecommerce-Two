@@ -120,8 +120,7 @@ de header (cookie jar + server render).
 - **WebSockets: explícitamente Sprint 2** (§8). Nada de tiempo real en este sprint.
 - **Swagger**: deps mantenidas por directriz del maintainer (el spec las prohibía — desvío aprobado
   para el futuro desarme del monolito).
-- Sin linter/CI; las páginas legacy de `src/views/` quedaron como código muerto (borrado pendiente
-  de decisión del maintainer).
+- Sin linter/CI; las páginas legacy de `src/views/` (layout.ejs, pages/*, partials/*) fueron reemplazadas por el árbol atómico `src/views/templates/`.
 
 ---
 
@@ -131,7 +130,7 @@ de header (cookie jar + server render).
 2. Breadcrumb: pinta un `›` inicial cuando no hay `back` (guard `i > 0` de una línea, pendiente).
 3. `format:check` de Prettier falla **pre-existente** en el repo (sin config); no se reformateó para
    mantener los commits sin churn.
-4. `dist/views` solo copia el árbol legacy: producción requiere la carpeta raíz `views/` (deploy note).
+4. `dist/views` copia el árbol atómico completo (`src/views/templates/**` → `dist/views/templates/**`); el build script `cpx "src/views/**/*.ejs" dist/views` ya lo cubre.
 5. `normalizeId.middleware.ts` captura el grupo 1 del regex (nombre de recurso, no id): hoy inofensivo
    (router de productos vacío), revisar cuando crezca el API.
 6. Los errores JSON de la API exponen `err.message` — endurecer es un cambio de contrato aparte.

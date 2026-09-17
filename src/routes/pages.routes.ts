@@ -24,8 +24,6 @@ router.get("/cart", pagesController.getCart); // render inicial (spec §6.4), mu
 // legacy vacía se reemplaza por el controller del árbol atómico.
 router.get("/checkout", pagesController.getCheckout);
 // Login/Register (spec §4.4/§4.5, Paso 9): atomic templates from the new tree
-// (multi-root views, cwd root first). Legacy src/views/pages/*.ejs stay as
-// dead code — deletion is deferred to a later cleanup.
 router.get("/register", (req, res) =>
   res.render("templates/pages/register", { title: "Crear Cuenta" }),
 );
