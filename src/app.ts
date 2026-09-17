@@ -21,7 +21,7 @@ const app = express();
 // --- Configuración de vistas ---
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-//  --- Aca tuve problemas para que me leyera el css de tailwinds no es lo ideal pero esto hace que devamos ejecutar desde el package.json ---
+//  --- Aca tuve problemas para que me leyera el css de tailwinds no es lo ideal pero esto hace que dev debemos ejecutar desde el package.json ---
 app.use(express.static(path.join(process.cwd(), "dist/public")));
 // --- Middlewares globales ---
 app.use(express.json());
@@ -47,9 +47,6 @@ app.set("layout", "templates/layout"); // layout atómico: header + slot + foote
 // Helper de vista (spec §6.6b): nombre de categoría → SVG de Lucide, disponible
 // para todos los templates (organisms/categories-nav.ejs lo consume)
 app.locals.getCategoryIconSvg = getCategoryIconSvg;
-// Primer root: árbol atómico nuevo (views/templates). Segundo: páginas heredadas
-// (src/views/pages) mientras se migran al nuevo árbol en pasos siguientes.
-app.set("views", [path.join(process.cwd(), "views"), path.join(__dirname, "views")]);
 
 // --- Middlewares cross-cutting (orden: ver design D6) ---
 app.use(injectCartCount); // expone cartCount a las vistas (suma de cantidades en req.session.cart, §6.11)

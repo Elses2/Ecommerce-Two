@@ -11,8 +11,8 @@ import type { ErrorRequestHandler, NextFunction, Request, Response } from "expre
 //   §6.2 solo prohíbe filtrar message hacia la vista; el cuerpo JSON de
 //   API queda como estaba en este paso.
 // - Páginas: renderiza templates/pages/500 (árbol atómico; el snippet del
-//   spec usa el path legacy "pages/500", el proyecto resuelve el árbol
-//   multi-root views/templates con layout heredado).
+//   spec usa el path legacy "pages/500", el proyecto resuelve desde
+//   views/templates con layout heredado).
 // - Fallback anti-loop: si el propio render de la página 500 falla (vista o
 //   layout), el callback de res.render lo captura y responde texto plano
 //   "Internal server error" — sin pasar por next(err), evitando el bucle
