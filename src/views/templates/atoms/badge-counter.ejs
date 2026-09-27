@@ -1,7 +1,10 @@
 <%
-  // Atom: numeric cart badge (spectsEccomerce/layouts/Cart/Badge.svg).
-  // Red pill with a white digit; purely visual, the accessible name lives on
-  // the parent control. Renders only the value received via include locals.
+/**
+ * Atom: BadgeCounter (spectsEccomerce/layouts/Cart/Badge.svg)
+ * Indicador numérico rojo para el carrito de compras.
+ *
+ * @param {number} [count=0] - Cantidad total de ítems en el carrito.
+ */
   const badgeCount = typeof count === "number" && count >= 0 ? count : 0;
 %>
 <span

@@ -1,4 +1,5 @@
 import express from "express";
+import type { Request, Response } from "express";
 import path from "path";
 import pagesRoutes from "./routes/pages.routes.js";
 import apiRoutes from "./routes/index.routes.js";
@@ -15,7 +16,11 @@ import { getCategoryIconSvg } from "./utils/category-icons.js";
 import SqliteStoreFactory from "better-sqlite3-session-store";
 import db from "./config/database.js";
 
-// Truquito con url para que funconen bien los path: re molesto, hay una forma mas moderna y corta de hacerlo pero lo dejo asi para mas claridad
+/**
+ * @fileoverview Configuración e inicialización del servidor Express, middlewares y rutas de la aplicación.
+ */
+
+// Truquito con url para que funcionen bien los path: re molesto, hay una forma mas moderna y corta de hacerlo pero lo dejo asi para mas claridad
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -27,6 +32,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 //  --- Aca tuve problemas para que me leyera el css de tailwinds no es lo ideal pero esto hace que dev debemos ejecutar desde el package.json ---
 app.use(express.static(path.join(process.cwd(), "dist/public")));
+
 // --- Middlewares globales ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -55,9 +61,11 @@ app.use(
 // Activamos el sistema de layouts
 app.use(expressLayouts);
 app.set("layout", "templates/layout"); // layout atómico: header + slot + footer
+
 // Helper de vista (spec §6.6b): nombre de categoría → SVG de Lucide, disponible
 // para todos los templates (organisms/categories-nav.ejs lo consume)
 app.locals.getCategoryIconSvg = getCategoryIconSvg;
+
 // Primer root: árbol atómico nuevo (views/templates). Segundo: páginas heredadas
 // (src/views/pages) mientras se migran al nuevo árbol en pasos siguientes.
 app.set("views", [
@@ -73,11 +81,16 @@ app.use(normalizeId); // valida :id numérico, 400 si no
 app.use("/", pagesRoutes); // Frontend: /, /products, /cart, /login, etc.
 app.use("/api", apiRoutes); // Backend: /api/products, /api/categories, etc.
 
-// --- 404 catch-all (spec §6.1): después de TODAS las rutas, antes del
-// errorHandler. /api/* responde JSON (los consumidores AJAX nunca reciben
-// HTML); el resto renderiza la página 404 del árbol atómico. Si el render
-// de la 404 fallara, Express reenvía el error al errorHandler de abajo.
-app.use((req, res) => {
+/**
+ * Middleware catch-all de recurso no encontrado (spec §6.1):
+ * Se ejecuta después de evaluar todas las rutas registradas.
+ * Responde con un objeto JSON para `/api/*` y renderiza la vista 404 para el resto.
+ *
+ * @param {Request} req - Objeto de solicitud HTTP de Express.
+ * @param {Response} res - Objeto de respuesta HTTP de Express.
+ * @returns {void}
+ */
+function handleNotFound(req: Request, res: Response): void {
   if (req.path.startsWith("/api")) {
     res.status(404).json({ error: "Not found" });
     return;
@@ -85,7 +98,9 @@ app.use((req, res) => {
   res
     .status(404)
     .render("templates/pages/404", { title: "Página no encontrada" });
-});
+}
+
+app.use(handleNotFound);
 
 // --- Error handler: SIEMPRE al final ---
 app.use(errorHandler);

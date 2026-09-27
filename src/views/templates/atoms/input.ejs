@@ -1,22 +1,18 @@
 <%
-  // Atom: text input (spectsEccomerce/layouts/Input.png, spec §3 row "Input.png",
-  // checklist Paso 9). Pill-shaped input with light/dark variants, no hardcoded
-  // data — everything arrives via locals.
-  //
-  // Locals contract:
-  // - name (required): input name attribute
-  // - id: input id attribute (defaults to name)
-  // - type: input type (defaults to "text")
-  // - label (required): accessible label text (rendered sr-only — the auth
-  //   mockups show placeholder-only fields, but a11y needs a real label)
-  // - placeholder?: visible placeholder copy
-  // - value?: initial value
-  // - variant?: "light" (default, white bg — login/register pages) | "dark"
-  //   (graphite fill per Input.png lower variant; no consuming page yet)
-  // - autocomplete?: autocomplete hint ("email", "current-password", ...)
-  // - errorSlot?: when true, renders an empty hidden <p data-error-for="{id}">
-  //   that register-validation.js (spec §6.3) fills with the per-field error
-  //   message. Omitted on pages without client validation (login, Paso 9).
+/**
+ * Atom: Input (spectsEccomerce/layouts/Input.png)
+ * Campo de texto estilo píldora con soporte para variantes clara/oscura y slot de error accesible.
+ *
+ * @param {string} name - Nombre del atributo 'name' del input (requerido).
+ * @param {string} [id] - ID único del input (por defecto toma `name`).
+ * @param {string} [type="text"] - Tipo de input HTML (ej: "text", "password", "email").
+ * @param {string} [label] - Texto accesible para la etiqueta (se renderiza con sr-only).
+ * @param {string} [placeholder=""] - Texto de sugerencia visible.
+ * @param {string} [value=""] - Valor inicial del campo.
+ * @param {"light" | "dark"} [variant="light"] - Esquema de color visual ("light" para fondos claros, "dark" para graphite).
+ * @param {string} [autocomplete] - Atributo/sugerencia de autocompletado HTML.
+ * @param {boolean} [errorSlot=false] - Indica si genera un <p> oculto para mensajes de validación cliente.
+ */
   const inputName = locals.name;
   const inputId = locals.id ?? locals.name;
   const inputType = locals.type ?? "text";
