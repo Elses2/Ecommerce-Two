@@ -1,11 +1,38 @@
 import type { NextFunction, Request, Response } from "express";
 
-// injectCartCount (spec §6.11): suma quantity (no subtotales) del carrito de
-// sesión en cada request y lo expone a las vistas vía res.locals. Requiere
-// que express-session esté montado ANTES en app.ts. En /cart el contador
-// además se actualiza inline con el JSON de /api/cart/* (data-cart-count).
-export function injectCartCount(req: Request, res: Response, next: NextFunction): void {
-  const cart = req.session.cart ?? [];
-  res.locals.cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+/**
+ * Patrón RegExp para identificar el parámetro ID en rutas específicas de la API.
+ */
+const ID_PATH_PATTERN = /^\/api\/(products|categories|orders)\/([^/]+)$/;
+
+/**
+ * Middleware que valida que el parámetro de ID en la petición sea estrictamente numérico.
+ *
+ * // normalizeId: valida que el :id del request sea numérico; rechaza con 400 lo contrario.
+ * // Cuando se monta globalmente (antes de los routers), Express aún no pobló
+ * // req.params: como fallback se interpreta el segmento de id de rutas API
+ * // tipo /api/recurso/:id para poder rechazar valores no numéricos igualmente.
+ * // El fallback se limita a las rutas de colección con id (spec §6.9):
+ * // /api/products|categories|orders/:id. Las rutas de carrito llevan un verbo
+ * // (/api/cart/add|increase|decrease|remove/:productId) o un segmento estático
+ * // (/api/cart/clear) — "clear" no es un id y se validaba como tal por error;
+ * // la validación de esas rutas vive en su controller (cart.controller).
+ *
+ * @param {Request} req - Objeto de solicitud de Express.
+ * @param {Response} res - Objeto de respuesta de Express.
+ * @param {NextFunction} next - Función para continuar hacia el siguiente middleware o controller.
+ * @returns {void}
+ */
+export function normalizeId(req: Request, res: Response, next: NextFunction): void {
+  // @types/express 5 tipa params/path como string | string[]
+  const rawId = req.params.id;
+  const routeId = Array.isArray(rawId) ? rawId[0] : rawId;
+  const reqPath = Array.isArray(req.path) ? req.path[0] : req.path;
+  const pathId = ID_PATH_PATTERN.exec(reqPath)?.[1];
+  const id = routeId ?? pathId;
+  if (id !== undefined && !/^\d+$/.test(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
   next();
 }

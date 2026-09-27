@@ -11,6 +11,13 @@ import { normalizeId } from "../../utils/normalizeId.js";
 // (bloque 4, §6.6) y más pedidos (bloque 5, §6.7). Header (1) y footer (7)
 // los aporta templates/layout.ejs.
 export const pagesController = {
+  /**
+   * Renderiza la página principal (Home) del sitio web.
+   *
+   * @param {Request} _req - Objeto de solicitud de Express (no utilizado en este handler).
+   * @param {Response} res - Objeto de respuesta de Express para renderizar la vista 'index'.
+   * @returns {void}
+   */
   getHome(_req: Request, res: Response): void {
     res.render("templates/pages/index", {
       title: "Inicio",
@@ -21,8 +28,16 @@ export const pagesController = {
     });
   },
 
-  // Carrito (spec §4.2/§6.4): render inicial con los ítems ya pintados desde
-  // el server (sesión + datos reales); las mutaciones son AJAX vía /api/cart/*.
+  /**
+   * Renderiza la vista inicial del carrito de compras cargando sus detalles desde la sesión.
+   *
+   * // Carrito (spec §4.2/§6.4): render inicial con los ítems ya pintados desde
+   * // el server (sesión + datos reales); las mutaciones son AJAX vía /api/cart/*.
+   *
+   * @param {Request} req - Objeto de solicitud de Express (requiere `req.session`).
+   * @param {Response} res - Objeto de respuesta de Express para renderizar la vista 'cart'.
+   * @returns {void}
+   */
   getCart(req: Request, res: Response): void {
     res.render("templates/pages/cart", {
       title: "Carrito de Compras",
@@ -30,13 +45,21 @@ export const pagesController = {
     });
   },
 
-  // Detalle de producto (spec §6.8/Paso 8): id validado con el helper puro
-  // normalizeId (§6.9 — solo formato, 400 si no numérico) y existencia
-  // resuelta acá tras consultar el servicio (404 si no está). El 404
-  // renderiza la página 404 del árbol atómico (Paso 10, spec §6.1). El 400
-  // queda como texto plano: §6.1/§6.2 solo definen páginas para 404/500 y
-  // §6.9 trata el id inválido como respuesta de validación, no de vista.
-  // Relacionados: hasta 4 que comparten categoría, al azar si hay más (§6.8).
+  /**
+   * Renderiza la página de detalle de un producto específico, validando el ID y buscando sus productos relacionados.
+   *
+   * // Detalle de producto (spec §6.8/Paso 8): id validado con el helper puro
+   * // normalizeId (§6.9 — solo formato, 400 si no numérico) y existencia
+   * // resuelta acá tras consultar el servicio (404 si no está). El 404
+   * // renderiza la página 404 del árbol atómico (Paso 10, spec §6.1). El 400
+   * // queda como texto plano: §6.1/§6.2 solo definen páginas para 404/500 y
+   * // §6.9 trata el id inválido como respuesta de validación, no de vista.
+   * // Relacionados: hasta 4 que comparten categoría, al azar si hay más (§6.8).
+   *
+   * @param {Request} req - Objeto de solicitud de Express (requiere `req.params.id`).
+   * @param {Response} res - Objeto de respuesta de Express.
+   * @returns {void}
+   */
   getProductDetail(req: Request, res: Response): void {
     const rawId = req.params.id;
     // @types/express 5 tipa params como string | string[] (con undefined bajo
@@ -64,12 +87,20 @@ export const pagesController = {
     });
   },
 
-  // Categoría (spec §4.6/Paso 11): listado de productos por categoría. La
-  // validación replica getProductDetail (§6.9): id no numérico → 400 texto
-  // plano (§6.1/§6.2 solo definen páginas para 404/500); id numérico pero
-  // inexistente → 404 con la página 404 del árbol atómico (misma decisión de
-  // Paso 8/Paso 10 para el detalle de producto). Productos N:M con atributos
-  // derivados ya resueltos por productService.findByCategory (Paso 1).
+  /**
+   * Renderiza el listado de productos pertenecientes a una categoría concreta.
+   *
+   * // Categoría (spec §4.6/Paso 11): listado de productos por categoría. La
+   * // validación replica getProductDetail (§6.9): id no numérico → 400 texto
+   * // plano (§6.1/§6.2 solo definen páginas para 404/500); id numérico pero
+   * // inexistente → 404 con la página 404 del árbol atómico (misma decisión de
+   * // Paso 8/Paso 10 para el detalle de producto). Productos N:M con atributos
+   * // derivados ya resueltos por productService.findByCategory (Paso 1).
+   *
+   * @param {Request} req - Objeto de solicitud de Express (requiere `req.params.categoryId`).
+   * @param {Response} res - Objeto de respuesta de Express.
+   * @returns {void}
+   */
   getCategory(req: Request, res: Response): void {
     const rawId = req.params.categoryId;
     // @types/express 5 tipa params como string | string[] — misma defensa que
@@ -96,12 +127,20 @@ export const pagesController = {
     });
   },
 
-  // Listado de productos con orden por precio (spec §6.12/Paso 12):
-  // server-rendered, NO AJAX — el orden viaja por query string. sort se
-  // normaliza con whitelist: cualquier valor distinto de "desc" (incluido
-  // garbage o ausente) cae en "asc", default del spec; nunca viaja crudo
-  // hacia el SQL del repositorio. §6.12 no define un control de orden en la
-  // página, solo el parámetro — sin UI de sort (decisión documentada).
+  /**
+   * Renderiza el catálogo general de productos aplicando un ordenamiento por precio según query params.
+   *
+   * // Listado de productos con orden por precio (spec §6.12/Paso 12):
+   * // server-rendered, NO AJAX — el orden viaja por query string. sort se
+   * // normaliza con whitelist: cualquier valor distinto de "desc" (incluido
+   * // garbage o ausente) cae en "asc", default del spec; nunca viaja crudo
+   * // hacia el SQL del repositorio. §6.12 no define un control de orden en la
+   * // página, solo el parámetro — sin UI de sort (decisión documentada).
+   *
+   * @param {Request} req - Objeto de solicitud de Express (evalúa `req.query.sort`).
+   * @param {Response} res - Objeto de respuesta de Express.
+   * @returns {void}
+   */
   getProducts(req: Request, res: Response): void {
     const sort = req.query.sort === "desc" ? "desc" : "asc";
     const products = productService.findAllWithSort(sort);
@@ -109,11 +148,19 @@ export const pagesController = {
     res.render("templates/pages/products", { title: "Productos", products, sort });
   },
 
-  // Buscador (spec §6.13/Paso 12): server-rendered, NO AJAX. La query se
-  // recorta; vacía o ausente → resultados vacíos ([]) con el mensaje
-  // amigable de la vista — el spec renderiza, no redirige. La query viaja a
-  // la vista y ahí se re-imprime SIEMPRE con <%= %> (escapado) — jamás <%- %> —
-  // para que texto tipo "<script>" quede inerte en el HTML.
+  /**
+   * Ejecuta la búsqueda de productos por coincidencia de nombre y renderiza los resultados.
+   *
+   * // Buscador (spec §6.13/Paso 12): server-rendered, NO AJAX. La query se
+   * // recorta; vacía o ausente → resultados vacíos ([]) con el mensaje
+   * // amigable de la vista — el spec renderiza, no redirige. La query viaja a
+   * // la vista y ahí se re-imprime SIEMPRE con <%= %> (escapado) — jamás <%- %> —
+   * // para que texto tipo "<script>" quede inerte en el HTML.
+   *
+   * @param {Request} req - Objeto de solicitud de Express (evalúa `req.query.query`).
+   * @param {Response} res - Objeto de respuesta de Express.
+   * @returns {void}
+   */
   searchProducts(req: Request, res: Response): void {
     // @types/express 5 tipa query como ParsedQs — misma defensa que en params:
     // cualquier forma rara (array/objeto) se reduce a la primera string.
@@ -134,10 +181,18 @@ export const pagesController = {
     });
   },
 
-  // Checkout placeholder (spec §6.5/Paso 11): vista estática sin lógica —
-  // "Nada de lógica de negocio ni de sesión acá — es un placeholder
-  // deliberado". El message viaja como local desde acá, tal como el
-  // pseudo-código de §6.5.
+  /**
+   * Renderiza la vista provisional del proceso de Checkout.
+   *
+   * // Checkout placeholder (spec §6.5/Paso 11): vista estática sin lógica —
+   * // "Nada de lógica de negocio ni de sesión acá — es un placeholder
+   * // deliberado". El message viaja como local desde acá, tal como el
+   * // pseudo-código de §6.5.
+   *
+   * @param {Request} _req - Objeto de solicitud de Express (no utilizado).
+   * @param {Response} res - Objeto de respuesta de Express.
+   * @returns {void}
+   */
   getCheckout(_req: Request, res: Response): void {
     res.render("templates/pages/checkout", {
       title: "Checkout",
