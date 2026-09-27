@@ -1,7 +1,12 @@
 <%
-  // Atom: circular user picture (spectsEccomerce/layouts/ProfilePic.png).
-  // Photo when `src` is provided, initial-letter fallback otherwise.
-  // All data arrives via include locals; no real data lives here.
+/**
+ * Atom: ProfilePic (spectsEccomerce/layouts/ProfilePic.png)
+ * Foto circular de perfil de usuario con fallback automático a la inicial del nombre.
+ *
+ * @param {string} [src] - URL de la imagen de perfil.
+ * @param {string} [name] - Nombre del usuario para calcular la inicial de fallback.
+ * @param {string} [alt] - Texto alternativo de la imagen (por defecto utiliza `name`).
+ */
   const picSrc = typeof src === "string" && src ? src : "";
   const picName = typeof name === "string" && name.trim() ? name.trim() : "";
   const picAlt = typeof alt === "string" && alt ? alt : picName;

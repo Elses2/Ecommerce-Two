@@ -6,13 +6,28 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const db: BetterSqlite3.Database = new BetterSqlite3(path.join(__dirname, "../../dev.db"));
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
+/**
+ * Configura los pragmas principales de SQLite para habilitar el modo WAL y la integridad referencial.
+ *
+ * @param {BetterSqlite3.Database} database - Instancia de la base de datos a configurar.
+ * @returns {void}
+ */
+function configurePragmas(database: BetterSqlite3.Database): void {
+  database.pragma("journal_mode = WAL");
+  database.pragma("foreign_keys = ON");
+}
 
-// Bootstrap del esquema: 6 tablas según spec §1.1 (DDL aditivo en arranque)
-// Índices UNIQUE en name habilitan INSERT OR IGNORE para seed idempotente (D4)
-db.exec(`
+/**
+ * Inicializa el esquema DDL de la base de datos creando las tablas e índices necesarios.
+ *
+ * // Bootstrap del esquema: 6 tablas según spec §1.1 (DDL aditivo en arranque)
+ * // Índices UNIQUE en name habilitan INSERT OR IGNORE para seed idempotente (D4)
+ *
+ * @param {BetterSqlite3.Database} database - Instancia de la base de datos donde se ejecutará el DDL.
+ * @returns {void}
+ */
+function bootstrapSchema(database: BetterSqlite3.Database): void {
+  database.exec(`
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -64,5 +79,24 @@ CREATE TABLE IF NOT EXISTS order_items (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_products_name ON products(name);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
 `);
+}
 
+/**
+ * Crea e inicializa la conexión con la base de datos SQLite local.
+ *
+ * @param {string} dbPath - Ruta absoluta o relativa del archivo `.db`.
+ * @returns {BetterSqlite3.Database} Instancia configurada y lista para consultas.
+ */
+function initDatabase(dbPath: string): BetterSqlite3.Database {
+  const database = new BetterSqlite3(dbPath);
+  configurePragmas(database);
+  bootstrapSchema(database);
+  return database;
+}
+
+const db: BetterSqlite3.Database = initDatabase(path.join(__dirname, "../../dev.db"));
+
+/**
+ * Instancia singleton de la base de datos SQLite (BetterSqlite3).
+ */
 export default db;
