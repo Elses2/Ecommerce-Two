@@ -13,7 +13,8 @@
 | Cambio | PR | Estado |
 |---|---|---|
 | JSDoc comments en todo el código TypeScript | #56 | Mergeado a dev |
-| Dependencias swagger-jsdoc + swagger-ui-express instaladas | #56 | Mergeado a dev |
+| Dependencias swagger-jsdoc + swagger-ui-express instaladas | #29 | Mergeado a dev |
+| Configuración Swagger completa | **PR #58** | Mergeado a dev |
 | Persistencia de sesión en SQLite (better-sqlite3-session-store) | #47 | Mergeado a dev |
 | Reestructuración de views (legacy → árbol atómico) | #51 | Mergeado a dev |
 | .gitattributes con normalización EOL | #56 | Mergeado a dev |
@@ -22,35 +23,53 @@
 
 ---
 
-## 1. swagger-jsdoc + swagger-ui-express (PR #56)
+## 1. swagger-jsdoc + swagger-ui-express (PR #58)
 
 ### Qué pasó
 
-- `swagger-jsdoc` (`^6.2.8`) y `swagger-ui-express` (`^5.0.1`) fueron
-  agregados a `package.json` como dependencias.
-- Los tipos `@types/swagger-jsdoc` y `@types/swagger-ui-express` también
-  fueron instalados.
-- **NO hay configuración de Swagger implementada aún.** No existe ningún
-  archivo de configuración swagger, no hay definición de OpenAPI spec,
-  y no hay ninguna ruta que exponga `/api-docs` o similar.
-- PR #56 solo agregó **comentarios JSDoc** a los archivos TypeScript
-  (no confundir con documentación Swagger/OpenAPI).
+- `swagger-jsdoc` (`^6.2.8`) y `swagger-ui-express` (`^5.0.1`) ya estaban
+  instalados desde PR #29 pero **no estaban configurados**.
+- Se implementó la configuración completa:
+  - `src/config/swagger.ts` — definición OpenAPI 3.0 con schemas `Cart` y `Product`
+  - `src/routes/docs.routes.ts` — router que expone Swagger UI en `/api-docs`
+  - `src/app.ts` — monta `docsRouter` antes del catch-all 404
+- Se agregaron bloques `@swagger` con annotations a los endpoints:
+  - `src/controllers/api/cart.controller.ts` — 5 endpoints (`addItem`, `increaseItem`,
+    `decreaseItem`, `removeItem`, `clearCart`)
+  - `src/controllers/pages/pages.controller.ts` — 7 endpoints (`getHome`, `getCart`,
+    `getProductDetail`, `getCategory`, `getProducts`, `searchProducts`, `getCheckout`)
+- La spec se genera automáticamente a partir de los comentarios `@swagger`
+  y se sirve como UI interactiva en `/api-docs`.
 
-### Qué falta para tener Swagger funcional
+### Archivos nuevos
 
-1. Crear un archivo de configuración swagger (ej. `src/config/swagger.ts`)
-   con la definición de OpenAPI (info, version, rutas, formato de los
-   esquemas).
-2. Montar `swagger-ui-express` en `app.ts` para servir la UI interactiva.
-3. Agregar JSDoc annotations con formato swagger-jsdoc (`@swagger`) a los
-   controllers para que el spec se genere automáticamente.
-4. Decidir si la documentación Swagger es pública o protegida (auth).
+| Archivo | Descripción |
+|---|---|
+| `src/config/swagger.ts` | Configuración OpenAPI 3.0, definición de schemas, paths a escanear |
+| `src/routes/docs.routes.ts` | Router que monta `swagger-ui-express` en `/api-docs` |
+
+### Archivos modificados
+
+| Archivo | Cambio |
+|---|---|
+| `src/app.ts` | Import de `docsRouter` + `app.use('/api-docs', docsRouter)` |
+| `src/controllers/api/cart.controller.ts` | Bloques `@swagger` en 5 handlers |
+| `src/controllers/pages/pages.controller.ts` | Bloques `@swagger` en 7 handlers |
+
+### Cómo usar
+
+```bash
+npm run dev
+# luego abrir http://localhost:3000/api-docs
+```
 
 ### Nota para la IA de desarrollo
 
- swagger-jsdoc **está instalado pero no configurado**. Si se va a
- implementar Swagger, el trabajo es de setup + configuración + annotations,
- no de instalar dependencias.
+ swagger-jsdoc lee los bloques `@swagger` de los archivos listados en la
+ configuración (`apis`) y genera el spec OpenAPI en JSON. `swagger-ui-express`
+ lo sirve como página HTML interactiva en `/api-docs`. Los `@param` de TypeScript
+ normales **no** son leídos por swagger-jsdoc — se deben usar bloques `@swagger`
+ separados con la sintaxis OpenAPI. No mezclar ambos en el mismo bloque.
 
 ---
 
@@ -261,7 +280,6 @@ src/
 
 | Cambio | Estado | Notas |
 |---|---|---|
-| Configuración Swagger completa | **Pendiente** | Dependencias instaladas, falta setup |
 | Documentación de `dev.db` en `.gitignore` | Parcial | `dev.db` está en `.gitignore` pero `dev.db-shm` y `dev.db-wal` no |
 | Documentación de `scripts/seed.ts` en el spec | Parcial | El spec menciona "seed" pero no el script específico |
 | Documentación de `better-sqlite3-session-store` | No cubierto | PR #47, no está en el spec |
