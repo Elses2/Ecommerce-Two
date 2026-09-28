@@ -21,6 +21,9 @@
     "dev:tailwind": "tailwindcss -i ./src/styles.css -o ./dist/public/css/styles.css --watch",
     "build:tailwind": "tailwindcss -i ./src/styles.css -o ./dist/public/css/styles.css --minify",
     "seed": "tsx scripts/seed.ts",
+    "build:docs": "typedoc && npm run graph:deps",
+    "graph:deps": "node -e \"require('fs').mkdirSync('docs/graphs',{recursive:true})\" && madge --extensions ts --ts-config tsconfig.json --image docs/graphs/dependencias.svg src",
+    "graph:circular": "madge --extensions ts --ts-config tsconfig.json --circular src",
     "build": "tsc && npm run build:tailwind && cpx \"src/views/**/*.ejs\" dist/views && cpx \"public/**/*\" dist/public",
     "start": "node dist/app.js",
     "format": "prettier --write .",
@@ -51,10 +54,12 @@
     "@types/swagger-ui-express": "^4.1.7",
     "concurrently": "^9.1.2",
     "cpx2": "^8.0.0",
+    "madge": "^8.0.0",
     "prettier": "^3.5.0",
     "prettier-plugin-ejs": "^1.0.3",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.19.0",
+    "typedoc": "^0.28.20",
     "typescript": "^5.7.0"
   }
 }
