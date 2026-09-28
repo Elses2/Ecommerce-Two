@@ -14,6 +14,16 @@ export const pagesController = {
   /**
    * Renderiza la página principal (Home) del sitio web.
    *
+   * @swagger
+   * /:
+   *   get:
+   *     summary: Página de inicio
+   *     description: Renderiza el home con categorías, banners, productos sugeridos y más pedidos.
+   *     tags: [Páginas]
+   *     responses:
+   *       200:
+   *         description: Página HTML del home.
+   *
    * @param {Request} _req - Objeto de solicitud de Express (no utilizado en este handler).
    * @param {Response} res - Objeto de respuesta de Express para renderizar la vista 'index'.
    * @returns {void}
@@ -31,8 +41,15 @@ export const pagesController = {
   /**
    * Renderiza la vista inicial del carrito de compras cargando sus detalles desde la sesión.
    *
-   * // Carrito (spec §4.2/§6.4): render inicial con los ítems ya pintados desde
-   * // el server (sesión + datos reales); las mutaciones son AJAX vía /api/cart/*.
+   * @swagger
+   * /cart:
+   *   get:
+   *     summary: Vista del carrito
+   *     description: Renderiza la página del carrito con los ítems de la sesión.
+   *     tags: [Páginas]
+   *     responses:
+   *       200:
+   *         description: Página HTML del carrito.
    *
    * @param {Request} req - Objeto de solicitud de Express (requiere `req.session`).
    * @param {Response} res - Objeto de respuesta de Express para renderizar la vista 'cart'.
@@ -46,15 +63,28 @@ export const pagesController = {
   },
 
   /**
-   * Renderiza la página de detalle de un producto específico, validando el ID y buscando sus productos relacionados.
+   * Renderiza la página de detalle de un producto específico.
    *
-   * // Detalle de producto (spec §6.8/Paso 8): id validado con el helper puro
-   * // normalizeId (§6.9 — solo formato, 400 si no numérico) y existencia
-   * // resuelta acá tras consultar el servicio (404 si no está). El 404
-   * // renderiza la página 404 del árbol atómico (Paso 10, spec §6.1). El 400
-   * // queda como texto plano: §6.1/§6.2 solo definen páginas para 404/500 y
-   * // §6.9 trata el id inválido como respuesta de validación, no de vista.
-   * // Relacionados: hasta 4 que comparten categoría, al azar si hay más (§6.8).
+   * @swagger
+   * /products/{id}:
+   *   get:
+   *     summary: Detalle de producto
+   *     description: Renderiza la página de detalle de un producto por su ID.
+   *     tags: [Páginas]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID numérico del producto.
+   *     responses:
+   *       200:
+   *         description: Página HTML de detalle del producto.
+   *       400:
+   *         description: ID inválido (no numérico).
+   *       404:
+   *         description: Producto no encontrado.
    *
    * @param {Request} req - Objeto de solicitud de Express (requiere `req.params.id`).
    * @param {Response} res - Objeto de respuesta de Express.
@@ -88,14 +118,28 @@ export const pagesController = {
   },
 
   /**
-   * Renderiza el listado de productos pertenecientes a una categoría concreta.
+   * Renderiza el listado de productos de una categoría.
    *
-   * // Categoría (spec §4.6/Paso 11): listado de productos por categoría. La
-   * // validación replica getProductDetail (§6.9): id no numérico → 400 texto
-   * // plano (§6.1/§6.2 solo definen páginas para 404/500); id numérico pero
-   * // inexistente → 404 con la página 404 del árbol atómico (misma decisión de
-   * // Paso 8/Paso 10 para el detalle de producto). Productos N:M con atributos
-   * // derivados ya resueltos por productService.findByCategory (Paso 1).
+   * @swagger
+   * /categories/{categoryId}:
+   *   get:
+   *     summary: Productos por categoría
+   *     description: Renderiza el listado de productos pertenecientes a una categoría.
+   *     tags: [Páginas]
+   *     parameters:
+   *       - in: path
+   *         name: categoryId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID numérico de la categoría.
+   *     responses:
+   *       200:
+   *         description: Página HTML con los productos de la categoría.
+   *       400:
+   *         description: ID inválido.
+   *       404:
+   *         description: Categoría no encontrada.
    *
    * @param {Request} req - Objeto de solicitud de Express (requiere `req.params.categoryId`).
    * @param {Response} res - Objeto de respuesta de Express.
@@ -128,14 +172,26 @@ export const pagesController = {
   },
 
   /**
-   * Renderiza el catálogo general de productos aplicando un ordenamiento por precio según query params.
+   * Renderiza el catálogo general de productos con ordenamiento por precio.
    *
-   * // Listado de productos con orden por precio (spec §6.12/Paso 12):
-   * // server-rendered, NO AJAX — el orden viaja por query string. sort se
-   * // normaliza con whitelist: cualquier valor distinto de "desc" (incluido
-   * // garbage o ausente) cae en "asc", default del spec; nunca viaja crudo
-   * // hacia el SQL del repositorio. §6.12 no define un control de orden en la
-   * // página, solo el parámetro — sin UI de sort (decisión documentada).
+   * @swagger
+   * /products:
+   *   get:
+   *     summary: Catálogo de productos
+   *     description: Listado de productos con orden opcional por precio.
+   *     tags: [Páginas]
+   *     parameters:
+   *       - in: query
+   *         name: sort
+   *         required: false
+   *         schema:
+   *           type: string
+   *           enum: [asc, desc]
+   *           default: asc
+   *         description: Ordenar por precio.
+   *     responses:
+   *       200:
+   *         description: Página HTML con el catálogo de productos.
    *
    * @param {Request} req - Objeto de solicitud de Express (evalúa `req.query.sort`).
    * @param {Response} res - Objeto de respuesta de Express.
@@ -149,13 +205,24 @@ export const pagesController = {
   },
 
   /**
-   * Ejecuta la búsqueda de productos por coincidencia de nombre y renderiza los resultados.
+   * Ejecuta la búsqueda de productos por nombre y renderiza los resultados.
    *
-   * // Buscador (spec §6.13/Paso 12): server-rendered, NO AJAX. La query se
-   * // recorta; vacía o ausente → resultados vacíos ([]) con el mensaje
-   * // amigable de la vista — el spec renderiza, no redirige. La query viaja a
-   * // la vista y ahí se re-imprime SIEMPRE con <%= %> (escapado) — jamás <%- %> —
-   * // para que texto tipo "<script>" quede inerte en el HTML.
+   * @swagger
+   * /search:
+   *   get:
+   *     summary: Búsqueda de productos
+   *     description: Busca productos por nombre y renderiza los resultados.
+   *     tags: [Páginas]
+   *     parameters:
+   *       - in: query
+   *         name: query
+   *         required: false
+   *         schema:
+   *           type: string
+   *         description: Término de búsqueda.
+   *     responses:
+   *       200:
+   *         description: Página HTML con los resultados de búsqueda.
    *
    * @param {Request} req - Objeto de solicitud de Express (evalúa `req.query.query`).
    * @param {Response} res - Objeto de respuesta de Express.
@@ -184,10 +251,15 @@ export const pagesController = {
   /**
    * Renderiza la vista provisional del proceso de Checkout.
    *
-   * // Checkout placeholder (spec §6.5/Paso 11): vista estática sin lógica —
-   * // "Nada de lógica de negocio ni de sesión acá — es un placeholder
-   * // deliberado". El message viaja como local desde acá, tal como el
-   * // pseudo-código de §6.5.
+   * @swagger
+   * /checkout:
+   *   get:
+   *     summary: Checkout (placeholder)
+   *     description: Vista provisional — sin lógica de negocio.
+   *     tags: [Páginas]
+   *     responses:
+   *       200:
+   *         description: Página HTML de checkout placeholder.
    *
    * @param {Request} _req - Objeto de solicitud de Express (no utilizado).
    * @param {Response} res - Objeto de respuesta de Express.
