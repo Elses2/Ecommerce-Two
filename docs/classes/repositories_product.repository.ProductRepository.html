@@ -1,0 +1,282 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>ProductRepository | MiEcommerce - Documentación de Código Fuente - v1.0.0</title><meta name="description" content="Documentation for MiEcommerce - Documentación de Código Fuente"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">MiEcommerce - Documentación de Código Fuente - v1.0.0</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="../modules/repositories_product.repository.html">repositories/product.repository</a></li>
+<li><a href="" aria-current="page">ProductRepository</a></li></ul>
+<h1>Class ProductRepository</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>Repositorio de productos: único encargado de ejecutar consultas SQL sobre la tabla de productos.</p>
+<p>// Repositorio: ÚNICO dueño de todas las consultas SQL (regla del proyecto);
+// better-sqlite3 es síncrono — firmas síncronas sin promesas falsas (D5)</p>
+</div></section><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L12">src/repositories/product.repository.ts:12</a></li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h5 class="tsd-index-heading uppercase">Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="constructors">Constructors<a href="#constructors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#database" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>database</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#findall" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>All</span></a>
+<a href="#findbycategory" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>By<wbr/>Category</span></a>
+<a href="#findbyid" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>By<wbr/>Id</span></a>
+<a href="#findcategoriesbyproduct" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Categories<wbr/>By<wbr/>Product</span></a>
+<a href="#findrelatedbycategories" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Related<wbr/>By<wbr/>Categories</span></a>
+<a href="#list" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>list</span></a>
+<a href="#listrandom" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>list<wbr/>Random</span></a>
+<a href="#search" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>search</span></a>
+<a href="#searchbyname" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>search<wbr/>By<wbr/>Name</span></a>
+</div></section></div></details></section></section>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="constructors-1">Constructors<a href="#constructors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="constructor"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="constructorproductrepository"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">ProductRepository</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">database</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Database</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">ProductRepository</a><a href="#constructorproductrepository" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Inicializa la instancia del repositorio de productos.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">database</span>: <span class="tsd-signature-type">Database</span><span class="tsd-signature-symbol"> = db</span></span>
+<div class="tsd-comment tsd-typography"><p>Instancia de la base de datos SQLite.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ProductRepository</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L18">src/repositories/product.repository.ts:18</a></li></ul></aside></div></li></ul></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member tsd-is-private">
+<h3 class="tsd-anchor-link" id="database"><code class="tsd-tag">Private</code><span>database</span><a href="#database" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">database</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Database</span><span class="tsd-signature-symbol"> = db</span></div>
+<div class="tsd-comment tsd-typography"><p>Instancia de la base de datos SQLite.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L18">src/repositories/product.repository.ts:18</a></li></ul></aside></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="findall"><span>find<wbr/>All</span><a href="#findall" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="findall-1"><span class="tsd-kind-call-signature">findAll</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">sort</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;asc&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;desc&quot;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span><a href="#findall-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Obtiene la lista de productos ordenada por precio (ascendente o descendente).</p>
+<p>// Listado ordenado por precio (spec §6.12/Paso 12): el controller normaliza
+// sort a &quot;asc&quot; | &quot;desc&quot; (whitelist) — acá el ternario fija ASC como default
+// y JAMÁS interpola input crudo del usuario en el SQL. Queda separado de
+// list() porque Home (sugeridos/más pedidos) necesita el orden estable por id.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">sort</span>: <span class="tsd-signature-type">&quot;asc&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;desc&quot;</span></span>
+<div class="tsd-comment tsd-typography"><p>Criterio opcional de ordenamiento por precio ('asc' o 'desc').</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Lista de productos ordenados por precio.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L42">src/repositories/product.repository.ts:42</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="findbycategory"><span>find<wbr/>By<wbr/>Category</span><a href="#findbycategory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="findbycategory-1"><span class="tsd-kind-call-signature">findByCategory</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">categoryId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span><a href="#findbycategory-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Obtiene todos los productos asociados a una categoría específica mediante una tabla intermedia (relación N:M).</p>
+<p>// Join N:M por categoría (spec §1.2)</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">categoryId</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>Identificador único de la categoría.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Lista de productos pertenecientes a la categoría.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L118">src/repositories/product.repository.ts:118</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="findbyid"><span>find<wbr/>By<wbr/>Id</span><a href="#findbyid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="findbyid-1"><span class="tsd-kind-call-signature">findById</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><a href="#findbyid-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Busca un producto por su identificador único.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">id</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>Identificador ID del producto.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></h4><p>El producto obtenido o <code>undefined</code> si no existe.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L55">src/repositories/product.repository.ts:55</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="findcategoriesbyproduct"><span>find<wbr/>Categories<wbr/>By<wbr/>Product</span><a href="#findcategoriesbyproduct" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="findcategoriesbyproduct-1"><span class="tsd-kind-call-signature">findCategoriesByProduct</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">productId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/models_category.model.Category.html" class="tsd-signature-type tsd-kind-interface">Category</a><span class="tsd-signature-symbol">[]</span><a href="#findcategoriesbyproduct-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Obtiene las categorías vinculadas a un producto determinado.</p>
+<p>// Join N:M por producto (spec §1.2)</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">productId</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>Identificador único del producto.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/models_category.model.Category.html" class="tsd-signature-type tsd-kind-interface">Category</a><span class="tsd-signature-symbol">[]</span></h4><p>Lista de categorías asociadas al producto.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L136">src/repositories/product.repository.ts:136</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="findrelatedbycategories"><span>find<wbr/>Related<wbr/>By<wbr/>Categories</span><a href="#findrelatedbycategories" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="findrelatedbycategories-1"><span class="tsd-kind-call-signature">findRelatedByCategories</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">categoryIds</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">excludeProductId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span><a href="#findrelatedbycategories-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Obtiene productos relacionados que compartan al menos una categoría con el producto evaluado.</p>
+<p>// Candidatos a &quot;relacionados&quot; (spec §6.8/Paso 8): productos que comparten
+// al menos una categoría con el producto dado, excluyéndolo. DISTINCT evita
+// duplicados cuando comparten varias categorías; better-sqlite3 no acepta
+// arrays, así que los placeholders del IN se generan por categoría.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">categoryIds</span>: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></span>
+<div class="tsd-comment tsd-typography"><p>Arreglo de IDs de categorías compartidas.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">excludeProductId</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>ID del producto actual que se excluirá de la búsqueda.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Arreglo de productos relacionados sin duplicados.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L158">src/repositories/product.repository.ts:158</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="list"><span>list</span><a href="#list" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="list-1"><span class="tsd-kind-call-signature">list</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span><a href="#list-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Lista todos los productos ordenados por ID por defecto.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Arreglo completo de productos.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L25">src/repositories/product.repository.ts:25</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="listrandom"><span>list<wbr/>Random</span><a href="#listrandom" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="listrandom-1"><span class="tsd-kind-call-signature">listRandom</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">limit</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span><a href="#listrandom-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Retorna una muestra aleatoria de productos hasta el límite especificado.</p>
+<p>// Selección aleatoria (spec §6.7, fallback sin flag is_featured — la tabla
+// products no tiene columna de destacados): &quot;Los más pedidos&quot; toma hasta
+// <code>limit</code> productos al azar; el azar vive en el SQL, acá en el repositorio</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">limit</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>Cantidad máxima de productos aleatorios a obtener.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Muestra de productos aleatorios.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L104">src/repositories/product.repository.ts:104</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="search"><span>search</span><a href="#search" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="search-1"><span class="tsd-kind-call-signature">search</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">q</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span><a href="#search-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Realiza una búsqueda mediante coincidencias <code>LIKE</code> tanto en el nombre como en la descripción del producto.</p>
+<p>// LIKE sobre name y description (spec data-access)</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">q</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>Término o texto a buscar.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Lista de productos que coinciden con el término.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L69">src/repositories/product.repository.ts:69</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="searchbyname"><span>search<wbr/>By<wbr/>Name</span><a href="#searchbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="searchbyname-1"><span class="tsd-kind-call-signature">searchByName</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span><a href="#searchbyname-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Busca productos coincidentes únicamente por su nombre (para el buscador server-rendered).</p>
+<p>// Buscador server-rendered (spec §6.13/Paso 12): LIKE solo por name — el
+// patrón %query% viaja como parámetro (placeholder ?), nunca concatenado
+// al SQL.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">query</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>Cadena de texto a buscar en el nombre del producto.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Productos coincidentes por nombre.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L88">src/repositories/product.repository.ts:88</a></li></ul></aside></div></li></ul></section></section></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
+<div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
+<div><a href="#database" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>database</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
+<div><a href="#findall"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>All</span></a><a href="#findbycategory"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>By<wbr/>Category</span></a><a href="#findbyid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>By<wbr/>Id</span></a><a href="#findcategoriesbyproduct"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Categories<wbr/>By<wbr/>Product</span></a><a href="#findrelatedbycategories"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Related<wbr/>By<wbr/>Categories</span></a><a href="#list"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>list</span></a><a href="#listrandom"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>list<wbr/>Random</span></a><a href="#search"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>search</span></a><a href="#searchbyname"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>search<wbr/>By<wbr/>Name</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">MiEcommerce - Documentación de Código Fuente - v1.0.0</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>
