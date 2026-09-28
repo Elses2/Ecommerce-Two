@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import path from "path";
 import pagesRoutes from "./routes/pages.routes.js";
 import apiRoutes from "./routes/index.routes.js";
+import docsRouter from "./routes/docs.routes.js";
 import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
 import session from "express-session";
@@ -80,6 +81,7 @@ app.use(normalizeId); // valida :id numérico, 400 si no
 // --- Routers (acá usamos imports relativos, sin `path`) ---
 app.use("/", pagesRoutes); // Frontend: /, /products, /cart, /login, etc.
 app.use("/api", apiRoutes); // Backend: /api/products, /api/categories, etc.
+app.use("/api-docs", docsRouter); // Swagger UI interactiva
 
 /**
  * Middleware catch-all de recurso no encontrado (spec §6.1):
