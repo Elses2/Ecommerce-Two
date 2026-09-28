@@ -117,3 +117,7 @@ http://localhost:3000
 ```bash
 npm run build
 ```
+
+## Documentación
+
+- `npm run build:docs` genera la documentación de TypeDoc (HTML en `docs/`, ignorado por git) y regenera el grafo de dependencias `docs/graphs/dependencias.svg` (versionado; commitearlo si cambió la arquitectura). Requiere Graphviz instalado en el sistema.
