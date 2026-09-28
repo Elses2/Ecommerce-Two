@@ -1,0 +1,11 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPointStrategy": "expand",
+  "entryPoints": ["../src"],
+  "out": "../docs",
+  "tsconfig": "../tsconfig.json",
+  "name": "MiEcommerce - Documentación de Código Fuente",
+  "excludePrivate": false,
+  "excludeProtected": false,
+  "includeVersion": true
+}
