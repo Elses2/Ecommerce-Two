@@ -91,14 +91,13 @@ Y completá los valores dentro de `.env`:
 
 ```
 PORT=3000
-SESSION_SECRET=pegar_key_aqui
-CLOUDINARY_CLOUD_NAME=pegar_key_aqui
-CLOUDINARY_API_KEY=pegar_key_aqui
-CLOUDINARY_API_SECRET=pegar_key_aqui
-CLOUDINARY_FOLDER=pegar_key_aqui
+SESSION_SECRET=cambiar_por_un_secreto_largo_y_aleatorio
+# URL de la imagen que se muestra cuando un producto no tiene image_url.
+# Acepta http(s)://... o una ruta que empiece con "/". Si falta o es inválida, se usa el default.
+FALLBACK_IMAGE_URL=https://placehold.co/600x600?text=Sin+imagen
 ```
 
-> Pedile las claves reales a algún miembro del equipo, no las inventes ni las compartas públicamente.
+> Ya no hay claves externas que pedir: `SESSION_SECRET` generala con un valor aleatorio largo (por ejemplo, la salida de `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`) y no la compartas públicamente. `FALLBACK_IMAGE_URL` puede dejarse con el valor por defecto.
 
 5. Inicia el servidor de desarrollo
 
@@ -106,13 +105,21 @@ CLOUDINARY_FOLDER=pegar_key_aqui
 npm run dev
 ```
 
-6. Ver página
+6. Cargá los datos de ejemplo (opcional; el script es idempotente y crea el esquema si no existe)
+
+```bash
+npm run seed
+```
+
+7. Ver página
 
 ```
 http://localhost:3000
 ```
 
-7. Hacer el build para producción
+La documentación interactiva de la API (Swagger UI) queda disponible en `http://localhost:3000/api-docs`.
+
+8. Hacer el build para producción
 
 ```bash
 npm run build
@@ -120,4 +127,4 @@ npm run build
 
 ## Documentación
 
-- `npm run build:docs` genera la documentación de TypeDoc (HTML en `docs/`, ignorado por git) y regenera el grafo de dependencias `docs/graphs/dependencias.svg` (versionado; commitearlo si cambió la arquitectura). Requiere Graphviz instalado en el sistema.
+- `npm run build:docs` regenera la documentación en `docs/` (carpeta versionada en git): el HTML de TypeDoc (según `scripts/typedoc.json`) y el grafo de dependencias `docs/graphs/dependencias.svg` (madge). Requiere Graphviz instalado en el sistema. Si cambió la arquitectura, commitear el resultado.
