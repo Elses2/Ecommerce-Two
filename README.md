@@ -127,4 +127,5 @@ npm run build
 
 ## Documentación
 
+- [`spectsEccomerce/SPEC.md`](./spectsEccomerce/SPEC.md) es la **especificación viva**: describe el proyecto tal como es hoy y es la única fuente de verdad que se edita. El resto de los `.md` en `spectsEccomerce/` son históricos y no se actualizan. Las referencias `(spec §X.Y)` de los comentarios del código apuntan a `SPEC.md`.
 - `npm run build:docs` regenera la documentación en `docs/` (carpeta versionada en git): el HTML de TypeDoc (según `scripts/typedoc.json`) y el grafo de dependencias `docs/graphs/dependencias.svg` (madge). Requiere Graphviz instalado en el sistema. Si cambió la arquitectura, commitear el resultado.
