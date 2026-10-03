@@ -1,5 +1,9 @@
 # Cambios no registrados en el spec
 
+> 📌 **Documento histórico.** Refleja el estado del proyecto en el momento en que se escribió
+> y no se actualiza. La especificación vigente está en [`SPEC.md`](./SPEC.md).
+
+
 > Este documento cubre los cambios funcionales y de infraestructura
 > que **no están documentados** en `ecommerce-spec-sprint1.md` ni en
 > `resultado-primer-sprint.md`. Está pensado para ser entregado a la IA

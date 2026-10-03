@@ -1,5 +1,9 @@
 # Especificación técnica única — MiEcommerce (fase de expansión)
 
+> 📌 **Documento histórico.** Refleja el estado del proyecto en el momento en que se escribió
+> y no se actualiza. La especificación vigente está en [`SPEC.md`](./SPEC.md).
+
+
 > Documento único para entregarle a la IA de desarrollo (opencode /
 > orquestador, modelo Ling 3.0 Flash) como contrato de trabajo. Antes esto
 > estaba dividido en un spec funcional (backend) y un spec de UX (vistas) —

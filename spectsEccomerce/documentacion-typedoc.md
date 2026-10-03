@@ -1,5 +1,9 @@
 # Documentación TypeDoc generada
 
+> 📌 **Documento histórico.** Refleja el estado del proyecto en el momento en que se escribió
+> y no se actualiza. La especificación vigente está en [`SPEC.md`](./SPEC.md).
+
+
 > Este documento registra los cambios introducidos por la PR #64 que **no están
 > cubiertos** en los archivos existentes de `spectsEccomerce/`. Complementa a
 > `cambios-no-registrados.md` y `ecommerce-spec-sprint1.md`.

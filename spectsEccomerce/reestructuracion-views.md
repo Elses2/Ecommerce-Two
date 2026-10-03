@@ -1,5 +1,9 @@
 # Reestructuración de `views/` — raíz → `src/views/templates/`
 
+> 📌 **Documento histórico.** Refleja el estado del proyecto en el momento en que se escribió
+> y no se actualiza. La especificación vigente está en [`SPEC.md`](./SPEC.md).
+
+
 > Documenta el estado actual de las plantillas EJS, qué se corrigió y qué
 > quedó obsoleto. Generado durante el cierre del Sprint 1.
 
