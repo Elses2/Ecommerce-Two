@@ -28,6 +28,7 @@
       src="<%= product.imageUrl %>"
       alt="<%= product.name %>"
       class="aspect-square w-full rounded-2xl object-cover shadow-sm"
+      onerror="this.onerror=null;this.src='<%= fallbackImageUrl %>'"
     />
 
     <div class="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm md:p-8">
