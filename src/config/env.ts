@@ -57,12 +57,6 @@ function createEnvConfig(envVars: NodeJS.ProcessEnv) {
   return {
     port: parsePort(envVars.PORT, 3000),
     sessionSecret: getEnvString(envVars.SESSION_SECRET),
-    cloudinary: {
-      cloudName: getEnvString(envVars.CLOUDINARY_CLOUD_NAME),
-      apiKey: getEnvString(envVars.CLOUDINARY_API_KEY),
-      apiSecret: getEnvString(envVars.CLOUDINARY_API_SECRET),
-      folder: getEnvString(envVars.CLOUDINARY_FOLDER),
-    },
     images: {
       fallbackUrl: parseImageUrl(envVars.FALLBACK_IMAGE_URL),
     },
