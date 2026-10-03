@@ -1,6 +1,9 @@
 node_modules/
 dist/
 
+# Archivos de trabajo del orquestador (no son parte del proyecto)
+odd/
+
 .env
 dev.db
 *.log
