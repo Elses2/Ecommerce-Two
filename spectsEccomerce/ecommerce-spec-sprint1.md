@@ -184,6 +184,9 @@ Crear `scripts/migrate.ts` (fuera de `src/`, es un script one-off):
 
 ## 2. Integración con Cloudinary (para `products.image_url`)
 
+> **Reemplazado**: Cloudinary fue eliminado. El fallback de imagen ahora se
+> configura con `FALLBACK_IMAGE_URL` en `.env`. Ver `plan-eliminar-cloudinary.md`.
+
 `image_url` en la tabla ya está pensado para guardar la URL segura que
 devuelve Cloudinary, no un path local.
 
