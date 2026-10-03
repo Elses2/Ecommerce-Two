@@ -1,5 +1,9 @@
 # Retrospectiva Técnica — Sprint 1
 
+> 📌 **Documento histórico.** Refleja el estado del proyecto en el momento en que se escribió
+> y no se actualiza. La especificación vigente está en [`SPEC.md`](./SPEC.md).
+
+
 > Documento de cierre del Sprint 1. Compara la ejecución real contra el plan original de
 > `ecommerce-spec-completa.md` (Pasos 0–13 de la sección 7). Complementa el spec; no lo reemplaza.
 > Estado: Pasos 0–13 completos, tag `sprint-1` actualizado al HEAD de esta rama.
