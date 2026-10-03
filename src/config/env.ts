@@ -16,7 +16,7 @@ function parsePort(rawPort: string | undefined, defaultPort: number): number {
  * Obtiene el valor de una variable de entorno de texto, asegurando una cadena vacía por defecto.
  *
  * @param {string | undefined} rawValue - Valor de la variable de entorno.
- * @returns {string} Texto leído de la variable o `""` si es indeifnido.
+ * @returns {string} Texto leído de la variable o `""` si es indefinido.
  */
 function getEnvString(rawValue: string | undefined): string {
   return rawValue ?? "";

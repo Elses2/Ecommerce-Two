@@ -19,9 +19,10 @@ export const promoService = {
   /**
    * Obtiene la lista de banners promocionales activos para la aplicación.
    *
-   * // Los URLs de Cloudinary del ejemplo del spec contienen <cloud_name>:
-   * // son placeholders, no activos reales. Hasta configurar Cloudinary se
-   * // sirve el fallback local (misma postura que §2.2/§2.3 para productos).
+   * Los banners sirven `/img/fallback.png` como placeholder local (spec §6.6b).
+   * Si ese archivo no existe o la imagen falla al cargar, el `onerror` del
+   * template (`product-hero.ejs`) cae a `fallbackImageUrl`
+   * (`env.images.fallbackUrl`, variable FALLBACK_IMAGE_URL).
    *
    * @returns {PromoBanner[]} Arreglo de objetos de banners promocionales.
    */
