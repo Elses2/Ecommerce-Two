@@ -68,9 +68,3 @@ function createEnvConfig(envVars: NodeJS.ProcessEnv) {
  * Objeto de configuración principal del sistema cargado desde las variables de entorno (.env).
  */
 export const env = createEnvConfig(process.env);
-
-// Placeholder genérico que marca una credencial sin configurar
-/**
- * Cadena placeholder genérica para identificar credenciales que aún no han sido configuradas.
- */
-export const PLACEHOLDER_VALUE = "pegar_key_aqui";
