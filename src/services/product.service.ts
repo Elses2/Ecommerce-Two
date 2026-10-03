@@ -1,24 +1,8 @@
-import { isCloudinaryConfigured } from "../config/cloudinary.js";
 import { env } from "../config/env.js";
 import { ProductRepository, productRepository } from "../repositories/product.repository.js";
 import type { ProductView } from "../dtos/product.dto.js";
 import type { Category } from "../models/category.model.js";
 import type { Product } from "../models/product.model.js";
-
-/**
- * Fallback de imagen (spec §2.3): mientras Cloudinary no esté configurado se
- * sirve la estática local /img/fallback.png (alternativa permitida por §2.2);
- * una vez configurado, el fallback vive en la nube de la cuenta (D7).
- *
- * @returns {string} URL local o remota de la imagen fallback.
- */
-function fallbackImageUrl(): string {
-  if (isCloudinaryConfigured) {
-    const { cloudName, folder } = env.cloudinary;
-    return `https://res.cloudinary.com/${cloudName}/image/upload/${folder}/fallback.png`;
-  }
-  return "/img/fallback.png";
-}
 
 /**
  * Servicio PURO: ensambla ProductView con atributos derivados (spec §1.3);
@@ -179,7 +163,7 @@ function shuffle<T>(items: T[]): T[] {
  * withImageFallback (spec §2.3): producto de entrada → producto con image_url
  * resuelta. Se aplica en TODO lugar donde se devuelven productos a una vista
  * (home, listado, detalle, relacionados, sugeridos). El fallback se resuelve
- * con fallbackImageUrl() — la URL de nube solo si hay credenciales reales.
+ * con `env.images.fallbackUrl`.
  *
  * @param {Product} product - Entidad base de producto.
  * @returns {Product & { image_url: string }} Producto con URL de imagen asegurada.
@@ -187,11 +171,9 @@ function shuffle<T>(items: T[]): T[] {
 export function withImageFallback(product: Product): Product & { image_url: string } {
   return {
     ...product,
-    image_url: product.image_url?.trim() ? product.image_url : fallbackImageUrl(),
+    image_url: product.image_url?.trim() ? product.image_url : env.images.fallbackUrl,
   };
 }
 
 /** Instancia singleton de ProductService. */
 export const productService = new ProductService();
-
-export { isCloudinaryConfigured };

@@ -10,7 +10,7 @@
 |---|---|---|
 | 0 | Saneamiento de base (deps, TS baseline, git hygiene, scaffold) | `feature-index-and-login-martin` → PR #29 + tag inicial |
 | 1 | Capa de datos (6 tablas N:M, repository/service, seed) | incluido en PR #29 |
-| 2 | Integración Cloudinary (`withImageFallback` §2.3) | `feature/step-2-cloudinary` → PR #30 (mergeada) |
+| 2 | Integración Cloudinary (`withImageFallback` §2.3) | `feature/step-2-cloudinary` → PR #30 (mergeada) → **eliminado** en PR #53, reemplazado por `FALLBACK_IMAGE_URL` |
 | 3 | Nav de categorías + íconos Lucide (§6.6b) | entró a `dev` vía merge de #30 |
 | 4 | Componentes de producto (card, hero, grid, row) | PR #31 |
 | 5 | Home completo (backend + ensamblaje tabla 4.1) | PR #32 |
