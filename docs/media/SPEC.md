@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-03** (PR de la SPEC viva)
+> - Última actualización: **2026-10-07** (checkout real §19; card de producto enlazada al detalle)
 > - Rama base de referencia: `dev`
 
 ---
@@ -41,7 +41,7 @@
 | [§6.2](#62-página-500) | Página 500 | Vigente |
 | [§6.3](#63-validación-de-formulario-de-registro) | Validación de registro (frontend) | Vigente |
 | [§6.4](#64-carrito-en-sesión) | Carrito en sesión | Vigente (con persistencia SQLite, ver §11) |
-| [§6.5](#65-checkout-temporal) | Checkout temporal | Vigente |
+| [§6.5](#65-checkout-temporal) | Checkout temporal | Reemplazado (→ §19) |
 | [§6.6](#66-home--te-puede-interesar) | Home — "Te puede interesar" | Vigente |
 | [§6.6b](#66b-home--nav-de-categorías-y-banners-promocionales) | Home — Nav de categorías y banners | Vigente |
 | [§6.7](#67-home--los-más-pedidos) | Home — "Los más pedidos" | Vigente |
@@ -64,6 +64,7 @@
 | [§16](#16-variables-de-entorno) | Variables de entorno | Nuevo |
 | [§17](#17-documentación-generada-docs) | Documentación generada (`docs/`) | Nuevo |
 | [§18](#18-convención-de-comentarios-jsdoc) | Convención de comentarios JSDoc | Nuevo |
+| [§19](#19-checkout) | Checkout | Nuevo |
 
 ---
 
@@ -165,6 +166,17 @@ CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status TEXT NOT NULL DEFAULT 'pending',
+    total REAL NOT NULL DEFAULT 0,
+    checkout_token TEXT,
+    shipping_name TEXT,
+    shipping_email TEXT,
+    shipping_phone TEXT,
+    shipping_address TEXT,
+    shipping_city TEXT,
+    shipping_postal_code TEXT,
+    shipping_country TEXT,
+    payment_method TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT
 );
 
@@ -180,18 +192,20 @@ CREATE TABLE IF NOT EXISTS order_items (
 );
 ```
 
-Índices UNIQUE adicionales (habilitan el `INSERT OR IGNORE` del seed):
+Índices UNIQUE adicionales (habilitan el `INSERT OR IGNORE` del seed y la
+idempotencia del checkout, §19):
 
 ```sql
 CREATE UNIQUE INDEX IF NOT EXISTS idx_products_name ON products(name);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_checkout_token ON orders(checkout_token);
 ```
 
-`users` y `orders`/`order_items` se crean ya en esta etapa pero **no se
-implementa login ni checkout real todavía** — son tablas preparadas para
-más adelante. El bootstrap DDL es aditivo en el arranque
-(`src/config/database.ts`, `bootstrapSchema`), con pragmas
-`journal_mode = WAL` y `foreign_keys = ON`.
+El checkout real (§19) usa `orders`/`order_items` (columnas aditivas +
+`idx_orders_checkout_token`); `users` sigue sin login: la FK `orders.user_id`
+la satisface un usuario guest temporal (D5, ver `contexto-usuarios-auth.md`).
+El bootstrap DDL es aditivo en el arranque (`src/config/database.ts`,
+`bootstrapSchema`), con pragmas `journal_mode = WAL` y `foreign_keys = ON`.
 
 ### §1.2 Corrección de arquitectura obligatoria: categorías es N:M
 
@@ -207,7 +221,7 @@ compuesta y FKs. El repository accede a las categorías de un producto con
 | `categories` (array) | JOIN `product_categories` | `product.service.ts` (`findCategoriesByProduct`) |
 | `subtotal` de un ítem de carrito | `quantity * price` real (nunca confiar en el cliente) | `cart.service.ts` |
 | `total` del carrito | suma de subtotales | `cart.service.ts` |
-| `total` de una orden | suma de `order_items.quantity * unit_price` | `order.service.ts` (futuro) |
+| `total` de una orden | suma de `order_items.quantity × unit_price` (precios de DB dentro de la transacción, D4) | `orderRepository.placeOrder` (§19) |
 | `imageUrl` con fallback | si `image_url` es null/vacío, usar `env.images.fallbackUrl` | `product.service.ts` (ver §2.3) |
 
 ### §1.4 Migración de datos
@@ -314,7 +328,7 @@ El árbol atómico vive en `src/views/templates/` (ver §15 para el view root
 | `molecules/numeric.ejs` | Control de cantidad `- N +` | molecule | dentro de `organisms/cart-item.ejs` — botones mapean a `data-cart-action` |
 | `molecules/breadcrumb.ejs` | "← Volver al Listado > Category" | molecule | Categoría, Detalle de producto |
 | `molecules/product-row.ejs` | Producto en fila horizontal compacta | molecule | sin página asignada todavía (futuro Historial/Mis Compras/Favoritos) |
-| `molecules/product.ejs` | Card de producto (imagen + nombre + precio + botón) | molecule | dentro de `organisms/product-grid.ejs` |
+| `molecules/product.ejs` | Card de producto (imagen + nombre + precio + botón); el nombre es un link extendido a `/products/:id` (§6.8) | molecule | dentro de `organisms/product-grid.ejs` |
 | `organisms/header.ejs` | `search.ejs` + `header-right.ejs` + logo | organism | todas las páginas |
 | `organisms/header-mobile.ejs` | Header mobile compacto | organism | todas las páginas, breakpoint mobile |
 | `organisms/footer.ejs` | Footer desktop | organism | todas las páginas |
@@ -399,9 +413,6 @@ referencia por esos nombres.
 - **Categoría** (`/categories/:id`): `organisms/product-grid.ejs` con
   `molecules/breadcrumb.ejs` arriba y título del nombre de categoría.
   Mensaje amigable si no hay productos.
-- **Checkout** (`/checkout`): vista simple centrada, mensaje "Checkout
-  disponible en el próximo sprint" + dos botones (volver al carrito /
-  volver al inicio). Placeholder deliberado (§6.5).
 - **404 / 500**: página centrada, mensaje corto, botón volver al inicio
   (§6.1, §6.2).
 - **Listado de productos** (`/products?sort=`): `organisms/product-grid.ejs`
@@ -431,6 +442,15 @@ generan **junto con** el HTML del componente:
 | Total del carrito | `data-cart-total` | `<span>` del total en `pages/cart.ejs` | `cart.js` |
 | Contador del header | `data-cart-count` | `atoms/badge-counter.ejs` → `cart-icon.ejs` → `header-right.ejs` → `header.ejs` | `cart.js` y middleware `injectCartCount` |
 | Mensaje de carrito vacío | `data-cart-empty` (con clase `hidden` por defecto) | `pages/cart.ejs` | `cart.js` |
+| Formulario de checkout | `data-checkout-form` | `<form>` en `pages/checkout.ejs` | `checkout-validation.js` (§19) |
+| Botón de confirmar compra | `data-checkout-submit` | `<button type="submit">` en `pages/checkout.ejs` | `checkout-validation.js` (§19) |
+
+> **Nota — link extendido (2026-10-07):** la card de producto
+> (`molecules/product.ejs`) contiene un `<a href="/products/<id>">` en el
+> nombre cuyo `::after` (`after:absolute after:inset-0 after:content-['']`)
+> cubre toda la card: imagen, nombre y precio navegan al detalle (§6.8).
+> El botón `data-cart-action="add"` va por encima del link (`relative z-10`)
+> y **no** navega — lo sigue manejando `cart.js` (§6.4).
 
 Cualquier `id`/`class` adicional por estética es libre — los `data-*` son
 aditivos.
@@ -500,9 +520,11 @@ frontend (`public/js/cart.js`) reescribe solo los números afectados
 
 ### §6.5 Checkout temporal
 
-**No es AJAX**, vista estática sin lógica. `pagesController.getCheckoutPlaceholder`
-renderiza `pages/checkout` con mensaje "Checkout disponible en el próximo
-sprint" y dos botones (volver a `/cart` y volver a `/`).
+> ⚠️ **Reemplazado.** Esta sección documentaba el placeholder estático de
+> `/checkout` ("Checkout disponible en el próximo sprint",
+> `pagesController.getCheckoutPlaceholder`). El checkout real (formulario +
+> orden atómica con descuento de stock + confirmación por token) se implementó
+> en la feature #68 — ver **§19 Checkout**.
 
 ### §6.6 Home — "Te puede interesar"
 
@@ -546,6 +568,8 @@ renderiza `pages/product-detail` con `product` y `related`.
   excluyendo el actual; aleatorios si hay más candidatos, Fisher-Yates).
 - Se reutiliza `molecules/product.ejs` para listado y relacionados.
 - El botón "Agregar al carrito" está deshabilitado si `!product.inStock`.
+- **Punto de entrada:** las cards de `molecules/product.ejs` (imagen, nombre
+  y precio, vía link extendido con `::after`) enlazan a esta ruta.
 
 ### §6.9 Normalización de IDs
 
@@ -684,15 +708,18 @@ Requisitos de alto nivel (para cuando se aborde):
 - `src/config/swagger.ts` — definición OpenAPI 3.0 con schemas `Cart` y
   `Product`, paths a escanear: `src/routes/api/*.routes.ts`,
   `src/controllers/api/*.controller.ts`,
-  `src/controllers/pages/pages.controller.ts`.
+  `src/controllers/pages/pages.controller.ts`,
+  `src/controllers/pages/checkout.controller.ts`.
 - `src/routes/docs.routes.ts` — router que sirve Swagger UI en `/api-docs`.
 - `src/app.ts` monta `docsRouter` en `/api-docs` antes del catch-all 404.
 - Bloques `@swagger` con annotations en los handlers:
   - `src/controllers/api/cart.controller.ts` — 5 endpoints (`addItem`,
     `increaseItem`, `decreaseItem`, `removeItem`, `clearCart`).
-  - `src/controllers/pages/pages.controller.ts` — 7 endpoints (`getHome`,
+  - `src/controllers/pages/pages.controller.ts` — 6 endpoints (`getHome`,
     `getCart`, `getProductDetail`, `getCategory`, `getProducts`,
-    `searchProducts`, `getCheckout`).
+    `searchProducts`).
+  - `src/controllers/pages/checkout.controller.ts` — 3 endpoints
+    (`showCheckout`, `submitCheckout`, `showConfirmation`; ver §19).
 
 **Nota:** swagger-jsdoc lee los bloques `@swagger` de los archivos listados
 en `apis`; los `@param` de TypeScript normales **no** son leídos por
@@ -782,6 +809,7 @@ src/
 │   ├── api/
 │   │   └── cart.controller.ts      ← endpoints AJAX del carrito
 │   └── pages/
+│       ├── checkout.controller.ts  ← checkout real: form, POST, confirmación (§19)
 │       └── pages.controller.ts     ← handlers de páginas SSR
 ├── middlewares/
 │   ├── error-handler.middleware.ts
@@ -789,12 +817,15 @@ src/
 │   └── normalizeId.middleware.ts
 ├── repositories/
 │   ├── product.repository.ts
-│   └── category.repository.ts
+│   ├── category.repository.ts
+│   ├── order.repository.ts         ← placeOrder atómico + consultas de órdenes (§19)
+│   └── user.repository.ts          ← ensureGuestUser temporal (D5, @deprecated)
 ├── services/
 │   ├── product.service.ts
 │   ├── category.service.ts
 │   ├── cart.service.ts
-│   └── promo.service.ts
+│   ├── promo.service.ts
+│   └── checkout.service.ts         ← validación + idempotencia del checkout (§19)
 ├── routes/
 │   ├── index.routes.ts             ← router API principal
 │   ├── pages.routes.ts             ← router de páginas SSR
@@ -809,7 +840,8 @@ src/
 ├── dtos/                           ← Data Transfer Objects (product.dto, cart.dto)
 ├── utils/
 │   ├── category-icons.ts           ← mapeo categoría → ícono Lucide
-│   └── normalizeId.ts              ← helper puro de validación de IDs
+│   ├── normalizeId.ts              ← helper puro de validación de IDs
+│   └── errors.ts                   ← OutOfStockError, ProductNotFoundError (§19)
 ├── types/
 │   └── better-sqlite3-session-store.d.ts  ← declaración de tipos
 └── views/templates/                ← árbol atómico (ver §15)
@@ -817,9 +849,9 @@ src/
 
 Notas:
 - `auth.routes.ts` y `orders.routes.ts` existen como scaffolds pero **no
-  tienen backend real** (sin login ni checkout funcional).
-- `src/services/cart.service.ts`, `product.service.ts`, `category.service.ts`
-  y `promo.service.ts` son los únicos services con contenido real.
+  tienen backend real** (sin login; el checkout vive en rutas de páginas, §19).
+- Services con contenido real: `cart.service.ts`, `product.service.ts`,
+  `category.service.ts`, `promo.service.ts` y `checkout.service.ts`.
 
 ---
 
@@ -869,6 +901,7 @@ fueron eliminadas en el PR #51.
 | `PORT` | Puerto del servidor Express | `3000` | numérico; si falta/inválido usa default |
 | `SESSION_SECRET` | Secreto de `express-session` | `""` | texto; usar un valor aleatorio largo en producción |
 | `FALLBACK_IMAGE_URL` | Imagen fallback de productos | `https://placehold.co/600x600?text=Sin+imagen` | URL `http(s)://...` o ruta que empiece con `/`; si falta/inválida → warning + default |
+| `DB_PATH` | Ruta del archivo SQLite | `dev.db` en la raíz del proyecto | si falta o está vacía → default; los tests de checkout usan una DB temporal (§19.6) |
 
 `.env.example`:
 
@@ -878,6 +911,9 @@ SESSION_SECRET=cambiar_por_un_secreto_largo_y_aleatorio
 # URL de la imagen que se muestra cuando un producto no tiene image_url.
 # Acepta http(s)://... o una ruta que empiece con "/". Si falta o es inválida, se usa el default.
 FALLBACK_IMAGE_URL=https://placehold.co/600x600?text=Sin+imagen
+# Ruta de la base de datos SQLite. Solo para pruebas (tests de checkout usan una DB temporal).
+# Si falta, se usa dev.db en la raíz del proyecto.
+# DB_PATH=./test.db
 ```
 
 `dev.db`, `dist/`, `node_modules/`, `.env`, `*.log`, `.DS_Store` están en
@@ -922,6 +958,139 @@ Todos los archivos TypeScript usan JSDoc con:
 
 ---
 
+## §19. Checkout
+
+> **Sección nueva** (issue #68). Reemplaza el placeholder del §6.5.
+
+### §19.1 Decisiones (D1–D10)
+
+Checkout real, **síncrono**, sobre `better-sqlite3` (D1). Decisiones tomadas
+en el plan de ejecución (no re-discutir):
+
+| Decisión | Detalle |
+|---|---|
+| D1 | Se mantiene `better-sqlite3` síncrono; no se migra a async (ver §19.7) |
+| D2 | La seguridad ante concurrencia sale de la DB: transacción real + `UPDATE` atómico de stock |
+| D3 | Nunca read-then-write de stock en JS: `UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?` + verificar `changes` |
+| D4 | Precios **siempre** desde la DB, leídos dentro de la transacción |
+| D5 | Usuario guest temporal (`userRepository.ensureGuestUser()`, `@deprecated`) que satisface la FK `orders.user_id`; traspaso documentado en `contexto-usuarios-auth.md` |
+| D6 | Idempotencia por `checkout_token` UNIQUE: un reenvío del mismo formulario devuelve la orden ya creada |
+| D7 | La confirmación se accede por token, nunca por `orders.id` |
+| D8 | El stock se descuenta al crear la orden (estado `pending`) |
+| D9 | No se piden ni guardan datos de tarjeta; `payment_method` es solo preferencia |
+| D10 | No se crea ninguna tabla nueva; solo columnas aditivas en `orders` (§1.1) |
+
+### §19.2 Flujo
+
+1. `GET /checkout` → `checkoutController.showCheckout`: carrito vacío →
+   redirect `/cart`; genera un `checkoutToken` nuevo
+   (`checkoutService.generateCheckoutToken()`, 32 hex) y renderiza
+   `pages/checkout` con el form + resumen del carrito.
+2. `POST /checkout` → `checkoutController.submitCheckout`: arma el DTO solo
+   con los campos esperados del body; las líneas **siempre** salen de la
+   sesión (`req.session.cart`, §6.4), nunca del body. `createOrder`: valida →
+   idempotencia por token (D6) → carrito vacío → guest (D5) →
+   `orderRepository.placeOrder` (transacción atómica, §19.3).
+3. Éxito → `cartService.clear()` + redirect `/checkout/confirmation/<token>`.
+4. `GET /checkout/confirmation/:token` → `showConfirmation`: token con formato
+   inválido (`^[a-f0-9]{32}$`) u orden inexistente → 404; renderiza
+   `pages/order-confirmation` con la orden y sus items.
+
+### §19.3 Transacción atómica
+
+`orderRepository.placeOrder` corre en `db.transaction(...).immediate()`:
+
+1. `INSERT` de la orden (status `'pending'`, total 0).
+2. Por línea: `SELECT` del precio desde la DB (D4) → decremento atómico de
+   stock (D3) → `INSERT` del item con `unit_price` congelado (§1.1).
+3. `UPDATE` del total redondeado a 2 decimales (price es `REAL`).
+
+Si algo lanza (stock, producto inexistente, token duplicado), better-sqlite3
+hace ROLLBACK automático y re-lanza: ni la orden, ni los items, ni el stock
+quedan a medias (caso T2 del test). `BEGIN IMMEDIATE` toma el lock de
+escritura de entrada, evitando `SQLITE_BUSY` por el upgrade read→write bajo
+concurrencia multi-proceso (caso T5).
+
+### §19.4 Idempotencia por token (D6)
+
+- `checkout_token` es UNIQUE en `orders` (`idx_orders_checkout_token`; SQLite
+  permite varios `NULL` en un índice único, así que las órdenes sin token
+  conviven).
+- El token se genera en cada GET y viaja oculto en el form; un POST fallido
+  por validación re-renderiza con el **mismo** token.
+- En `createOrder`, **antes** del chequeo de carrito vacío: si el token ya
+  tiene una orden, se devuelve esa orden → un reenvío con el carrito ya
+  vaciado redirige a la confirmación en vez de fallar (caso T7).
+- La violación del UNIQUE queda como fallback ante una carrera (dos POST
+  concurrentes con el mismo token): se devuelve la orden existente.
+
+### §19.5 Validación y errores
+
+- `checkoutService.validateCheckoutInput` → `string[]` en español: campos
+  obligatorios (recortados), email con formato, teléfono de 7 a 15 dígitos
+  (ignora espacios, `+`, `-` y paréntesis), método de pago en
+  `[transfer, cash_on_delivery, card]` (D9), token `^[a-f0-9]{32}$`, máximos
+  100/200 caracteres según el campo.
+- Errores de negocio (`OutOfStockError`, `ProductNotFoundError` en
+  `src/utils/errors.ts`) → `{ ok: false, errors: [mensaje] }` — NO son errores
+  de Express; no pasan por el middleware de errores.
+- El controller re-renderiza el form con status **400**, los valores tipeados
+  y el mismo token; el carrito de la sesión queda intacto.
+- Cliente: `public/js/checkout-validation.js` (mismo patrón que
+  `register-validation.js`, §6.3); en un submit válido deshabilita el botón
+  ("Procesando…") para evitar la doble orden. El server sigue siendo la
+  autoridad.
+
+### §19.6 Tests
+
+`scripts/test-checkout.ts` (`npm run test:checkout`, runner tsx como seed)
+contra una DB temporal (`DB_PATH` apuntando a `os.tmpdir()`, borrada al final;
+**nunca toca `dev.db`**):
+
+- **T1** stock 1 + dos tokens → 1 éxito, 1 error de stock, stock 0.
+- **T2** una línea sin stock → rollback total (stock intacto, sin filas).
+- **T3** mismo token dos veces → misma orden, stock descontado una vez.
+- **T4** precio cambiado después de comprar → `unit_price` congelado.
+- **T5** 8 procesos hijos compiten por la última unidad → exactamente 1
+  éxito, stock 0, **0 crashes / 0 `SQLITE_BUSY` sin manejar**.
+- **T6** errores de validación (email, teléfono, método de pago, token).
+- **T7** reenvío con carrito vacío + token existente → misma orden (D6).
+
+Exit code ≠ 0 si algo falla.
+
+### §19.7 Por qué no es async
+
+`better-sqlite3` es síncrono por diseño. La transacción de checkout es un
+bloque corto y 100% local (orden + items + stock en milisegundos); migrar a
+async agregaría promesas en toda la pila y riesgo de race conditions dentro de
+la transacción sin beneficio medible en un monolito local de un solo proceso.
+La concurrencia real (varios clientes) ya la resuelve SQLite (`BEGIN
+IMMEDIATE` + busy timeout), no el event loop. Si algún día el checkout depende
+de un servicio externo (pasarela de pago, email) o de una DB remota, ese es el
+momento de evaluar async.
+
+### §19.8 Limitaciones y deuda conocida
+
+- **Sin CSRF**: `POST /checkout` no valida token CSRF; el `checkout_token` es
+  de idempotencia, no de origen. Pendiente de abordar junto con auth (§19.9).
+- **`price`/`total` son `REAL`**: posible pérdida de precisión con decimales;
+  el total se redondea a 2 decimales al crear la orden. Migrar a `INTEGER`
+  (centavos) es una mejora futura.
+- **Stock "reservado" en órdenes `pending`**: el stock se descuenta al crear
+  la orden y no se libera si queda pendiente o se cancela (no existe flujo de
+  cancelación todavía). Aceptado por D8; revisar cuando exista estado
+  `cancelled` real.
+- **Guest sin auth**: todas las órdenes caen en el mismo usuario
+  `guest@local` (D5). Traspaso documentado en `contexto-usuarios-auth.md`.
+- **Sin historial de compras** para el usuario (fuera de alcance).
+
+### §19.9 Auth futura
+
+Ver `spectsEccomerce/contexto-usuarios-auth.md`: qué cambia cuando exista
+login real (usuario real en lugar de guest, CSRF, órdenes por usuario).
+
+---
+
 ## Tabla de equivalencias — `§` original → `SPEC.md`
 
 | `§` original (spec sprint 1) | `§` en `SPEC.md` | Estado |
@@ -954,6 +1123,7 @@ Todos los archivos TypeScript usan JSDoc con:
 | — (nuevo) | §16 Variables de entorno | Nuevo |
 | — (nuevo) | §17 Documentación generada `docs/` | Nuevo |
 | — (nuevo) | §18 Convención JSDoc | Nuevo |
+| — (nuevo) | §19 Checkout | Nuevo |
 
 ---
 
@@ -972,6 +1142,8 @@ Todos los archivos TypeScript usan JSDoc con:
 | 2026-10-03 | PR #71 / issue #70 | Eliminación de Cloudinary; `FALLBACK_IMAGE_URL` configurable; `onerror` en `<img>` | `cambios-no-registrados.md` §6 |
 | 2026-10-03 | PR #73 / issue #72 | Sincronización de `.env.example`, README, JSDoc y `docs/` | `cambios-no-registrados.md`, `README.md` |
 | 2026-10-03 | Este PR | Creación de la SPEC viva; históricos marcados | — |
+| 2026-10-07 | Este PR / issue #77 | Card de producto clickeable a /products/:id (link extendido) | — |
+| 2026-10-07 | Este PR / issue #68 | Checkout real (§19): formulario, orden atómica con descuento de stock, idempotencia por token, confirmación y tests T1–T7 | — |
 
 ---
 
