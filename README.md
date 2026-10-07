@@ -125,6 +125,17 @@ La documentación interactiva de la API (Swagger UI) queda disponible en `http:/
 npm run build
 ```
 
+## Tests
+
+```bash
+npm run test:checkout
+```
+
+Corre los tests del checkout (`scripts/test-checkout.ts`, casos T1–T7: stock,
+rollback, idempotencia por token, precio congelado, carrera multi-proceso y
+validación) contra una **DB temporal** — nunca toca `dev.db`. El exit code es
+≠ 0 si algo falla.
+
 ## Documentación
 
 - [`spectsEccomerce/SPEC.md`](./spectsEccomerce/SPEC.md) es la **especificación viva**: describe el proyecto tal como es hoy y es la única fuente de verdad que se edita. El resto de los `.md` en `spectsEccomerce/` son históricos y no se actualizan. Las referencias `(spec §X.Y)` de los comentarios del código apuntan a `SPEC.md`.
