@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { Router } from "express";
 import { pagesController } from "../controllers/pages/pages.controller.js";
+import { checkoutController } from "../controllers/pages/checkout.controller.js";
 
 /**
  * Router principal para el renderizado de vistas/páginas desde el servidor (SSR).
@@ -30,9 +31,14 @@ router.get("/categories/:categoryId", pagesController.getCategory);
 
 router.get("/cart", pagesController.getCart); // render inicial (spec §6.4), mutaciones por /api/cart
 
-// Checkout placeholder (spec §6.5/Paso 11): el render inline con la página
-// legacy vacía se reemplaza por el controller del árbol atómico.
-router.get("/checkout", pagesController.getCheckout);
+// Checkout (spec §19, reemplaza el placeholder del §6.5): GET arma el
+// formulario con el token de idempotencia, POST crea la orden atómicamente y
+// /checkout/confirmation/:token muestra la orden creada (D7 — por token, no
+// por id). El param se llama :token para no chocar con normalizeId (solo
+// cubre /api/(products|categories|orders)/:id).
+router.get("/checkout", checkoutController.showCheckout);
+router.post("/checkout", checkoutController.submitCheckout);
+router.get("/checkout/confirmation/:token", checkoutController.showConfirmation);
 
 // Login/Register (spec §4.4/§4.5, Paso 9): atomic templates from the new tree
 
