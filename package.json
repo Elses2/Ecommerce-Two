@@ -21,6 +21,7 @@
     "dev:tailwind": "tailwindcss -i ./src/styles.css -o ./dist/public/css/styles.css --watch",
     "build:tailwind": "tailwindcss -i ./src/styles.css -o ./dist/public/css/styles.css --minify",
     "seed": "tsx scripts/seed.ts",
+    "test:checkout": "tsx scripts/test-checkout.ts",
     "build:docs": "typedoc --options scripts/typedoc.json && npm run graph:deps",
     "graph:deps": "node -e \"require('fs').mkdirSync('docs/graphs',{recursive:true})\" && madge --extensions ts --ts-config tsconfig.json --image docs/graphs/dependencias.svg src",
     "graph:circular": "madge --extensions ts --ts-config tsconfig.json --circular src",
