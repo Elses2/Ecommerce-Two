@@ -131,14 +131,18 @@ export class CheckoutService {
   /**
    * Crea la orden de checkout de forma atómica e idempotente.
    *
-   * Flujo (spec §19 / D1-D9): valida el formulario → rechaza carrito vacío →
-   * garantiza el usuario guest (D5) → delega en `placeOrder` (transacción
-   * BEGIN IMMEDIATE, precios desde DB dentro de la transacción, stock atómico).
-   * Errores de negocio (`OutOfStockError`, `ProductNotFoundError`) se traducen
-   * a mensajes del usuario; la violación del índice UNIQUE de `checkout_token`
-   * (D6) NO es un error: es un reenvío del mismo formulario, así que se
-   * devuelve la orden ya existente (idempotencia). Cualquier otro error se
-   * re-lanza para el middleware de errores (spec §6.2).
+   * Flujo (spec §19 / D1-D9): valida el formulario → idempotencia por token
+   * (D6): si el token ya tiene una orden, es un reenvío del mismo formulario y
+   * se devuelve ESA orden ANTES de mirar el carrito — así un reenvío con el
+   * carrito ya vaciado redirige a la confirmación en vez de fallar → rechaza
+   * carrito vacío → garantiza el usuario guest (D5) → delega en `placeOrder`
+   * (transacción BEGIN IMMEDIATE, precios desde DB dentro de la transacción,
+   * stock atómico). Errores de negocio (`OutOfStockError`,
+   * `ProductNotFoundError`) se traducen a mensajes del usuario; la violación
+   * del índice UNIQUE de `checkout_token` (D6) queda como fallback ante una
+   * carrera (dos POST concurrentes con el mismo token) y devuelve la orden ya
+   * existente. Cualquier otro error se re-lanza para el middleware de errores
+   * (spec §6.2).
    *
    * @param {OrderLineInput[]} lines - Líneas del carrito (solo productId/quantity).
    * @param {CheckoutRequestDto} dto - Datos de envío/pago validados.
@@ -149,6 +153,19 @@ export class CheckoutService {
     const errors = this.validateCheckoutInput(dto);
     if (errors.length > 0) {
       return { ok: false, errors };
+    }
+    // Idempotencia (D6): token válido con orden existente = reenvío del mismo
+    // formulario. Se devuelve la orden ANTES del chequeo de carrito vacío: si
+    // el primer envío ya vació el carrito, el reenvío igual redirige a la
+    // confirmación en vez de dar "El carrito está vacío".
+    const existing = this.orders.findByCheckoutToken(dto.checkoutToken);
+    if (existing) {
+      return {
+        ok: true,
+        orderToken: dto.checkoutToken,
+        orderId: existing.id,
+        total: existing.total,
+      };
     }
     if (lines.length === 0) {
       return { ok: false, errors: ["El carrito está vacío"] };
