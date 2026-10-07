@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-03** (PR de la SPEC viva)
+> - Última actualización: **2026-10-07** (card de producto enlazada al detalle)
 > - Rama base de referencia: `dev`
 
 ---
@@ -314,7 +314,7 @@ El árbol atómico vive en `src/views/templates/` (ver §15 para el view root
 | `molecules/numeric.ejs` | Control de cantidad `- N +` | molecule | dentro de `organisms/cart-item.ejs` — botones mapean a `data-cart-action` |
 | `molecules/breadcrumb.ejs` | "← Volver al Listado > Category" | molecule | Categoría, Detalle de producto |
 | `molecules/product-row.ejs` | Producto en fila horizontal compacta | molecule | sin página asignada todavía (futuro Historial/Mis Compras/Favoritos) |
-| `molecules/product.ejs` | Card de producto (imagen + nombre + precio + botón) | molecule | dentro de `organisms/product-grid.ejs` |
+| `molecules/product.ejs` | Card de producto (imagen + nombre + precio + botón); el nombre es un link extendido a `/products/:id` (§6.8) | molecule | dentro de `organisms/product-grid.ejs` |
 | `organisms/header.ejs` | `search.ejs` + `header-right.ejs` + logo | organism | todas las páginas |
 | `organisms/header-mobile.ejs` | Header mobile compacto | organism | todas las páginas, breakpoint mobile |
 | `organisms/footer.ejs` | Footer desktop | organism | todas las páginas |
@@ -432,6 +432,13 @@ generan **junto con** el HTML del componente:
 | Contador del header | `data-cart-count` | `atoms/badge-counter.ejs` → `cart-icon.ejs` → `header-right.ejs` → `header.ejs` | `cart.js` y middleware `injectCartCount` |
 | Mensaje de carrito vacío | `data-cart-empty` (con clase `hidden` por defecto) | `pages/cart.ejs` | `cart.js` |
 
+> **Nota — link extendido (2026-10-07):** la card de producto
+> (`molecules/product.ejs`) contiene un `<a href="/products/<id>">` en el
+> nombre cuyo `::after` (`after:absolute after:inset-0 after:content-['']`)
+> cubre toda la card: imagen, nombre y precio navegan al detalle (§6.8).
+> El botón `data-cart-action="add"` va por encima del link (`relative z-10`)
+> y **no** navega — lo sigue manejando `cart.js` (§6.4).
+
 Cualquier `id`/`class` adicional por estética es libre — los `data-*` son
 aditivos.
 
@@ -546,6 +553,8 @@ renderiza `pages/product-detail` con `product` y `related`.
   excluyendo el actual; aleatorios si hay más candidatos, Fisher-Yates).
 - Se reutiliza `molecules/product.ejs` para listado y relacionados.
 - El botón "Agregar al carrito" está deshabilitado si `!product.inStock`.
+- **Punto de entrada:** las cards de `molecules/product.ejs` (imagen, nombre
+  y precio, vía link extendido con `::after`) enlazan a esta ruta.
 
 ### §6.9 Normalización de IDs
 
@@ -972,6 +981,7 @@ Todos los archivos TypeScript usan JSDoc con:
 | 2026-10-03 | PR #71 / issue #70 | Eliminación de Cloudinary; `FALLBACK_IMAGE_URL` configurable; `onerror` en `<img>` | `cambios-no-registrados.md` §6 |
 | 2026-10-03 | PR #73 / issue #72 | Sincronización de `.env.example`, README, JSDoc y `docs/` | `cambios-no-registrados.md`, `README.md` |
 | 2026-10-03 | Este PR | Creación de la SPEC viva; históricos marcados | — |
+| 2026-10-07 | Este PR / issue #77 | Card de producto clickeable a /products/:id (link extendido) | — |
 
 ---
 

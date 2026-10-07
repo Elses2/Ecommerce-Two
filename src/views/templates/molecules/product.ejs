@@ -11,10 +11,16 @@
   // button (.btn-disabled).
   // Price format: the spec defines no format helper — minimal inline es-AR
   // thousands separator (mockup shows "XX.XXX" over a muted "PUNTOS" caption).
+  // Detail link (spec §6.8): the name is an <a> to /products/:id whose ::after
+  // covers the whole card (stretched link), so image, name and price all
+  // navigate to the product detail. One <a> per card (no duplicated links for
+  // screen readers); the button stays outside the <a> and above the stretched
+  // link (relative z-10) so cart.js (spec §6.4) keeps handling it through
+  // data-cart-action without triggering navigation.
 %>
 <article
   data-product-id="<%= product.id %>"
-  class="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm"
+  class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md"
 >
   <img
     src="<%= product.imageUrl %>"
@@ -24,7 +30,16 @@
     onerror="this.onerror=null;this.src='<%= fallbackImageUrl %>'"
   />
   <div class="flex flex-col gap-3 p-4">
-    <h3 class="font-bold text-ink"><%= product.name %></h3>
+    <h3 class="font-bold text-ink">
+      <%# Stretched link to the product detail (spec §6.8): the ::after covers
+          the whole card, making image, name and price clickable. %>
+      <a
+        href="/products/<%= product.id %>"
+        class="after:absolute after:inset-0 after:content-[''] rounded-2xl group-hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      >
+        <%= product.name %>
+      </a>
+    </h3>
     <p class="flex items-baseline gap-2">
       <span class="font-bold text-ink"><%= product.price.toLocaleString("es-AR") %></span>
       <span class="text-xs text-muted">PUNTOS</span>
@@ -33,7 +48,7 @@
       <span class="badge badge-out-of-stock">Sin stock</span>
     <% } %>
     <button
-      class="<%= product.inStock ? "btn-primary" : "btn-disabled" %> w-full"
+      class="<%= product.inStock ? "btn-primary" : "btn-disabled" %> relative z-10 w-full"
       data-cart-action="add"
       data-product-id="<%= product.id %>"
       <%= !product.inStock ? "disabled" : "" %>
