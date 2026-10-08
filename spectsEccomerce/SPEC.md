@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-07** (checkout real §19; card de producto enlazada al detalle)
+> - Última actualización: **2026-10-08** (favicon / logo de la pestaña §20)
 > - Rama base de referencia: `dev`
 
 ---
@@ -65,6 +65,7 @@
 | [§17](#17-documentación-generada-docs) | Documentación generada (`docs/`) | Nuevo |
 | [§18](#18-convención-de-comentarios-jsdoc) | Convención de comentarios JSDoc | Nuevo |
 | [§19](#19-checkout) | Checkout | Nuevo |
+| [§20](#20-favicon--logo-de-la-pestaña) | Favicon / logo de la pestaña | Nuevo |
 
 ---
 
@@ -627,7 +628,9 @@ amigable si no hay resultados). El form de búsqueda es `method="GET"` hacia
 por todas las páginas vía `express-ejs-layouts`
 (`app.set("layout", "templates/layout")`). Incluye `organisms/header.ejs`
 (con buscador y contador de carrito) y `organisms/footer.ejs`. El script
-`cart.js` se carga globalmente con `defer` antes de `</body>`.
+`cart.js` se carga globalmente con `defer` antes de `</body>`. El
+`<head>` declara el favicon una sola vez (§20): `favicon.ico`,
+`favicon.svg` y `apple-touch-icon.png` desde `public/`.
 
 ---
 
@@ -697,6 +700,8 @@ Requisitos de alto nivel (para cuando se aborde):
 - [ ] Todo ID recibido por URL pasa por `normalizeId` antes de llegar al
       repository.
 - [ ] `npx tsc --noEmit` pasa sin errores antes de mergear.
+- [ ] El favicon se declara **una sola vez** en el `<head>` del
+      layout, con los tres archivos en `public/` (§20).
 
 ---
 
@@ -852,6 +857,11 @@ Notas:
   tienen backend real** (sin login; el checkout vive en rutas de páginas, §19).
 - Services con contenido real: `cart.service.ts`, `product.service.ts`,
   `category.service.ts`, `promo.service.ts` y `checkout.service.ts`.
+- `public/` (raíz del proyecto, fuera de `src/`): estáticos del
+  cliente — `js/cart.js`, `js/register-validation.js` y los favicons
+  `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` (§20). El
+  build (`npm run build`) copia `public/**/*` a `dist/public`, que es
+  lo que sirve `express.static` (`src/app.ts`).
 
 ---
 
@@ -1091,6 +1101,50 @@ login real (usuario real en lugar de guest, CSRF, órdenes por usuario).
 
 ---
 
+## §20. Favicon / logo de la pestaña
+
+> **Sección nueva** (issue #80).
+
+Logo de MiEcommerce en la pestaña del navegador, en **todas** las
+páginas (incluidas 404 y 500, que también usan el layout base, §6.14).
+
+### §20.1 Archivos
+
+| Archivo (`public/`) | Formato | Detalle |
+|---|---|---|
+| `favicon.svg` | SVG | Logo vectorial (carrito blanco sobre teal `#0f766e`, coherente con la banda teal de Login/Register, §4.4); nítido a cualquier tamaño |
+| `favicon.ico` | ICO | 16/32/48 px; fallback para navegadores viejos + la petición implícita `GET /favicon.ico` (antes caía en el catch-all 404, §6.1) |
+| `apple-touch-icon.png` | PNG | 180×180; ícono al guardar en pantalla de inicio (iOS) |
+
+Los tres están en la raíz de `public/` (junto a `js/`); el build los
+copia a `dist/public/` y `express.static` los sirve desde ahí. No hay
+endpoints, controllers, servicios, variables de entorno ni TypeScript
+nuevos. Se descarta `site.webmanifest` e íconos 192/512 px: el
+proyecto no es una PWA.
+
+### §20.2 Declaración
+
+Una sola vez, en el `<head>` de `templates/layout.ejs` (después de
+`<title>`, antes de los estilos):
+
+```ejs
+<%# Favicon / logo de pestaña (spec §20) %>
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+```
+
+Las rutas son **absolutas** (`/favicon.svg`) para que funcionen en
+rutas anidadas (`/products/1`, `/categories/2`, …).
+
+### §20.3 Reemplazar el logo
+
+El logo actual es **provisional**. Para poner el definitivo: reemplazar
+los tres archivos de `public/` manteniendo nombres y tamaños (ICO con
+16/32/48 px, PNG 180×180); no hace falta tocar código.
+
+---
+
 ## Tabla de equivalencias — `§` original → `SPEC.md`
 
 | `§` original (spec sprint 1) | `§` en `SPEC.md` | Estado |
@@ -1124,6 +1178,7 @@ login real (usuario real en lugar de guest, CSRF, órdenes por usuario).
 | — (nuevo) | §17 Documentación generada `docs/` | Nuevo |
 | — (nuevo) | §18 Convención JSDoc | Nuevo |
 | — (nuevo) | §19 Checkout | Nuevo |
+| — (nuevo) | §20 Favicon / logo de pestaña | Nuevo |
 
 ---
 
@@ -1144,6 +1199,7 @@ login real (usuario real en lugar de guest, CSRF, órdenes por usuario).
 | 2026-10-03 | Este PR | Creación de la SPEC viva; históricos marcados | — |
 | 2026-10-07 | Este PR / issue #77 | Card de producto clickeable a /products/:id (link extendido) | — |
 | 2026-10-07 | Este PR / issue #68 | Checkout real (§19): formulario, orden atómica con descuento de stock, idempotencia por token, confirmación y tests T1–T7 | — |
+| 2026-10-08 | Este PR / issue #80 | Favicon / logo de la pestaña (§20): tres archivos en `public/` + `<link>` en el `<head>` del layout; `GET /favicon.ico` deja de caer en el 404 | — |
 
 ---
 
