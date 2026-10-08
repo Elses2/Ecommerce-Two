@@ -71,31 +71,19 @@ git clone https://github.com/Elses2/Ecommerce-Two
 cd Ecommerce-Two
 ```
 
-3. Instala las dependencias necesarias
+3. Prepará el entorno completo con un solo comando
 
 ```bash
-npm install
+npm run init
 ```
 
-> Si esta instalación falla por errores de compilación (por ejemplo, relacionados con `better-sqlite3` o `node-gyp`), revisá la sección [Requisitos previos](#requisitos-previos).
+Este comando instala las dependencias, crea el archivo `.env` desde `.env.example` **solo si no existe** (no sobrescribe uno ya existente), compila el build y carga los datos de ejemplo (el seed es idempotente).
 
-4. Configura las variables de entorno
+> Si `npm run init` falla por errores de compilación (por ejemplo, relacionados con `better-sqlite3` o `node-gyp`), revisá la sección [Requisitos previos](#requisitos-previos).
 
-Este proyecto necesita un archivo `.env` en la raíz con tus propias claves (no se sube al repositorio por seguridad). Creá el archivo copiando la plantilla:
+4. Completá tus variables de entorno (opcional)
 
-```bash
-cp .env.example .env
-```
-
-Y completá los valores dentro de `.env`:
-
-```
-PORT=3000
-SESSION_SECRET=cambiar_por_un_secreto_largo_y_aleatorio
-# URL de la imagen que se muestra cuando un producto no tiene image_url.
-# Acepta http(s)://... o una ruta que empiece con "/". Si falta o es inválida, se usa el default.
-FALLBACK_IMAGE_URL=https://placehold.co/600x600?text=Sin+imagen
-```
+`npm run init` te deja el archivo `.env` creado en la raíz, listo para editar.
 
 > Ya no hay claves externas que pedir: `SESSION_SECRET` generala con un valor aleatorio largo (por ejemplo, la salida de `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`) y no la compartas públicamente. `FALLBACK_IMAGE_URL` puede dejarse con el valor por defecto.
 
@@ -105,13 +93,7 @@ FALLBACK_IMAGE_URL=https://placehold.co/600x600?text=Sin+imagen
 npm run dev
 ```
 
-6. Cargá los datos de ejemplo (opcional; el script es idempotente y crea el esquema si no existe)
-
-```bash
-npm run seed
-```
-
-7. Ver página
+6. Ver página
 
 ```
 http://localhost:3000
@@ -119,11 +101,24 @@ http://localhost:3000
 
 La documentación interactiva de la API (Swagger UI) queda disponible en `http://localhost:3000/api-docs`.
 
-8. Hacer el build para producción
+### Build de producción
+
+`npm run init` ya ejecuta el build de producción, así que no hace falta correrlo durante la instalación. Solo hace falta correrlo a mano para regenerar `dist/` tras un cambio:
 
 ```bash
 npm run build
 ```
+
+## Scripts disponibles
+
+| Comando | Qué hace |
+|---|---|
+| `npm run init` | Prepara el entorno completo (deps + `.env` + build + seed) |
+| `npm run dev` | Servidor de desarrollo (`tsx watch` + Tailwind watch) |
+| `npm run build` | Compilación de producción a `dist/` |
+| `npm run seed` | Carga los datos de ejemplo (idempotente) |
+| `npm run test:checkout` | Tests del checkout T1–T7 (DB temporal) |
+| `npm run build:docs` | Regenera `docs/` (TypeDoc + grafo, requiere Graphviz) |
 
 ## Tests
 
