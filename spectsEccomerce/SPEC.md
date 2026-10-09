@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-08** (favicon / logo de la pestaña §20)
+> - Última actualización: **2026-10-08** (favicon / logo de la pestaña §20, CI/CD y despliegue §21)
 > - Rama base de referencia: `dev`
 
 ---
@@ -66,6 +66,7 @@
 | [§18](#18-convención-de-comentarios-jsdoc) | Convención de comentarios JSDoc | Nuevo |
 | [§19](#19-checkout) | Checkout | Nuevo |
 | [§20](#20-favicon--logo-de-la-pestaña) | Favicon / logo de la pestaña | Nuevo |
+| [§21](#21-cicd-y-despliegue) | CI/CD y despliegue | Nuevo |
 
 ---
 
@@ -899,6 +900,19 @@ Resolución de rutas en Express:
 No existen vistas legacy en raíz (`views/`) ni en `src/views/pages/` —
 fueron eliminadas en el PR #51.
 
+**Raíz del proyecto (archivos nuevos, spec §21):**
+
+```
+├── Dockerfile                      ← multi-stage, Node 22, build + runtime separados
+├── .dockerignore                    ← excluye secretos, DBs, node_modules, etc.
+├── docker-compose.prod.yml          ← plantilla de despliegue (app + cloudflared)
+├── .env.prod.example                ← placeholders de producción
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml                ← CI/CD: build + test (push/PR), publish (solo main)
+└── AGENTS.md                        ← marco de trabajo para agentes (regla de CI)
+```
+
 ---
 
 ## §16. Variables de entorno
@@ -1145,6 +1159,135 @@ los tres archivos de `public/` manteniendo nombres y tamaños (ICO con
 
 ---
 
+## §21. CI/CD y despliegue
+
+> **Sección nueva.** Dockerización de MiEcommerce y pipeline CI/CD con GitHub
+> Actions. Publicación automática en GitHub Container Registry (ghcr.io) al
+> mergear PRs a `main`.
+
+### §21.1 Flujo
+
+```
+Pull Request dev → main ──► CI (build + tests) ← no publica nada
+merge del PR a main ─────► CI ──► si pasa ──► build de imagen ──► push a ghcr.io
+```
+
+- Los pushes a `dev` también ejecutan el job `ci` (solo build y tests), pero
+  **nunca** el job `publish`.
+- No existe push directo a `main`; el trabajo vive en `dev` y llega a `main`
+  mediante Pull Request.
+
+### §21.2 Archivos
+
+| Archivo | Propósito |
+|---|---|
+| `Dockerfile` | Imagen multi-stage: build tools solo en stage 1, runtime sin herramientas de compilación |
+| `.dockerignore` | Excluye secretos, DBs locales, node_modules, git, etc. de la imagen |
+| `.github/workflows/ci-cd.yml` | Pipeline: `ci` (build + test:checkout) y `publish` (build + push a ghcr.io) |
+| `docker-compose.prod.yml` | Plantilla de despliegue para el servidor (app + cloudflared) |
+| `.env.prod.example` | Placeholder de variables de producción (SESSION_SECRET, TUNNEL_TOKEN) |
+| `AGENTS.md` | Marco de trabajo para agentes: regla de actualización del CI al crear tests |
+
+### §21.3 Dockerfile
+
+- **Base:** `node:22-bookworm-slim` (Node 22+, compat con el proyecto).
+- **Estrategia multi-stage:**
+  - **Stage 1 (builder):** instala `build-essential` y `python3` para compilar
+    `better-sqlite3` (módulo nativo), corre `npm ci` con todas las deps,
+    ejecuta `npm run build`.
+  - **Stage 2 (runtime):** sin build tools. Copia `node_modules` ya compilado
+    desde el builder + `dist/` + `src/` (necesario para que `npm run seed`
+    funcione, ya que el seed usa `tsx` e importa de `../src/...`).
+- **Decisión sobre devDeps:** se mantienen en runtime porque `npm run seed`
+  y `npm run test:checkout` necesitan `tsx` (devDep). No se podan.
+- **Usuario no root:** `USER node`.
+- **Volumen `/data`:** directorio completo para SQLite (el motor crea `-wal`
+  y `-shm` junto al `.db`).
+- **Sin secretos horneados:** `SESSION_SECRET`, `PORT`, etc. vía variables de
+  entorno en tiempo de ejecución.
+- **Comando de arranque:** `CMD ["node", "dist/app.js"]` (`package.json` start).
+
+### §21.4 Pipeline CI/CD
+
+Archivo: `.github/workflows/ci-cd.yml`.
+
+**Job `ci` (Build & test):**
+
+- Se ejecuta en:
+  - `push` a `main`
+  - `push` a `dev`
+  - `pull_request` hacia `main`
+- Pasos:
+  1. `actions/checkout@v4`
+  2. `actions/setup-node@v4` con Node 22, `cache: npm`
+  3. `npm ci`
+  4. `npm run build`
+  5. `npm run test:checkout` (tests T1–T7 del checkout, spec §19.6)
+- **Permisos:** `contents: read` (mínimos).
+
+**Job `publish` (Build & push Docker image):**
+
+- Solo se ejecuta en `push` a `main` (no en PRs, no en `dev`).
+- Depende de (`needs:`) el job `ci`.
+- Pasos:
+  1. `actions/checkout@v4`
+  2. Normaliza el nombre del repo a minúsculas (ghcr.io exige minúsculas).
+  3. `docker/login-action@v3` contra `ghcr.io` con `GITHUB_TOKEN`.
+  4. `docker/setup-buildx-action@v3`
+  5. `docker/build-push-action@v6` con push, y dos tags: `latest` y el SHA
+     del commit.
+- **Permisos:** `contents: read` + `packages: write` (elevación solo en este job).
+- Acciones oficiales con versión mayor fija (`@v4`, `@v3`, `@v6`).
+- **No** usa runners self-hosted (el repo es público).
+- **Nota para servidor ARM:** descomentar `platforms: linux/arm64` en el
+  workflow y agregar la emulación QEMU.
+
+### §21.5 docker-compose.prod.yml
+
+- Servicio `tienda`: imagen `ghcr.io/<usuario>/<repo>:latest`, `restart: unless-stopped`,
+  variables desde `.env`, volumen nombrado `tienda-data:/data` y **sin `ports`**
+  (el servidor está detrás de Cloudflare Tunnel).
+- Servicio `cloudflared`: `cloudflare/cloudflared:latest`, comando
+  `tunnel --no-autoupdate run`, `TUNNEL_TOKEN` desde `.env`.
+- Volumen `tienda-data` para persistencia de SQLite.
+
+### §21.6 Variables de producción
+
+| Variable | Propósito | Dónde se define |
+|---|---|---|
+| `SESSION_SECRET` | Secreto de express-session | `.env` en el servidor (ver `.env.prod.example`) |
+| `TUNNEL_TOKEN` | Token de Cloudflare Tunnel | `.env` en el servidor (ver `.env.prod.example`) |
+| `PORT` | Puerto (default 3000, heredado de §16) | `.env` o default |
+| `DB_PATH` | Ruta de la DB (default `/data/shop.db`, heredado de §16) | `.env` o default |
+| `FALLBACK_IMAGE_URL` | URL de imagen por defecto (heredado de §16) | `.env` o default |
+
+Ninguna se hornea en la imagen.
+
+### §21.7 Mantenimiento del CI
+
+Según `AGENTS.md`, cuando un agente cree tests o scripts de verificación
+nuevos que considere pertinentes para CI, debe:
+
+1. Añadirlos al job `ci` de `.github/workflows/ci-cd.yml`.
+2. Documentar la inclusión en esta sección (§21).
+3. Si requieren dependencias especiales, detallarlas en el workflow y aquí.
+
+### §21.8 Primer arranque en el servidor
+
+```bash
+# 1. Crear .env con SESSION_SECRET y TUNNEL_TOKEN (ver .env.prod.example)
+# 2. Iniciar los servicios
+docker compose -f docker-compose.prod.yml up -d
+
+# 3. Cargar datos de ejemplo (solo la primera vez)
+docker compose -f docker-compose.prod.yml run --rm tienda npm run seed
+
+# 4. Para actualizar después de cambios:
+docker compose pull && docker compose up -d
+```
+
+---
+
 ## Tabla de equivalencias — `§` original → `SPEC.md`
 
 | `§` original (spec sprint 1) | `§` en `SPEC.md` | Estado |
@@ -1179,6 +1322,7 @@ los tres archivos de `public/` manteniendo nombres y tamaños (ICO con
 | — (nuevo) | §18 Convención JSDoc | Nuevo |
 | — (nuevo) | §19 Checkout | Nuevo |
 | — (nuevo) | §20 Favicon / logo de pestaña | Nuevo |
+| — (nuevo) | §21 CI/CD y despliegue | Nuevo |
 
 ---
 
@@ -1200,6 +1344,7 @@ los tres archivos de `public/` manteniendo nombres y tamaños (ICO con
 | 2026-10-07 | Este PR / issue #77 | Card de producto clickeable a /products/:id (link extendido) | — |
 | 2026-10-07 | Este PR / issue #68 | Checkout real (§19): formulario, orden atómica con descuento de stock, idempotencia por token, confirmación y tests T1–T7 | — |
 | 2026-10-08 | Este PR / issue #80 | Favicon / logo de la pestaña (§20): tres archivos en `public/` + `<link>` en el `<head>` del layout; `GET /favicon.ico` deja de caer en el 404 | — |
+| 2026-10-08 | PR #? / issue #? | Dockerización y CI/CD (§21): Dockerfile multi-stage, .dockerignore, workflow CI/CD, docker-compose.prod.yml, .env.prod.example, AGENTS.md | — |
 
 ---
 

@@ -135,3 +135,29 @@ validación) contra una **DB temporal** — nunca toca `dev.db`. El exit code es
 
 - [`spectsEccomerce/SPEC.md`](./spectsEccomerce/SPEC.md) es la **especificación viva**: describe el proyecto tal como es hoy y es la única fuente de verdad que se edita. El resto de los `.md` en `spectsEccomerce/` son históricos y no se actualizan. Las referencias `(spec §X.Y)` de los comentarios del código apuntan a `SPEC.md`.
 - `npm run build:docs` regenera la documentación en `docs/` (carpeta versionada en git): el HTML de TypeDoc (según `scripts/typedoc.json`) y el grafo de dependencias `docs/graphs/dependencias.svg` (madge). Requiere Graphviz instalado en el sistema. Si cambió la arquitectura, commitear el resultado.
+
+## Despliegue (Docker + CI/CD)
+
+El proyecto está dockerizado y se publica automáticamente en **GitHub Container Registry (ghcr.io)** al mergear un Pull Request a `main`. Más detalles en [`spectsEccomerce/SPEC.md §21`](./spectsEccomerce/SPEC.md#21-cicd-y-despliegue).
+
+### Primer arranque en el servidor
+
+```bash
+# 1. Crear .env con SESSION_SECRET y TUNNEL_TOKEN (ver .env.prod.example)
+# 2. Iniciar servicios
+docker compose -f docker-compose.prod.yml up -d
+
+# 3. Cargar datos de ejemplo (solo la primera vez)
+docker compose -f docker-compose.prod.yml run --rm tienda npm run seed
+```
+
+### Actualizar después de cambios
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+> **Nota:** el servidor está detrás de un Cloudflare Tunnel; no expone puertos.
+> La base de datos SQLite persiste en un volumen Docker nombrado (`tienda-data`).
+> Las variables de entorno (`SESSION_SECRET`, `PORT`, `DB_PATH`, `FALLBACK_IMAGE_URL`)
+> se configuran en `.env`, nunca en la imagen.
