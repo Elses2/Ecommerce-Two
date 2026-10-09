@@ -88,11 +88,11 @@ Este proyecto usa <code>better-sqlite3</code>, un módulo que en algunos sistema
 </code><button type="button">Copy</button></pre>
 
 <p>Y completá los valores dentro de <code>.env</code>:</p>
-<pre><code><span class="hl-4">PORT</span><span class="hl-1">=</span><span class="hl-5">3000</span><br/><span class="hl-4">SESSION_SECRET</span><span class="hl-1">=</span><span class="hl-6">pegar_key_aqui</span><br/><span class="hl-4">CLOUDINARY_CLOUD_NAME</span><span class="hl-1">=</span><span class="hl-6">pegar_key_aqui</span><br/><span class="hl-4">CLOUDINARY_API_KEY</span><span class="hl-1">=</span><span class="hl-6">pegar_key_aqui</span><br/><span class="hl-4">CLOUDINARY_API_SECRET</span><span class="hl-1">=</span><span class="hl-6">pegar_key_aqui</span><br/><span class="hl-4">CLOUDINARY_FOLDER</span><span class="hl-1">=</span><span class="hl-6">pegar_key_aqui</span>
+<pre><code><span class="hl-4">PORT</span><span class="hl-1">=</span><span class="hl-5">3000</span><br/><span class="hl-4">SESSION_SECRET</span><span class="hl-1">=</span><span class="hl-6">cambiar_por_un_secreto_largo_y_aleatorio</span><br/><span class="hl-1"># </span><span class="hl-4">URL</span><span class="hl-1"> </span><span class="hl-6">de</span><span class="hl-1"> </span><span class="hl-6">la</span><span class="hl-1"> </span><span class="hl-6">imagen</span><span class="hl-1"> </span><span class="hl-6">que</span><span class="hl-1"> </span><span class="hl-6">se</span><span class="hl-1"> </span><span class="hl-6">muestra</span><span class="hl-1"> </span><span class="hl-6">cuando</span><span class="hl-1"> </span><span class="hl-6">un</span><span class="hl-1"> </span><span class="hl-6">producto</span><span class="hl-1"> </span><span class="hl-6">no</span><span class="hl-1"> </span><span class="hl-6">tiene</span><span class="hl-1"> </span><span class="hl-6">image_url</span><span class="hl-1">.</span><br/><span class="hl-1"># </span><span class="hl-6">Acepta</span><span class="hl-1"> </span><span class="hl-0">http</span><span class="hl-1">(</span><span class="hl-6">s</span><span class="hl-1">):</span><span class="hl-7">//... o una ruta que empiece con &quot;/&quot;. Si falta o es inválida, se usa el default.</span><br/><span class="hl-4">FALLBACK_IMAGE_URL</span><span class="hl-1">=</span><span class="hl-8">https</span><span class="hl-1">:</span><span class="hl-7">//placehold.co/600x600?text=Sin+imagen</span>
 </code><button>Copy</button></pre>
 
 <blockquote>
-<p>Pedile las claves reales a algún miembro del equipo, no las inventes ni las compartas públicamente.</p>
+<p>Ya no hay claves externas que pedir: <code>SESSION_SECRET</code> generala con un valor aleatorio largo (por ejemplo, la salida de <code>node -e &quot;console.log(require('crypto').randomBytes(32).toString('hex'))&quot;</code>) y no la compartas públicamente. <code>FALLBACK_IMAGE_URL</code> puede dejarse con el valor por defecto.</p>
 </blockquote>
 <ol start="5">
 <li>Inicia el servidor de desarrollo</li>
@@ -101,20 +101,36 @@ Este proyecto usa <code>better-sqlite3</code>, un módulo que en algunos sistema
 </code><button type="button">Copy</button></pre>
 
 <ol start="6">
-<li>Ver página</li>
+<li>Cargá los datos de ejemplo (opcional; el script es idempotente y crea el esquema si no existe)</li>
 </ol>
-<pre><code><span class="hl-7">http</span><span class="hl-1">:</span><span class="hl-8">//localhost:3000</span>
-</code><button>Copy</button></pre>
+<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">seed</span>
+</code><button type="button">Copy</button></pre>
 
 <ol start="7">
+<li>Ver página</li>
+</ol>
+<pre><code><span class="hl-8">http</span><span class="hl-1">:</span><span class="hl-7">//localhost:3000</span>
+</code><button>Copy</button></pre>
+
+<p>La documentación interactiva de la API (Swagger UI) queda disponible en <code>http://localhost:3000/api-docs</code>.</p>
+<ol start="8">
 <li>Hacer el build para producción</li>
 </ol>
 <pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build</span>
 </code><button type="button">Copy</button></pre>
 
+<h2 id="tests" class="tsd-anchor-link">Tests<a href="#tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:checkout</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Corre los tests del checkout (<code>scripts/test-checkout.ts</code>, casos T1–T7: stock,
+rollback, idempotencia por token, precio congelado, carrera multi-proceso y
+validación) contra una <strong>DB temporal</strong> — nunca toca <code>dev.db</code>. El exit code es
+≠ 0 si algo falla.</p>
 <h2 id="documentación" class="tsd-anchor-link">Documentación<a href="#documentación" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
-<li><code>npm run build:docs</code> genera la documentación de TypeDoc (HTML en <code>docs/</code>, ignorado por git) y regenera el grafo de dependencias <code>docs/graphs/dependencias.svg</code> (versionado; commitearlo si cambió la arquitectura). Requiere Graphviz instalado en el sistema.</li>
+<li><a href="media/SPEC.md"><code>spectsEccomerce/SPEC.md</code></a> es la <strong>especificación viva</strong>: describe el proyecto tal como es hoy y es la única fuente de verdad que se edita. El resto de los <code>.md</code> en <code>spectsEccomerce/</code> son históricos y no se actualizan. Las referencias <code>(spec §X.Y)</code> de los comentarios del código apuntan a <code>SPEC.md</code>.</li>
+<li><code>npm run build:docs</code> regenera la documentación en <code>docs/</code> (carpeta versionada en git): el HTML de TypeDoc (según <code>scripts/typedoc.json</code>) y el grafo de dependencias <code>docs/graphs/dependencias.svg</code> (madge). Requiere Graphviz instalado en el sistema. Si cambió la arquitectura, commitear el resultado.</li>
 </ul>
 </div></div>
 <div class="col-sidebar">
@@ -146,6 +162,7 @@ Este proyecto usa <code>better-sqlite3</code>, un módulo que en algunos sistema
 <li><a href="#tecnologías-utilizadas"><span>Tecnologías utilizadas</span></a></li>
 <li><a href="#requisitos-previos"><span>Requisitos previos</span></a></li>
 <li><a href="#instalación"><span>Instalación</span></a></li>
+<li><a href="#tests"><span>Tests</span></a></li>
 <li><a href="#documentación"><span>Documentación</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="modules.html">MiEcommerce - Documentación de Código Fuente - v1.0.0</a>

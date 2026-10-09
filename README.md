@@ -71,34 +71,21 @@ git clone https://github.com/Elses2/Ecommerce-Two
 cd Ecommerce-Two
 ```
 
-3. Instala las dependencias necesarias
+3. Prepará el entorno completo con un solo comando
 
 ```bash
-npm install
+npm run init
 ```
 
-> Si esta instalación falla por errores de compilación (por ejemplo, relacionados con `better-sqlite3` o `node-gyp`), revisá la sección [Requisitos previos](#requisitos-previos).
+Este comando instala las dependencias, crea el archivo `.env` desde `.env.example` **solo si no existe** (no sobrescribe uno ya existente), compila el build y carga los datos de ejemplo (el seed es idempotente).
 
-4. Configura las variables de entorno
+> Si `npm run init` falla por errores de compilación (por ejemplo, relacionados con `better-sqlite3` o `node-gyp`), revisá la sección [Requisitos previos](#requisitos-previos).
 
-Este proyecto necesita un archivo `.env` en la raíz con tus propias claves (no se sube al repositorio por seguridad). Creá el archivo copiando la plantilla:
+4. Completá tus variables de entorno (opcional)
 
-```bash
-cp .env.example .env
-```
+`npm run init` te deja el archivo `.env` creado en la raíz, listo para editar.
 
-Y completá los valores dentro de `.env`:
-
-```
-PORT=3000
-SESSION_SECRET=pegar_key_aqui
-CLOUDINARY_CLOUD_NAME=pegar_key_aqui
-CLOUDINARY_API_KEY=pegar_key_aqui
-CLOUDINARY_API_SECRET=pegar_key_aqui
-CLOUDINARY_FOLDER=pegar_key_aqui
-```
-
-> Pedile las claves reales a algún miembro del equipo, no las inventes ni las compartas públicamente.
+> Ya no hay claves externas que pedir: `SESSION_SECRET` generala con un valor aleatorio largo (por ejemplo, la salida de `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`) y no la compartas públicamente. `FALLBACK_IMAGE_URL` puede dejarse con el valor por defecto.
 
 5. Inicia el servidor de desarrollo
 
@@ -112,12 +99,65 @@ npm run dev
 http://localhost:3000
 ```
 
-7. Hacer el build para producción
+La documentación interactiva de la API (Swagger UI) queda disponible en `http://localhost:3000/api-docs`.
+
+### Build de producción
+
+`npm run init` ya ejecuta el build de producción, así que no hace falta correrlo durante la instalación. Solo hace falta correrlo a mano para regenerar `dist/` tras un cambio:
 
 ```bash
 npm run build
 ```
 
+## Scripts disponibles
+
+| Comando | Qué hace |
+|---|---|
+| `npm run init` | Prepara el entorno completo (deps + `.env` + build + seed) |
+| `npm run dev` | Servidor de desarrollo (`tsx watch` + Tailwind watch) |
+| `npm run build` | Compilación de producción a `dist/` |
+| `npm run seed` | Carga los datos de ejemplo (idempotente) |
+| `npm run test:checkout` | Tests del checkout T1–T7 (DB temporal) |
+| `npm run build:docs` | Regenera `docs/` (TypeDoc + grafo, requiere Graphviz) |
+
+## Tests
+
+```bash
+npm run test:checkout
+```
+
+Corre los tests del checkout (`scripts/test-checkout.ts`, casos T1–T7: stock,
+rollback, idempotencia por token, precio congelado, carrera multi-proceso y
+validación) contra una **DB temporal** — nunca toca `dev.db`. El exit code es
+≠ 0 si algo falla.
+
 ## Documentación
 
-- `npm run build:docs` genera la documentación de TypeDoc (HTML en `docs/`, ignorado por git) y regenera el grafo de dependencias `docs/graphs/dependencias.svg` (versionado; commitearlo si cambió la arquitectura). Requiere Graphviz instalado en el sistema.
+- [`spectsEccomerce/SPEC.md`](./spectsEccomerce/SPEC.md) es la **especificación viva**: describe el proyecto tal como es hoy y es la única fuente de verdad que se edita. El resto de los `.md` en `spectsEccomerce/` son históricos y no se actualizan. Las referencias `(spec §X.Y)` de los comentarios del código apuntan a `SPEC.md`.
+- `npm run build:docs` regenera la documentación en `docs/` (carpeta versionada en git): el HTML de TypeDoc (según `scripts/typedoc.json`) y el grafo de dependencias `docs/graphs/dependencias.svg` (madge). Requiere Graphviz instalado en el sistema. Si cambió la arquitectura, commitear el resultado.
+
+## Despliegue (Docker + CI/CD)
+
+El proyecto está dockerizado y se publica automáticamente en **GitHub Container Registry (ghcr.io)** al mergear un Pull Request a `main`. Más detalles en [`spectsEccomerce/SPEC.md §21`](./spectsEccomerce/SPEC.md#21-cicd-y-despliegue).
+
+### Primer arranque en el servidor
+
+```bash
+# 1. Crear .env con SESSION_SECRET y TUNNEL_TOKEN (ver .env.prod.example)
+# 2. Iniciar servicios
+docker compose -f docker-compose.prod.yml up -d
+
+# 3. Cargar datos de ejemplo (solo la primera vez)
+docker compose -f docker-compose.prod.yml run --rm tienda npm run seed
+```
+
+### Actualizar después de cambios
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+> **Nota:** el servidor está detrás de un Cloudflare Tunnel; no expone puertos.
+> La base de datos SQLite persiste en un volumen Docker nombrado (`tienda-data`).
+> Las variables de entorno (`SESSION_SECRET`, `PORT`, `DB_PATH`, `FALLBACK_IMAGE_URL`)
+> se configuran en `.env`, nunca en la imagen.

@@ -64,6 +64,7 @@ const spec = swaggerJSDoc({
     "./src/routes/api/*.routes.ts",
     "./src/controllers/api/*.controller.ts",
     "./src/controllers/pages/pages.controller.ts",
+    "./src/controllers/pages/checkout.controller.ts",
   ],
 });
 

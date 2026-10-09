@@ -1,5 +1,9 @@
 # Cambios no registrados en el spec
 
+> 📌 **Documento histórico.** Refleja el estado del proyecto en el momento en que se escribió
+> y no se actualiza. La especificación vigente está en [`SPEC.md`](./SPEC.md).
+
+
 > Este documento cubre los cambios funcionales y de infraestructura
 > que **no están documentados** en `ecommerce-spec-sprint1.md` ni en
 > `resultado-primer-sprint.md`. Está pensado para ser entregado a la IA
@@ -19,7 +23,7 @@
 | Reestructuración de views (legacy → árbol atómico) | #51 | Mergeado a dev |
 | .gitattributes con normalización EOL | #56 | Mergeado a dev |
 | Script de seed idempotente (`scripts/seed.ts`) | #29 | Mergeado a dev |
-| Imagen fallback (`public/img/fallback.png`) | #29 | Mergeado a dev |
+| Imagen fallback (`public/img/fallback.png`) | #29 | Eliminado | Reemplazado por `FALLBACK_IMAGE_URL` configurable vía `.env` |
 
 ---
 
@@ -216,18 +220,27 @@ del desarrollador ejecutarlo.
 
 ---
 
-## 6. Imagen fallback (`public/img/fallback.png`)
+## 6. Imagen fallback — de archivo estático a URL configurable
 
 ### Qué pasó
 
-Se agregó `public/img/fallback.png` como imagen de respaldo cuando un
-producto no tiene `image_url` configurada (spec §2.3). Es un PNG de 0
-bytes (placeholder) que se sirve como estática en `/img/fallback.png`.
+Se eliminó `public/img/fallback.png` (PNG placeholder de 0 bytes) y se
+reemplazó por una **URL configurable** mediante la variable de entorno
+`FALLBACK_IMAGE_URL`.
+
+### Nuevo mecanismo (spec §2.3 actualizado)
+
+- **Variable**: `FALLBACK_IMAGE_URL` en `.env` y `.env.example`
+- **Default**: `https://placehold.co/600x600?text=Sin+imagen` (definido en código, la app arranca sin `.env`)
+- **Validación**: `parseImageUrl()` en `src/config/env.ts` acepta URLs absolutas `http(s)://...` o rutas locales que empiecen con `/`. Valores inválidos generan `console.warn` y usan el default.
+- **Fallback para imágenes rotas**: todos los `<img>` de productos incluyen `onerror="this.onerror=null;this.src='<%= fallbackImageUrl %>'"` para cubrir URLs 404, no solo `image_url` vacío.
 
 ### Relación con el spec
 
-El spec §2.2 permite explícitamente servir una imagen fallback estática
-en `/public` como alternativa a Cloudinary.
+El spec §2.2 permitía servir una imagen fallback estática en `/public`
+como alternativa a Cloudinary. Ahora el fallback es una URL
+configurable que puede apuntar a cualquier servicio externo o ruta
+local.
 
 ---
 
@@ -242,7 +255,7 @@ src/
 ├── config/
 │   ├── database.ts           ← SQLite bootstrap + pragmas
 │   ├── env.ts                ← configuración tipada de env vars
-│   └── cloudinary.ts         ← configuración de Cloudinary
+│   └── swagger.ts            ← configuración OpenAPI
 ├── controllers/
 │   ├── api/                  ← controllers para rutas /api/*
 │   │   ├── cart.controller.ts
@@ -284,3 +297,4 @@ src/
 | Documentación de `scripts/seed.ts` en el spec | Parcial | El spec menciona "seed" pero no el script específico |
 | Documentación de `better-sqlite3-session-store` | No cubierto | PR #47, no está en el spec |
 | `spectsEccomerce/reestructuracion-views.md` | Documentado por separado | No está integrado en el spec principal |
+| Cloudinary eliminado | Resuelto | Reemplazado por `FALLBACK_IMAGE_URL` configurable; ver `documentacion-typedoc.md` |

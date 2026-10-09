@@ -17,7 +17,7 @@
 // better-sqlite3 es síncrono — firmas síncronas sin promesas falsas (D5)</p>
 </div></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L12">src/repositories/product.repository.ts:12</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L12">src/repositories/product.repository.ts:12</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -33,7 +33,8 @@
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-index-list"><a href="#findall" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>All</span></a>
+<div class="tsd-index-list"><a href="#decrementstockifavailable" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>decrement<wbr/>Stock<wbr/>If<wbr/>Available</span></a>
+<a href="#findall" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>All</span></a>
 <a href="#findbycategory" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>By<wbr/>Category</span></a>
 <a href="#findbyid" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>By<wbr/>Id</span></a>
 <a href="#findcategoriesbyproduct" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Categories<wbr/>By<wbr/>Product</span></a>
@@ -62,7 +63,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ProductRepository</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L18">src/repositories/product.repository.ts:18</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L18">src/repositories/product.repository.ts:18</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -72,10 +73,35 @@
 <div class="tsd-comment tsd-typography"><p>Instancia de la base de datos SQLite.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L18">src/repositories/product.repository.ts:18</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L18">src/repositories/product.repository.ts:18</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="decrementstockifavailable"><span>decrement<wbr/>Stock<wbr/>If<wbr/>Available</span><a href="#decrementstockifavailable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="decrementstockifavailable-1"><span class="tsd-kind-call-signature">decrementStockIfAvailable</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">productId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">quantity</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#decrementstockifavailable-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Decrementa el stock de un producto solo si hay existencias suficientes.</p>
+<p>Decremento atómico (spec §19 / D3): el chequeo y la resta viven en UNA
+sola sentencia UPDATE con guard <code>stock &gt;= ?</code> — nunca read-then-write en
+JS (dos clientes concurrentes podrían leer el mismo stock y vender dos
+veces la última unidad). <code>changes === 1</code> solo si el UPDATE tocó la fila.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">productId</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>Identificador único del producto.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">quantity</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>Cantidad a restar del stock.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> si el stock se decrementó; <code>false</code> si no hay suficiente.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L73">src/repositories/product.repository.ts:73</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="findall"><span>find<wbr/>All</span><a href="#findall" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -97,7 +123,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Lista de productos ordenados por precio.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L42">src/repositories/product.repository.ts:42</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L42">src/repositories/product.repository.ts:42</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="findbycategory"><span>find<wbr/>By<wbr/>Category</span><a href="#findbycategory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -116,7 +142,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Lista de productos pertenecientes a la categoría.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L118">src/repositories/product.repository.ts:118</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L139">src/repositories/product.repository.ts:139</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="findbyid"><span>find<wbr/>By<wbr/>Id</span><a href="#findbyid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -134,7 +160,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></h4><p>El producto obtenido o <code>undefined</code> si no existe.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L55">src/repositories/product.repository.ts:55</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L55">src/repositories/product.repository.ts:55</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="findcategoriesbyproduct"><span>find<wbr/>Categories<wbr/>By<wbr/>Product</span><a href="#findcategoriesbyproduct" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -153,7 +179,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/models_category.model.Category.html" class="tsd-signature-type tsd-kind-interface">Category</a><span class="tsd-signature-symbol">[]</span></h4><p>Lista de categorías asociadas al producto.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L136">src/repositories/product.repository.ts:136</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L157">src/repositories/product.repository.ts:157</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="findrelatedbycategories"><span>find<wbr/>Related<wbr/>By<wbr/>Categories</span><a href="#findrelatedbycategories" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -178,7 +204,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Arreglo de productos relacionados sin duplicados.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L158">src/repositories/product.repository.ts:158</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L179">src/repositories/product.repository.ts:179</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="list"><span>list</span><a href="#list" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -190,7 +216,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Arreglo completo de productos.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L25">src/repositories/product.repository.ts:25</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L25">src/repositories/product.repository.ts:25</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="listrandom"><span>list<wbr/>Random</span><a href="#listrandom" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -211,7 +237,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Muestra de productos aleatorios.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L104">src/repositories/product.repository.ts:104</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L125">src/repositories/product.repository.ts:125</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="search"><span>search</span><a href="#search" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -230,7 +256,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Lista de productos que coinciden con el término.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L69">src/repositories/product.repository.ts:69</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L90">src/repositories/product.repository.ts:90</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchbyname"><span>search<wbr/>By<wbr/>Name</span><a href="#searchbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -251,7 +277,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/models_product.model.Product.html" class="tsd-signature-type tsd-kind-interface">Product</a><span class="tsd-signature-symbol">[]</span></h4><p>Productos coincidentes por nombre.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/repositories/product.repository.ts#L88">src/repositories/product.repository.ts:88</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/repositories/product.repository.ts#L109">src/repositories/product.repository.ts:109</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -273,7 +299,7 @@
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
 <div><a href="#database" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>database</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#findall"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>All</span></a><a href="#findbycategory"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>By<wbr/>Category</span></a><a href="#findbyid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>By<wbr/>Id</span></a><a href="#findcategoriesbyproduct"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Categories<wbr/>By<wbr/>Product</span></a><a href="#findrelatedbycategories"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Related<wbr/>By<wbr/>Categories</span></a><a href="#list"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>list</span></a><a href="#listrandom"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>list<wbr/>Random</span></a><a href="#search"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>search</span></a><a href="#searchbyname"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>search<wbr/>By<wbr/>Name</span></a></div></details></div></details></div>
+<div><a href="#decrementstockifavailable"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>decrement<wbr/>Stock<wbr/>If<wbr/>Available</span></a><a href="#findall"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>All</span></a><a href="#findbycategory"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>By<wbr/>Category</span></a><a href="#findbyid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>By<wbr/>Id</span></a><a href="#findcategoriesbyproduct"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Categories<wbr/>By<wbr/>Product</span></a><a href="#findrelatedbycategories"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Related<wbr/>By<wbr/>Categories</span></a><a href="#list"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>list</span></a><a href="#listrandom"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>list<wbr/>Random</span></a><a href="#search"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>search</span></a><a href="#searchbyname"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>search<wbr/>By<wbr/>Name</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">MiEcommerce - Documentación de Código Fuente - v1.0.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

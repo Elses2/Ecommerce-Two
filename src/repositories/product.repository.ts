@@ -59,6 +59,27 @@ export class ProductRepository {
   }
 
   /**
+   * Decrementa el stock de un producto solo si hay existencias suficientes.
+   *
+   * Decremento atómico (spec §19 / D3): el chequeo y la resta viven en UNA
+   * sola sentencia UPDATE con guard `stock >= ?` — nunca read-then-write en
+   * JS (dos clientes concurrentes podrían leer el mismo stock y vender dos
+   * veces la última unidad). `changes === 1` solo si el UPDATE tocó la fila.
+   *
+   * @param {number} productId - Identificador único del producto.
+   * @param {number} quantity - Cantidad a restar del stock.
+   * @returns {boolean} `true` si el stock se decrementó; `false` si no hay suficiente.
+   */
+  decrementStockIfAvailable(productId: number, quantity: number): boolean {
+    const result = this.database
+      .prepare(
+        "UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?",
+      )
+      .run(quantity, productId, quantity);
+    return result.changes === 1;
+  }
+
+  /**
    * Realiza una búsqueda mediante coincidencias `LIKE` tanto en el nombre como en la descripción del producto.
    *
    * // LIKE sobre name y description (spec data-access)

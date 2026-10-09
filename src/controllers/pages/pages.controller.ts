@@ -247,28 +247,4 @@ export const pagesController = {
       query,
     });
   },
-
-  /**
-   * Renderiza la vista provisional del proceso de Checkout.
-   *
-   * @swagger
-   * /checkout:
-   *   get:
-   *     summary: Checkout (placeholder)
-   *     description: Vista provisional — sin lógica de negocio.
-   *     tags: [Páginas]
-   *     responses:
-   *       200:
-   *         description: Página HTML de checkout placeholder.
-   *
-   * @param {Request} _req - Objeto de solicitud de Express (no utilizado).
-   * @param {Response} res - Objeto de respuesta de Express.
-   * @returns {void}
-   */
-  getCheckout(_req: Request, res: Response): void {
-    res.render("templates/pages/checkout", {
-      title: "Checkout",
-      message: "Checkout disponible en el próximo sprint",
-    });
-  },
 };

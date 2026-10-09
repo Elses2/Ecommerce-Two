@@ -66,6 +66,7 @@ app.set("layout", "templates/layout"); // layout atómico: header + slot + foote
 // Helper de vista (spec §6.6b): nombre de categoría → SVG de Lucide, disponible
 // para todos los templates (organisms/categories-nav.ejs lo consume)
 app.locals.getCategoryIconSvg = getCategoryIconSvg;
+app.locals.fallbackImageUrl = env.images.fallbackUrl;
 
 // Primer root: árbol atómico nuevo (views/templates). Segundo: páginas heredadas
 // (src/views/pages) mientras se migran al nuevo árbol en pasos siguientes.

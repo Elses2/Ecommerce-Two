@@ -21,18 +21,19 @@
     "dev:tailwind": "tailwindcss -i ./src/styles.css -o ./dist/public/css/styles.css --watch",
     "build:tailwind": "tailwindcss -i ./src/styles.css -o ./dist/public/css/styles.css --minify",
     "seed": "tsx scripts/seed.ts",
+    "test:checkout": "tsx scripts/test-checkout.ts",
     "build:docs": "typedoc --options scripts/typedoc.json && npm run graph:deps",
     "graph:deps": "node -e \"require('fs').mkdirSync('docs/graphs',{recursive:true})\" && madge --extensions ts --ts-config tsconfig.json --image docs/graphs/dependencias.svg src",
     "graph:circular": "madge --extensions ts --ts-config tsconfig.json --circular src",
     "build": "tsc && npm run build:tailwind && cpx \"src/views/**/*.ejs\" dist/views && cpx \"public/**/*\" dist/public",
     "start": "node dist/app.js",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "init": "npm install && node -e \"const fs=require('fs'); if(!fs.existsSync('.env')) { fs.copyFileSync('.env.example', '.env'); console.log('✅ Archivo .env creado exitosamente'); } else { console.log('ℹ️ El archivo .env ya existe, se omite la copia'); }\" && npm run build && npm run seed"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
     "better-sqlite3-session-store": "^0.1.0",
-    "cloudinary": "^2.11.0",
     "dotenv": "^17.4.2",
     "ejs": "^3.1.10",
     "express": "^5.0.1",

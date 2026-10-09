@@ -22,16 +22,17 @@
 <div class="tsd-signature tsd-anchor-link" id="getactivebanners-1"><span class="tsd-kind-call-signature">getActiveBanners</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/services_promo.service.PromoBanner.html" class="tsd-signature-type tsd-kind-interface">PromoBanner</a><span class="tsd-signature-symbol">[]</span><a href="#getactivebanners-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Obtiene la lista de banners promocionales activos para la aplicación.</p>
-<p>// Los URLs de Cloudinary del ejemplo del spec contienen &lt;cloud_name&gt;:
-// son placeholders, no activos reales. Hasta configurar Cloudinary se
-// sirve el fallback local (misma postura que §2.2/§2.3 para productos).</p>
+<p>Los banners sirven <code>/img/fallback.png</code> como placeholder local (spec §6.6b).
+Si ese archivo no existe o la imagen falla al cargar, el <code>onerror</code> del
+template (<code>product-hero.ejs</code>) cae a <code>fallbackImageUrl</code>
+(<code>env.images.fallbackUrl</code>, variable FALLBACK_IMAGE_URL).</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/services_promo.service.PromoBanner.html" class="tsd-signature-type tsd-kind-interface">PromoBanner</a><span class="tsd-signature-symbol">[]</span></h4><p>Arreglo de objetos de banners promocionales.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/services/promo.service.ts#L28">src/services/promo.service.ts:28</a></li></ul></aside></div></li></ul></li></ul></div><aside class="tsd-sources">
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/services/promo.service.ts#L29">src/services/promo.service.ts:29</a></li></ul></aside></div></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/d73a6d3f174af1a8537dddacddf3bb72ffdf0c20/src/services/promo.service.ts#L18">src/services/promo.service.ts:18</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/services/promo.service.ts#L18">src/services/promo.service.ts:18</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

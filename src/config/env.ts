@@ -16,10 +16,35 @@ function parsePort(rawPort: string | undefined, defaultPort: number): number {
  * Obtiene el valor de una variable de entorno de texto, asegurando una cadena vacía por defecto.
  *
  * @param {string | undefined} rawValue - Valor de la variable de entorno.
- * @returns {string} Texto leído de la variable o `""` si es indeifnido.
+ * @returns {string} Texto leído de la variable o `""` si es indefinido.
  */
 function getEnvString(rawValue: string | undefined): string {
   return rawValue ?? "";
+}
+
+const DEFAULT_FALLBACK_IMAGE_URL =
+  "https://placehold.co/600x600?text=Sin+imagen";
+
+/**
+ * Acepta URL absoluta `http(s)://...` o ruta local que empiece con `/`.
+ * Si el valor no cumple ninguno de esos formatos, emite un warning y
+ * devuelve el default.
+ *
+ * @param {string | undefined} rawValue - Valor de `FALLBACK_IMAGE_URL`.
+ * @returns {string} URL de fallback válida.
+ */
+function parseImageUrl(rawValue: string | undefined): string {
+  const v = rawValue?.trim();
+  if (!v) return DEFAULT_FALLBACK_IMAGE_URL;
+  if (v.startsWith("/")) return v;
+  try {
+    const u = new URL(v);
+    if (u.protocol === "http:" || u.protocol === "https:") return v;
+  } catch {
+    /* cae al warning */
+  }
+  console.warn("[env] FALLBACK_IMAGE_URL inválida, usando valor por defecto");
+  return DEFAULT_FALLBACK_IMAGE_URL;
 }
 
 /**
@@ -32,11 +57,8 @@ function createEnvConfig(envVars: NodeJS.ProcessEnv) {
   return {
     port: parsePort(envVars.PORT, 3000),
     sessionSecret: getEnvString(envVars.SESSION_SECRET),
-    cloudinary: {
-      cloudName: getEnvString(envVars.CLOUDINARY_CLOUD_NAME),
-      apiKey: getEnvString(envVars.CLOUDINARY_API_KEY),
-      apiSecret: getEnvString(envVars.CLOUDINARY_API_SECRET),
-      folder: getEnvString(envVars.CLOUDINARY_FOLDER),
+    images: {
+      fallbackUrl: parseImageUrl(envVars.FALLBACK_IMAGE_URL),
     },
   } as const;
 }
@@ -46,9 +68,3 @@ function createEnvConfig(envVars: NodeJS.ProcessEnv) {
  * Objeto de configuración principal del sistema cargado desde las variables de entorno (.env).
  */
 export const env = createEnvConfig(process.env);
-
-// Placeholder genérico que marca una credencial sin configurar
-/**
- * Cadena placeholder genérica para identificar credenciales que aún no han sido configuradas.
- */
-export const PLACEHOLDER_VALUE = "pegar_key_aqui";
