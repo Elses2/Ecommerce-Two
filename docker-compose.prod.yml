@@ -1,0 +1,32 @@
+# =============================================================================
+# docker-compose.prod.yml — Plantilla de despliegue para el servidor (spec §21)
+# =============================================================================
+# Uso en el servidor:
+#   1. Crear .env con las variables (ver .env.prod.example)
+#   2. docker compose -f docker-compose.prod.yml up -d
+#   3. docker compose -f docker-compose.prod.yml run --rm tienda npm run seed
+#   4. Para actualizar: docker compose pull && docker compose up -d
+# =============================================================================
+
+services:
+  # ── Aplicación ────────────────────────────────────────────────────────────
+  tienda:
+    # IMPORTANTE: reemplazar <usuario> y <repo> con los valores reales
+    image: ghcr.io/<usuario>/<repo>:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - tienda-data:/data
+    # Sin ports: el servidor está detrás de Cloudflare Tunnel, no expone puertos
+
+  # ── Tunel Cloudflare ──────────────────────────────────────────────────────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    env_file: .env
+
+volumes:
+  tienda-data:
+    # Volumen nombrado para persistencia de la base de datos SQLite
+    # Los datos sobreviven a docker compose down y up

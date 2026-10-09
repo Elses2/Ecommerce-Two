@@ -281,6 +281,26 @@ Al terminar el código y los comentarios:
 - [ ] `npm run build:docs` ejecutado; `docs/` commiteado.
 - [ ] Todos los commits siguen la convención; ninguno directo a `dev`/`main`.
 
+### 7.1 Regla de actualización del CI (para agentes)
+
+Cuando un agente (IA, orquestador, asistente) cree **tests o scripts de
+verificación nuevos** y los considere pertinentes para la ejecución
+automatizada en CI, debe:
+
+1. Añadir el nuevo script al job `ci` de `.github/workflows/ci-cd.yml`.
+2. Documentar la inclusión en la sección **§21 (CI/CD y despliegue)** de
+   `spectsEccomerce/SPEC.md`.
+3. Si el script requiere dependencias o configuraciones especiales en CI,
+   detallarlas en el propio workflow como comentario y en la SPEC.
+
+**Razón:** El pipeline de CI debe mantenerse sincronizado con la batería de
+tests del proyecto. Cada vez que se agrega una verificación significativa
+(test de regresión, validación de esquema, lint, type-check), debe ejecutarse
+automáticamente en cada push para detectar regresiones temprano.
+
+> *Nota: hoy el CI solo ejecuta `npm run build` y `npm run test:checkout`.*
+> *Está diseñado para crecer orgánicamente con el proyecto.*
+
 ---
 
 ## 8. Entrega final

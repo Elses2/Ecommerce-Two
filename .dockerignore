@@ -1,0 +1,34 @@
+# =============================================================================
+# .dockerignore para MiEcommerce
+# =============================================================================
+# Excluir archivos de entorno y secretos — el repo y la imagen son públicos
+.env
+.env.*
+!.env.example
+
+# Bases de datos locales — nunca dentro de la imagen
+*.db
+*.db-shm
+*.db-wal
+
+# Dependencias y build (se regeneran dentro del contenedor)
+node_modules
+dist
+
+# Repositorio
+.git
+
+# Documentación generada y guías
+docs/
+odd/
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+.atl/
+
+# Config del proyecto (se copian los necesarios vía COPY explícita en Dockerfile)
+.gitattributes
+.gitignore
