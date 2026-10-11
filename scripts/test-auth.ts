@@ -8,6 +8,7 @@
 // A4 login OK · A5 credenciales inválidas · A6 /me (válido/ausente/expirado/
 // manipulado/otro algoritmo). A7/A8 (autorización por rol/propiedad) son del PR 2.
 import { spawn } from "node:child_process";
+import BetterSqlite3 from "better-sqlite3";
 import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
@@ -130,6 +131,7 @@ async function runSuite(baseUrl: string): Promise<void> {
   const email = uniqueEmail();
   const password = "Abcdef1!";
   let token = "";
+  let userAId = 0;
 
   await check(
     "A1: register OK devuelve token y no filtra password_hash",
@@ -147,6 +149,7 @@ async function runSuite(baseUrl: string): Promise<void> {
       assert(user.email === email, "email correcto");
       assert(user.role === "customer", "rol customer");
       token = res.json.token as string;
+      userAId = Number(user.id);
     },
   );
 
@@ -287,6 +290,125 @@ async function runSuite(baseUrl: string): Promise<void> {
         algRes.status === 401,
         `HS512 rechazado 401 (real ${algRes.status})`,
       );
+    },
+  );
+
+  await check(
+    "A7: authorize por rol (unit) → 403 customer / pasa admin / 401 sin usuario",
+    async () => {
+      const { authorize } =
+        await import("../src/middlewares/route/authorize.middleware.js");
+      const makeRes = () => {
+        const calls = { status: [] as number[], json: [] as unknown[] };
+        const res = {
+          status(code: number) {
+            calls.status.push(code);
+            return res;
+          },
+          json(body: unknown) {
+            calls.json.push(body);
+            return res;
+          },
+        };
+        return { res, calls };
+      };
+      let nextCalls = 0;
+      const run = (
+        handler: (r: never, s: never, n: never) => void,
+        user: unknown,
+      ) => {
+        const { res, calls } = makeRes();
+        handler(
+          { user } as never,
+          res as never,
+          (() => {
+            nextCalls += 1;
+          }) as never,
+        );
+        return calls;
+      };
+      const guard = authorize("admin") as unknown as (
+        r: never,
+        s: never,
+        n: never,
+      ) => void;
+      const customer = run(guard, { id: 1, role: "customer" });
+      assert(
+        customer.status[0] === 403,
+        `customer 403 (real ${customer.status[0]})`,
+      );
+      const anonymous = run(guard, undefined);
+      assert(
+        anonymous.status[0] === 401,
+        `sin usuario 401 (real ${anonymous.status[0]})`,
+      );
+      const before = nextCalls;
+      run(guard, { id: 1, role: "admin" });
+      assert(nextCalls === before + 1, "admin pasa al siguiente middleware");
+    },
+  );
+
+  await check(
+    "A8: ownership de órdenes (aislamiento + detalle ajeno 404)",
+    async () => {
+      const emailB = uniqueEmail();
+      const registerB = await api(baseUrl, "POST", "/api/auth/register", {
+        body: { name: "Bea", lastname: "Gómez", email: emailB, password },
+      });
+      assert(
+        registerB.status === 201,
+        `registro B 201 (real ${registerB.status})`,
+      );
+      const tokenB = registerB.json.token as string;
+
+      // Las órdenes se insertan directo en la DB temporal: el checkout
+      // autenticado (que crea órdenes para un usuario) llega en el PR 3.
+      const db = new BetterSqlite3(TEST_DB_PATH);
+      let orderAId = 0;
+      try {
+        const info = db
+          .prepare(
+            "INSERT INTO orders (user_id, status, total, payment_method) VALUES (?, 'pending', ?, 'transfer')",
+          )
+          .run(userAId, 42);
+        orderAId = Number(info.lastInsertRowid);
+      } finally {
+        db.close();
+      }
+
+      const listA = await api(baseUrl, "GET", "/api/orders", { token });
+      assert(listA.status === 200, `list A 200 (real ${listA.status})`);
+      assert(
+        Array.isArray(listA.json.orders) &&
+          (listA.json.orders as unknown[]).length >= 1,
+        "A ve al menos una orden",
+      );
+
+      const listB = await api(baseUrl, "GET", "/api/orders", { token: tokenB });
+      assert(listB.status === 200, `list B 200 (real ${listB.status})`);
+      assert(
+        (listB.json.orders as unknown[]).length === 0,
+        "B no ve órdenes ajenas",
+      );
+
+      const detailA = await api(baseUrl, "GET", `/api/orders/${orderAId}`, {
+        token,
+      });
+      assert(detailA.status === 200, `A detalle 200 (real ${detailA.status})`);
+
+      const detailB = await api(baseUrl, "GET", `/api/orders/${orderAId}`, {
+        token: tokenB,
+      });
+      assert(
+        detailB.status === 404,
+        `B detalle ajeno 404 (real ${detailB.status})`,
+      );
+
+      const noToken = await api(baseUrl, "GET", `/api/orders/${orderAId}`);
+      assert(noToken.status === 401, `sin token 401 (real ${noToken.status})`);
+
+      const badId = await api(baseUrl, "GET", "/api/orders/abc", { token });
+      assert(badId.status === 400, `id malformado 400 (real ${badId.status})`);
     },
   );
 }
