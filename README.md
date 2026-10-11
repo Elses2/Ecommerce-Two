@@ -118,18 +118,27 @@ npm run build
 | `npm run build` | Compilación de producción a `dist/` |
 | `npm run seed` | Carga los datos de ejemplo (idempotente) |
 | `npm run test:checkout` | Tests del checkout T1–T7 (DB temporal) |
+| `npm run test:middlewares` | Tests de caracterización de middlewares M1–M18 (DB temporal) |
 | `npm run build:docs` | Regenera `docs/` (TypeDoc + grafo, requiere Graphviz) |
 
 ## Tests
 
 ```bash
 npm run test:checkout
+npm run test:middlewares
 ```
 
-Corre los tests del checkout (`scripts/test-checkout.ts`, casos T1–T7: stock,
-rollback, idempotencia por token, precio congelado, carrera multi-proceso y
-validación) contra una **DB temporal** — nunca toca `dev.db`. El exit code es
-≠ 0 si algo falla.
+`npm run test:checkout` corre los tests del checkout (`scripts/test-checkout.ts`,
+casos T1–T7: stock, rollback, idempotencia por token, precio congelado, carrera
+multi-proceso y validación).
+
+`npm run test:middlewares` levanta la app como proceso hijo y verifica el
+comportamiento de los middlewares (`scripts/test-middlewares.ts`, casos M1–M18:
+contador del carrito, cookies de sesión, 404, validación de ids, estáticos,
+Swagger, body parsers y el error handler). Requiere `npm run build` previo.
+
+Ambos usan una **DB temporal** — nunca tocan `dev.db` — y su exit code es ≠ 0
+si algo falla.
 
 ## Documentación
 
