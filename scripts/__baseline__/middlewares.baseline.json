@@ -1,0 +1,152 @@
+{
+  "generatedBy": "scripts/test-middlewares.ts",
+  "observations": {
+    "m15a": {
+      "status": [
+        500,
+        500
+      ],
+      "renders": [
+        {
+          "view": "templates/pages/500",
+          "options": {
+            "title": "Error interno"
+          }
+        }
+      ],
+      "sent": [
+        "<html>500</html>"
+      ]
+    },
+    "m15b": {
+      "status": [
+        500,
+        500
+      ],
+      "sent": [
+        "Internal server error"
+      ]
+    },
+    "m15c": {
+      "status": [
+        400
+      ],
+      "json": [
+        {
+          "error": "Invalid id"
+        }
+      ]
+    },
+    "m16": {
+      "arity": 4
+    },
+    "m1": {
+      "status": 200,
+      "hasZeroCounter": true
+    },
+    "m2": {
+      "addStatus": 200,
+      "homeStatus": 200,
+      "hasOneCounter": true
+    },
+    "m3": {
+      "status": 200,
+      "setCookies": []
+    },
+    "m4": {
+      "setCookies": [
+        "connect.sid=s%3AdGfbiyUvdtzOQetsb1VQR9j7fuaxjhcJ.m7KY8bsKfeWu%2BlWqwsgoLsaKNxcTbfkxfHq7957avLw; Path=/; HttpOnly; SameSite=Lax"
+      ]
+    },
+    "m5": {
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "has404": true
+    },
+    "m6": {
+      "status": 404,
+      "body": "{\"error\":\"Not found\"}"
+    },
+    "m7": {
+      "status": 400,
+      "body": "{\"error\":\"Invalid id\"}"
+    },
+    "m8": {
+      "0": {
+        "status": 400,
+        "body": "{\"error\":\"Invalid id\"}"
+      },
+      "5": {
+        "status": 400,
+        "body": "{\"error\":\"Invalid id\"}"
+      },
+      "999999": {
+        "status": 400,
+        "body": "{\"error\":\"Invalid id\"}"
+      },
+      "-1": {
+        "status": 400,
+        "body": "{\"error\":\"Invalid id\"}"
+      },
+      "1.5": {
+        "status": 400,
+        "body": "{\"error\":\"Invalid id\"}"
+      }
+    },
+    "m8b": {
+      "categories": 400,
+      "orders": 400
+    },
+    "m8c": {
+      "extra": 404,
+      "bare": 404
+    },
+    "m9": {
+      "status": 400,
+      "body": "{\"error\":\"Invalid id\"}"
+    },
+    "m10": {
+      "invalid": {
+        "status": 400,
+        "body": "ID inválido"
+      },
+      "missing": {
+        "status": 404,
+        "has404": true
+      },
+      "valid": 200
+    },
+    "m11": {
+      "add": 400,
+      "inc": 400,
+      "rem": 400,
+      "addBody": "{\"error\":\"Invalid id\"}"
+    },
+    "m11b": {
+      "plus": 200,
+      "encoded": 200
+    },
+    "m12": {
+      "status": 200,
+      "body": "{\"items\":[],\"total\":0,\"count\":0}"
+    },
+    "m13": {
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    "m14": {
+      "favicon": 200,
+      "js": 200,
+      "jsSetCookie": []
+    },
+    "m18a": {
+      "status": 400,
+      "hasValue": true,
+      "hasError": true
+    },
+    "m18b": {
+      "status": 400,
+      "hasValue": true
+    }
+  }
+}
