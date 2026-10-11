@@ -95,7 +95,7 @@ Este comando instala las dependencias, crea el archivo `.env` desde `.env.exampl
 
 `npm run init` te deja el archivo `.env` creado en la raíz, listo para editar.
 
-> Variables principales: `JWT_SECRET` generala con un valor aleatorio largo (por ejemplo, la salida de `openssl rand -hex 48`) y no la compartas públicamente; `REDIS_URL` apunta a tu Redis local; `FALLBACK_IMAGE_URL` puede dejarse con el valor por defecto. No hay cookies de sesión: la autenticación es JWT.
+> Variables principales: `JWT_SECRET` generala con un valor aleatorio largo (por ejemplo, la salida de `openssl rand -hex 48`) y no la compartas públicamente; `REDIS_URL` apunta a tu Redis local; `CSP_UPGRADE_INSECURE` queda en `false` por defecto (ponelo en `true` **solo** detrás de HTTPS, porque si accedés por `http://IP:PUERTO` el navegador subiría `/css` y `/js` a `https` y la página saldría sin estilos); `FALLBACK_IMAGE_URL` puede dejarse con el valor por defecto. No hay cookies de sesión: la autenticación es JWT.
 
 5. Inicia el servidor de desarrollo
 
@@ -194,5 +194,5 @@ docker compose pull && docker compose up -d
 
 > **Nota:** el servidor está detrás de un Cloudflare Tunnel; no expone puertos.
 > La base de datos SQLite persiste en un volumen Docker nombrado (`tienda-data`).
-> Las variables de entorno (`JWT_SECRET`, `JWT_EXPIRES_IN`, `REDIS_PASSWORD`, `PORT`, `DB_PATH`, `FALLBACK_IMAGE_URL`)
+> Las variables de entorno (`JWT_SECRET`, `JWT_EXPIRES_IN`, `REDIS_PASSWORD`, `CSP_UPGRADE_INSECURE`, `PORT`, `DB_PATH`, `FALLBACK_IMAGE_URL`)
 > se configuran en `.env`, nunca en la imagen.
