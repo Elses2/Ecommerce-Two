@@ -4,6 +4,7 @@ import expressLayouts from "express-ejs-layouts";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import path from "path";
+import { env } from "../../config/env.js";
 
 /**
  * @fileoverview Middlewares de librería de configuración simple, agrupados en
@@ -17,20 +18,27 @@ import path from "path";
  * envuelve `res.render` antes de los routers.
  */
 
-// En desarrollo `upgrade-insecure-requests` rompe http://localhost; en
-// producción (HTTPS) se deja el default de helmet.
-const isProduction = process.env.NODE_ENV === "production";
-
 /**
- * CSP (spec §23.5/§24): `img-src` permite `data:` y `https:` porque el fallback
- * de imágenes (§2) y las `image_url` remotas viven fuera del origen. Swagger UI
- * relaja su propio CSP solo en `/api-docs` (usa scripts/estilos inline).
+ * CSP (spec §22.2/§23.5/§24). Orígenes reales del layout:
+ * - `'self'`: `/css/styles.css`, `/js/*.js`, favicons y los `fetch` a `/api/*`.
+ * - `https:` + `data:` en `img-src`: `image_url` de productos/banners y el
+ *   fallback por defecto (`placehold.co`, §2.3).
+ * - `script-src-attr 'unsafe-inline'`: las imágenes usan `onerror="..."` inline
+ *   para caer al fallback; sin esto el CSP los bloquea. El `script-src`
+ *   principal se mantiene en `'self'` (no hay scripts inline en el HTML).
+ * - `style-src` conserva el default de helmet (`'self' https: 'unsafe-inline'`;
+ *   Tailwind vive en un CSS externo).
+ * - `upgrade-insecure-requests` se controla con `CSP_UPGRADE_INSECURE`
+ *   (default `false`): un deploy por `http://IP:PUERTO` lo necesita desactivado
+ *   o el navegador sube los assets a `https` y la página queda sin estilos.
+ * Swagger UI relaja su propio CSP solo en `/api-docs` (usa scripts/estilos inline).
  */
 const securityMiddleware = helmet({
   contentSecurityPolicy: {
     directives: {
       "img-src": ["'self'", "data:", "https:"],
-      ...(isProduction ? {} : { "upgrade-insecure-requests": null }),
+      "script-src-attr": ["'unsafe-inline'"],
+      "upgrade-insecure-requests": env.cspUpgradeInsecure ? [] : null,
     },
   },
 });

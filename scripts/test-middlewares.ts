@@ -2,7 +2,7 @@
 // middlewares, enmienda cookie httpOnly). Captura el comportamiento REAL de
 // la app antes y después del refactor `global/route/error` para demostrar que
 // es idéntico (refactor puro), y caracteriza los middlewares nuevos
-// (attachUser M23, requirePageAuth M24, csrfOrigin M25) y el logout (M26).
+// (attachUser M24, requirePageAuth M25, csrfOrigin M26) y el logout (M27).
 //
 // Estrategia:
 // - `src/app.ts` hace `listen` al importarse, así que NO se importa: se
@@ -364,22 +364,32 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
     equal(res.setCookies.length, 0, "sin Set-Cookie");
   });
 
-  // M4: helmet agrega cabeceras de seguridad (spec §24).
-  await check("M4: helmet agrega CSP y nosniff", async () => {
-    const res = await request("GET", `${baseUrl}/`);
-    const csp = res.headers.get("content-security-policy") ?? "";
-    observations.m4 = {
-      xContentTypeOptions: res.headers.get("x-content-type-options"),
-      hasCsp: csp.length > 0,
-      cspHasUpgrade: /upgrade-insecure-requests/i.test(csp),
-    };
-    equal(res.headers.get("x-content-type-options"), "nosniff", "nosniff");
-    assert(csp.includes("default-src 'self'"), "CSP con default-src 'self'");
-    assert(
-      !/upgrade-insecure-requests/i.test(csp),
-      "sin upgrade-insecure-requests fuera de prod",
-    );
-  });
+  // M4: helmet agrega cabeceras de seguridad (spec §22.2/§24). Con
+  // CSP_UPGRADE_INSECURE=false (default) NO debe forzar HTTPS en subrecursos.
+  await check(
+    "M4: helmet agrega CSP y nosniff sin upgrade-insecure-requests",
+    async () => {
+      const res = await request("GET", `${baseUrl}/`);
+      const csp = res.headers.get("content-security-policy") ?? "";
+      observations.m4 = {
+        xContentTypeOptions: res.headers.get("x-content-type-options"),
+        hasCsp: csp.length > 0,
+        cspHasUpgrade: /upgrade-insecure-requests/i.test(csp),
+        cspAllowsInlineAttr: /script-src-attr 'unsafe-inline'/.test(csp),
+      };
+      equal(res.headers.get("x-content-type-options"), "nosniff", "nosniff");
+      assert(csp.includes("default-src 'self'"), "CSP con default-src 'self'");
+      assert(
+        !/upgrade-insecure-requests/i.test(csp),
+        "CSP_UPGRADE_INSECURE=false omite upgrade-insecure-requests",
+      );
+      // Los <img> usan `onerror` inline: el CSP debe permitirlo (script-src-attr).
+      assert(
+        /script-src-attr 'unsafe-inline'/.test(csp),
+        "permite onerror inline",
+      );
+    },
+  );
 
   // M5: 404 HTML de páginas para rutas inexistentes.
   await check(
@@ -649,9 +659,9 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
     },
   );
 
-  // M23: attachUser (global, blando) — nunca falla y deja res.locals.user.
+  // M24: attachUser (global, blando) — nunca falla y deja res.locals.user.
   await check(
-    "M23: attachUser — data-logged-in y nombre según cookie; inválida no 500",
+    "M24: attachUser — data-logged-in y nombre según cookie; inválida no 500",
     async () => {
       const anon = await request("GET", `${baseUrl}/`);
       observations.m23Anon = {
@@ -684,9 +694,9 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
     },
   );
 
-  // M24: requirePageAuth — 302 del servidor para /cart y /checkout.
+  // M25: requirePageAuth — 302 del servidor para /cart y /checkout.
   await check(
-    "M24: /cart y /checkout sin cookie → 302 a /login?next=…; con cookie → 200",
+    "M25: /cart y /checkout sin cookie → 302 a /login?next=…; con cookie → 200",
     async () => {
       const cartAnon = await request("GET", `${baseUrl}/cart`);
       observations.m24CartAnon = {
@@ -728,9 +738,9 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
     },
   );
 
-  // M25: csrfOrigin — mutaciones con origen ajeno → 403; GET nunca se bloquea.
+  // M26: csrfOrigin — mutaciones con origen ajeno → 403; GET nunca se bloquea.
   await check(
-    "M25: csrfOrigin — Origin ajeno 403, cross-site 403, sin Origin pasa, GET 200",
+    "M26: csrfOrigin — Origin ajeno 403, cross-site 403, sin Origin pasa, GET 200",
     async () => {
       const evil = await request("DELETE", `${baseUrl}/api/cart/clear`, {
         headers: { ...authCookieHeaders, Origin: "https://evil.example" },
@@ -765,10 +775,10 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
   );
 
   // M26: contrato de montaje §22.4 — cookieParser corre antes de json y
-  // attachUser antes de las rutas (verificado por M23); /api-docs antes del
+  // attachUser antes de las rutas (verificado por M24); /api-docs antes del
   // 404 (M13); logout responde 204 y borra la cookie (C9).
   await check(
-    "M26: logout → 204 y Set-Cookie borra auth_token (C9)",
+    "M27: logout → 204 y Set-Cookie borra auth_token (C9)",
     async () => {
       const out = await request("POST", `${baseUrl}/api/auth/logout`, {
         headers: authCookieHeaders,
@@ -786,6 +796,50 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
       );
     },
   );
+}
+
+// Levanta una SEGUNDA instancia con CSP_UPGRADE_INSECURE=true y verifica que el
+// CSP sí incluya upgrade-insecure-requests (spec §22.2).
+async function runCspUpgradeCheck(): Promise<void> {
+  const port = await getFreePort();
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const child = spawn(
+    process.execPath,
+    ["--import", "tsx", path.join(ROOT, "src", "app.ts")],
+    {
+      cwd: ROOT,
+      env: {
+        ...process.env,
+        DB_PATH: TEST_DB_PATH,
+        PORT: String(port),
+        JWT_SECRET,
+        CSP_UPGRADE_INSECURE: "true",
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+  child.stdout.on("data", () => {});
+  child.stderr.on("data", () => {});
+  try {
+    await waitForServer(baseUrl);
+    await check(
+      "M23: CSP_UPGRADE_INSECURE=true agrega upgrade-insecure-requests",
+      async () => {
+        const res = await request("GET", `${baseUrl}/`);
+        const csp = res.headers.get("content-security-policy") ?? "";
+        observations.m23 = {
+          cspHasUpgrade: /upgrade-insecure-requests/i.test(csp),
+        };
+        assert(
+          /upgrade-insecure-requests/i.test(csp),
+          "upgrade-insecure-requests presente",
+        );
+      },
+    );
+  } finally {
+    child.kill("SIGKILL");
+    await new Promise((r) => setTimeout(r, 300));
+  }
 }
 
 // ── Runner ──────────────────────────────────────────────────────────────────
@@ -818,6 +872,7 @@ async function main(): Promise<void> {
         DB_PATH: TEST_DB_PATH,
         PORT: String(port),
         JWT_SECRET,
+        CSP_UPGRADE_INSECURE: "false",
       },
       stdio: ["ignore", "pipe", "pipe"],
     },
@@ -832,8 +887,11 @@ async function main(): Promise<void> {
     console.log("\nM15/M16 — errorHandler como unidad:");
     await runErrorHandlerUnit();
 
-    console.log("\nM1–M26 — comportamiento HTTP real:");
+    console.log("\nM1–M23 (dev) + M24–M27 (cookie httpOnly) — comportamiento HTTP real:");
     await runHttpSuite(baseUrl);
+
+    console.log("\nM23 — CSP con CSP_UPGRADE_INSECURE=true:");
+    await runCspUpgradeCheck();
   } finally {
     server.kill("SIGKILL");
     await new Promise((r) => setTimeout(r, 300));

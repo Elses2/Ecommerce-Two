@@ -43,7 +43,8 @@
     "m4": {
       "xContentTypeOptions": "nosniff",
       "hasCsp": true,
-      "cspHasUpgrade": false
+      "cspHasUpgrade": false,
+      "cspAllowsInlineAttr": true
     },
     "m5": {
       "status": 404,
@@ -142,6 +143,9 @@
     "m22": {
       "status": 200,
       "nosniff": "nosniff"
+    },
+    "m23": {
+      "cspHasUpgrade": true
     }
   }
 }

@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-11** (cookie httpOnly para el JWT, §23/§24)
+> - Última actualización: **2026-10-11** (cookie httpOnly para el JWT §23/§24; CSP configurable §16/§22.2)
 > - Rama base de referencia: `dev`
 
 ---
@@ -1021,6 +1021,7 @@ fueron eliminadas en el PR #51.
 | `REDIS_URL` | URL de conexión del carrito (§24) | `redis://localhost:6379` (dev) | en producción es obligatoria (falla al arrancar) |
 | `JWT_SECRET` | Secreto de firma de los JWT (`§23.1`) | `""` | texto; **en producción** falta o <32 chars → falla al arrancar |
 | `JWT_EXPIRES_IN` | Vida del access token JWT | `"2h"` | formato de `jsonwebtoken` (`2h`, `30m`, `7d`) |
+| `CSP_UPGRADE_INSECURE` | Fuerza HTTPS en subrecursos (`upgrade-insecure-requests`) | `false` | booleano (`true/1/yes/on`, `false/0/no/off`); inválido → warning + `false` |
 | `FALLBACK_IMAGE_URL` | Imagen fallback de productos | `https://placehold.co/600x600?text=Sin+imagen` | URL `http(s)://...` o ruta que empiece con `/`; si falta/inválida → warning + default |
 | `COOKIE_SECURE` | Cookie httpOnly con `Secure` (§23.1/C5, enmienda) | `false` | booleano (`true/1/yes/on`, `false/0/no/off`); si falta o es inválido → warning + `false`. Se activa **solo detrás de HTTPS** |
 | `DB_PATH` | Ruta del archivo SQLite | `dev.db` en la raíz del proyecto | si falta o está vacía → default; los tests de checkout usan una DB temporal (§19.6) |
@@ -1040,6 +1041,10 @@ JWT_EXPIRES_IN=2h
 # pone true y se entra por http://IP:PUERTO, el navegador descarta la cookie y
 # el login parece funcionar pero la sesión no se mantiene.
 COOKIE_SECURE=false
+# CSP (spec §22.2): forzar HTTPS en subrecursos (upgrade-insecure-requests).
+# Default false. Ponelo en true SOLO detrás de HTTPS; con acceso por http://IP:PUERTO
+# debe quedar false, o el navegador pide /css y /js por https y la página sale sin estilos.
+CSP_UPGRADE_INSECURE=false
 # URL de la imagen que se muestra cuando un producto no tiene image_url.
 # Acepta http(s)://... o una ruta que empiece con "/". Si falta o es inválida, se usa el default.
 FALLBACK_IMAGE_URL=https://placehold.co/600x600?text=Sin+imagen
@@ -1053,9 +1058,11 @@ FALLBACK_IMAGE_URL=https://placehold.co/600x600?text=Sin+imagen
 `.gitignore`.)
 
 **Producción (§21.6):** además de `JWT_SECRET` y `JWT_EXPIRES_IN`, se define
-`REDIS_PASSWORD` en `.env`; `docker-compose.prod.yml` arma `REDIS_URL`
-(`redis://:<password>@redis:6379`) y no expone Redis al host. Detrás de HTTPS
-se activa `COOKIE_SECURE=true` (junto a `CSP_UPGRADE_INSECURE=true`).
+`REDIS_PASSWORD` y (si el sitio va por **HTTP**, p. ej. `http://IP:PUERTO`)
+`CSP_UPGRADE_INSECURE=false` (default) en `.env`; `docker-compose.prod.yml` arma
+`REDIS_URL` (`redis://:<password>@redis:6379`) y no expone Redis al host.
+Detrás de HTTPS se activa `COOKIE_SECURE=true` (junto a
+`CSP_UPGRADE_INSECURE=true`, spec §23.1/C5 y §22.2).
 
 ---
 
@@ -1386,8 +1393,9 @@ Archivo: `.github/workflows/ci-cd.yml`.
 - Servicio `tienda`: imagen `ghcr.io/<usuario>/<repo>:latest`, `restart: unless-stopped`,
   variables desde `.env`, volumen nombrado `tienda-data:/data`, **sin `ports`**
   (detrás de Cloudflare Tunnel) y `depends_on: redis` (healthy). Recibe
-  `REDIS_URL=redis://:<REDIS_PASSWORD>@redis:6379` y `COOKIE_SECURE`
-  (`${COOKIE_SECURE:-false}`, enmienda cookie httpOnly §23.1/C5).
+  `REDIS_URL=redis://:<REDIS_PASSWORD>@redis:6379`, `COOKIE_SECURE`
+  (`${COOKIE_SECURE:-false}`, enmienda cookie httpOnly §23.1/C5) y
+  `CSP_UPGRADE_INSECURE` (default `false`).
 - Servicio `redis` (spec §24): `redis:7-alpine`, `--appendonly yes` + volumen
   `redis-data` (persistencia del carrito), `--maxmemory 128mb` +
   `--maxmemory-policy noeviction` (no descartar carritos), `--requirepass` y
@@ -1403,6 +1411,7 @@ Archivo: `.github/workflows/ci-cd.yml`.
 | `JWT_SECRET` | Secreto de firma de JWT (≥ 32 chars) | `.env` en el servidor (ver `.env.prod.example`) |
 | `JWT_EXPIRES_IN` | Vida del access token (default `2h`) | `.env` o default |
 | `REDIS_PASSWORD` | Contraseña de Redis; compose arma `REDIS_URL` | `.env` en el servidor |
+| `CSP_UPGRADE_INSECURE` | `true` solo detrás de HTTPS; `false` para `http://IP:PUERTO` (default `false`) | `.env` o default |
 | `TUNNEL_TOKEN` | Token de Cloudflare Tunnel | `.env` en el servidor (ver `.env.prod.example`) |
 | `COOKIE_SECURE` | Cookie httpOnly con `Secure` (§23.1/C5); `true` solo detrás de HTTPS | `.env` o default `false` (ver `.env.prod.example`) |
 | `PORT` | Puerto (default 3000, heredado de §16) | `.env` o default |
@@ -1473,6 +1482,12 @@ src/middlewares/
 - El helper puro `src/utils/normalizeId.ts` se queda en `utils/` (lo usan los
   controllers de páginas y la factory `validateId`).
 - **Sin barrel files** (`index.ts`): cada consumidor importa el archivo directo.
+- El CSP de `helmet` (en `base.middleware.ts`) declara los orígenes reales del
+  layout: `'self'` para `/css`, `/js`, favicons y `fetch` a `/api/*`; `img-src
+  'self' data: https:` para las imágenes de productos/banners y el fallback de
+  `placehold.co`; `script-src-attr 'unsafe-inline'` porque las imágenes usan
+  `onerror` inline; y `upgrade-insecure-requests` controlado por
+  `CSP_UPGRADE_INSECURE` (default `false`, spec §16).
 
 ### §22.3 Regla de clasificación
 
@@ -1833,7 +1848,8 @@ crea con rol `admin` e `INSERT OR IGNORE` (idempotente).
 | 2026-10-11 | Este PR / issue #93 | Autenticación JWT stateless (§23, parte 1/3): `authService` (register/login/me), middleware `authenticate`, API `/api/auth/*`, `role` en `users`, frontend de login/registro con token y tests A1–A6 en CI | — |
 | 2026-10-11 | Este PR / issue #95 | Autorización (§23.6, parte 2/3): middleware `authorize` por rol, ownership de órdenes (`GET /api/orders` y `/:id`), `orderService`, seed de admin por env y tests A7–A8 | — |
 | 2026-10-11 | Este PR / issue #97 | Carrito en Redis y stateless (§24, parte 3/3): `cart.repository` (Hash + TTL), carrito/checkout autenticados por API JSON, `helmet`, eliminación de `express-session` y de `injectCartCount`, compose con Redis, tests C1–C6 y M1–M22 actualizados | — |
-| 2026-10-11 | Este PR / issue #105 | Cookie httpOnly para el JWT (enmienda §23/§24): `auth_token` (`httpOnly`, `SameSite=Lax`, `Secure` según `COOKIE_SECURE`), sin token en el body (C2), `attachUser`/`csrfOrigin`/`requirePageAuth`, header SSR sin hidratación, `auth.js` mínimo con limpieza del token legacy, tests A1–A11 y M1–M26 | `decision-auth-cookie-httponly.md` |
+| 2026-10-11 | Este PR / issue #102 | CSP `upgrade-insecure-requests` configurable por `CSP_UPGRADE_INSECURE` (default `false`); `script-src-attr` para los `onerror` inline; docs en §16/§21.5/§21.6/§22.2 y compose; test M23 | — |
+| 2026-10-11 | Este PR / issue #105 | Cookie httpOnly para el JWT (enmienda §23/§24): `auth_token` (`httpOnly`, `SameSite=Lax`, `Secure` según `COOKIE_SECURE`), sin token en el body (C2), `attachUser`/`csrfOrigin`/`requirePageAuth`, header SSR sin hidratación, `auth.js` mínimo con limpieza del token legacy, tests A1–A11 y M1–M23+M24–M27 | `decision-auth-cookie-httponly.md` |
 
 ---
 

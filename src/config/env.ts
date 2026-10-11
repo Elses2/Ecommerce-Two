@@ -83,12 +83,33 @@ function parseRedisUrl(
 }
 
 /**
+ * Parsea un booleano de entorno (spec §22.2).
+ *
+ * Acepta `true/1/yes/on` y `false/0/no/off` (case-insensitive). Un valor
+ * ausente o vacío usa el fallback; un valor inválido avisa y usa el fallback.
+ *
+ * @param {string | undefined} rawValue - Valor crudo de la variable.
+ * @param {boolean} [fallback=false] - Valor por defecto.
+ * @returns {boolean} Booleano resuelto.
+ */
+function parseBoolean(rawValue: string | undefined, fallback = false): boolean {
+  const value = rawValue?.trim().toLowerCase();
+  if (value === undefined || value === "") return fallback;
+  if (["true", "1", "yes", "on"].includes(value)) return true;
+  if (["false", "0", "no", "off"].includes(value)) return false;
+  console.warn(
+    `[env] valor booleano inválido "${rawValue}", usando ${fallback}`,
+  );
+  return fallback;
+}
+
+/**
  * Parsea el flag booleano `COOKIE_SECURE` (spec §16, enmienda §21.5/§21.6).
  *
- * El mismo criterio que `CSP_UPGRADE_INSECURE`: NO depende de `NODE_ENV`;
- * se pone en `true` solo detrás de HTTPS. Acepta `true/1/yes/on` y
- * `false/0/no/off`; un valor inválido emite un warning y cae a `false` para
- * no romper el arranque en HTTP.
+ * NO depende de `NODE_ENV`: se pone en `true` solo detrás de HTTPS, igual
+ * que `CSP_UPGRADE_INSECURE` (§22.2). Un valor inválido o ausente cae a
+ * `false` y, en producción, se avisa por consola (los despliegues por HTTP
+ * son válidos).
  *
  * @param {string | undefined} rawValue - Valor de `COOKIE_SECURE`.
  * @param {boolean} isProduction - `true` si `NODE_ENV === "production"`.
@@ -98,17 +119,14 @@ function parseCookieSecure(
   rawValue: string | undefined,
   isProduction: boolean,
 ): boolean {
-  const value = rawValue?.trim().toLowerCase() ?? "";
-  if (value === "" ) return false;
-  if (["true", "1", "yes", "on"].includes(value)) return true;
-  if (["false", "0", "no", "off"].includes(value)) return false;
-  console.warn(
-    "[env] COOKIE_SECURE inválida, usando false. " +
-      (isProduction
-        ? "Recordá: detrás de HTTPS activá COOKIE_SECURE=true junto a CSP_UPGRADE_INSECURE=true."
-        : "COOKIE_SECURE=true solo detrás de HTTPS."),
-  );
-  return false;
+  const secure = parseBoolean(rawValue, false);
+  if (isProduction && !secure) {
+    console.warn(
+      "[env] COOKIE_SECURE=false en producción. Activá COOKIE_SECURE=true detrás de HTTPS " +
+        "(junto a CSP_UPGRADE_INSECURE=true); por http:// el navegador descarta la cookie.",
+    );
+  }
+  return secure;
 }
 
 /**
@@ -124,6 +142,11 @@ function createEnvConfig(envVars: NodeJS.ProcessEnv) {
     jwtSecret: parseJwtSecret(envVars.JWT_SECRET, isProduction),
     jwtExpiresIn: envVars.JWT_EXPIRES_IN?.trim() || "2h",
     redisUrl: parseRedisUrl(envVars.REDIS_URL, isProduction),
+    // CSP (spec §22.2): por defecto NO forzar HTTPS en subrecursos. Un deploy
+    // por http://IP:PUERTO necesita false, o el navegador sube los assets a
+    // https y la página queda sin estilos.
+    cspUpgradeInsecure: parseBoolean(envVars.CSP_UPGRADE_INSECURE, false),
+    // Cookie de sesión (spec §16, enmienda §23.1/C5): true solo detrás de HTTPS.
     cookieSecure: parseCookieSecure(envVars.COOKIE_SECURE, isProduction),
     images: {
       fallbackUrl: parseImageUrl(envVars.FALLBACK_IMAGE_URL),
