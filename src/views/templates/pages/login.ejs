@@ -12,12 +12,9 @@
   //   graphite — spec §4.4 calls it "botón primario" and the user-approved
   //   Paso 6 precedent (cart "Ir a Pagar") normalizes mockup graphite
   //   primaries to the .btn-primary class.
-  // - No client validation on login at this paso (spec §6.3 only covers the
-  //   register form).
-  // - Auth backend does NOT exist yet (checklist line 136: "no hay que
-  //   construir auth en este alcance"). The form keeps a placeholder
-  //   action="/login" POST per §6.3 ("un POST normal con redirect") — wiring
-  //   a real endpoint is a later paso.
+  // - No client validation on login (spec §6.3 only covers the register form).
+  // - Auth real (spec §23): el form se envía por fetch JSON a
+  //   POST /api/auth/login (auth.js); el action/method queda como fallback sin JS.
 %>
 <section class="relative">
   <div class="absolute inset-x-0 top-0 h-64 bg-brand md:h-72" aria-hidden="true"></div>
@@ -26,7 +23,18 @@
     <div class="rounded-2xl bg-white p-6 shadow-md md:p-8">
       <h1 class="text-h3 text-ink">¡Hola!</h1>
 
-      <form action="/login" method="POST" class="mt-6 flex flex-col gap-4">
+      <form
+        action="/login"
+        method="POST"
+        data-auth-form
+        data-auth-endpoint="/api/auth/login"
+        class="mt-6 flex flex-col gap-4"
+      >
+        <div
+          data-auth-error
+          class="hidden rounded-lg bg-alert/10 px-3 py-2 text-sm text-alert"
+          role="alert"
+          ></div>
         <%- include("../atoms/input", {
           name: "email",
           type: "email",

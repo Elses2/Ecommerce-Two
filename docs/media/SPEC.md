@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-07** (checkout real §19; card de producto enlazada al detalle)
+> - Última actualización: **2026-10-11** (autenticación JWT §23)
 > - Rama base de referencia: `dev`
 
 ---
@@ -65,6 +65,10 @@
 | [§17](#17-documentación-generada-docs) | Documentación generada (`docs/`) | Nuevo |
 | [§18](#18-convención-de-comentarios-jsdoc) | Convención de comentarios JSDoc | Nuevo |
 | [§19](#19-checkout) | Checkout | Nuevo |
+| [§20](#20-favicon--logo-de-la-pestaña) | Favicon / logo de la pestaña | Nuevo |
+| [§21](#21-cicd-y-despliegue) | CI/CD y despliegue | Nuevo |
+| [§22](#22-arquitectura-de-middlewares) | Arquitectura de middlewares | Nuevo |
+| [§23](#23-autenticación-y-autorización-jwt) | Autenticación y autorización (JWT) | Nuevo |
 
 ---
 
@@ -89,6 +93,9 @@ src/
 ├── models/
 ├── dtos/
 ├── middlewares/
+│   ├── global/                  ← base, sesión y cross-cutting (§22)
+│   ├── route/                   ← validación de ids encadenada
+│   └── error/                   ← notFound + errorHandler (terminales)
 ├── routes/
 │   ├── pages.routes.ts
 │   ├── docs.routes.ts
@@ -118,9 +125,12 @@ Reglas ya acordadas que **deben respetarse** en todo lo que sigue:
 - **DTO** → forma de los datos que entra/sale por un endpoint específico.
 - **Atom/Molecule** → sin datos reales, reciben todo por props/variables EJS.
 - **Organism** → puede tener datos reales inyectados por el controller.
-- `routes/api/*` **solo** existe para funcionalidades que necesitan
-  actualizar la pantalla sin recargar (AJAX real: carrito). Todo lo demás
-  usa `res.render` / `res.redirect` desde `controllers/pages`.
+- `routes/api/*` existe para toda funcionalidad que el cliente consume con
+  `fetch` + token (hoy: auth, §23; el carrito y el checkout se suman en las
+  siguientes partes). Sin cookies, el servidor no conoce al usuario en una
+  navegación normal, así que no puede renderizar páginas por usuario; las
+  páginas protegidas serán cascarones y su JS pedirá los datos por `fetch`.
+  Todo lo demás usa `res.render` / `res.redirect` desde `controllers/pages`.
 - La API se documenta con Swagger en `/api-docs` (ver §10).
 
 ---
@@ -401,12 +411,21 @@ El input de usuario es `type="email" name="email"` por dentro (la tabla
 `users` solo tiene `email`, no `username`); el texto visible puede decir
 "usuario", es cosmético.
 
+**Envío (spec §23.4):** `data-auth-form` + `data-auth-endpoint="/api/auth/login"`;
+`public/js/auth.js` intercepta el submit, envía JSON por `fetch`, guarda el
+token en `localStorage` y redirige a `?next` (validado). El `action`/`method`
+quedan como fallback sin JS.
+
 ### §4.5 Register
 
 Mismo lenguaje visual que Login (banda teal + tarjeta centrada). Los
 `name`/`id` de los inputs son exactamente `name`, `lastname`, `email`,
 `password` (sin confirmación) porque `register-validation.js` (§6.3) los
 referencia por esos nombres.
+
+**Envío (spec §23.4):** `data-auth-form` + `data-auth-endpoint="/api/auth/register"`.
+La validación cliente de §6.3 corre primero (marca `defaultPrevented`); si pasa,
+`auth.js` manda JSON a la API. El server sigue siendo la autoridad.
 
 ### §4.6 Páginas sin mockup todavía
 
@@ -444,6 +463,10 @@ generan **junto con** el HTML del componente:
 | Mensaje de carrito vacío | `data-cart-empty` (con clase `hidden` por defecto) | `pages/cart.ejs` | `cart.js` |
 | Formulario de checkout | `data-checkout-form` | `<form>` en `pages/checkout.ejs` | `checkout-validation.js` (§19) |
 | Botón de confirmar compra | `data-checkout-submit` | `<button type="submit">` en `pages/checkout.ejs` | `checkout-validation.js` (§19) |
+| Formulario de login/registro | `data-auth-form` `data-auth-endpoint` | `<form>` en `pages/login.ejs` / `pages/register.ejs` | `auth.js` (§23.4) |
+| Caja de errores de auth | `data-auth-error` | `<div role="alert">` en los forms de auth | `auth.js` (400/409/401 del server) |
+| Botón de logout | `data-auth-logout` | `<button>` (header, oculto por defecto) | `auth.js` |
+| Botón de perfil | `data-auth-profile` `data-auth-name` | `molecules/profile-btn.ejs` (span del nombre) | `auth.js` (hidrata invitado/usuario) |
 
 > **Nota — link extendido (2026-10-07):** la card de producto
 > (`molecules/product.ejs`) contiene un `<a href="/products/<id>">` en el
@@ -461,15 +484,16 @@ aditivos.
 
 ### §6.1 Página 404
 
-**No es AJAX.** Middleware catch-all en `app.ts` (`handleNotFound`),
-después de montar todas las rutas. Para `/api/*` responde JSON
+**No es AJAX.** Middleware terminal `notFound` en
+`src/middlewares/error/not-found.middleware.ts`, montado con `app.use(notFound)`
+después de TODAS las rutas (spec §22). Para `/api/*` responde JSON
 `{ error: "Not found" }`; para el resto, renderiza
 `templates/pages/404` con status 404.
 
 ### §6.2 Página 500
 
-**No es AJAX.** `middlewares/error-handler.middleware.ts`, montado al final
-de `app.ts` después del 404. Loguea server-side con prefijo; el template
+**No es AJAX.** `middlewares/error/error-handler.middleware.ts`, montado al
+final de `app.ts` después de `notFound` (ver §22). Loguea server-side con prefijo; el template
 jamás recibe `err.message`/stack. Si el propio render del 500 falla, hay
 fallback en texto plano (anti-bucle). Trade-off documentado: los errores
 JSON de `/api/*` mantienen `err.message` (contrato preexistente).
@@ -573,8 +597,8 @@ renderiza `pages/product-detail` con `product` y `related`.
 
 ### §6.9 Normalización de IDs
 
-**No es AJAX**, helper puro `src/utils/normalizeId.ts` y middleware
-`src/middlewares/normalizeId.middleware.ts`:
+**No es AJAX.** Helper puro `src/utils/normalizeId.ts` + middlewares de ruta
+en `src/middlewares/route/validate-id.middleware.ts` (spec §22):
 
 ```typescript
 export function normalizeId(raw: string): number | null {
@@ -584,13 +608,22 @@ export function normalizeId(raw: string): number | null {
 }
 ```
 
-- ID no numérico → 400 (middleware para `/api/*` con regex; helper para
-  controllers de páginas).
+- ID no numérico → 400. En las rutas del carrito
+  (`/api/cart/{add,increase,decrease,remove}/:productId`) lo hace la factory
+  `validateId("productId")` encadenada antes del controller (mismo predicado y
+  mismo cuerpo que la validación previa del controller, que se conserva como
+  defensa en profundidad). En las páginas lo aplica el controller con el helper
+  (`getProductDetail`, `getCategory`).
 - ID numérico pero inexistente en DB → 404 (resuelto en el controller,
   nunca en el validador).
-- El fallback del middleware se limita a colecciones con id
-  (`products|categories|orders`) — no parsea `DELETE /api/cart/clear`
-  como `:id`.
+- Colecciones `/api/{products|categories|orders}/:segmento`: las rutas están
+  vacías (no hay controller) y el guard `validateCollectionId` preserva el
+  comportamiento heredado del antiguo middleware global. **Deuda documentada
+  (§22.5):** ese middleware tenía un bug (capturaba el grupo 1 de la regex, la
+  colección, en vez del id) y respondía 400 a *todo* id, incluidos los
+  numéricos. Este refactor conserva el 400 y no lo "arregla".
+- `DELETE /api/cart/clear` no se interpreta como `:id` (el segmento `clear` es
+  estático y no lleva `validateId`).
 
 ### §6.10 Indicador "Sin stock"
 
@@ -603,9 +636,11 @@ export function normalizeId(raw: string): number | null {
 ### §6.11 Total del carrito en el header
 
 **Mixto:** en la mayoría de las páginas el contador se recalcula
-server-side vía middleware `injectCartCount` (`res.locals.cartCount = sum(quantity)`),
-montado en `app.ts` antes de las rutas. En `/cart`, el contador se
-actualiza en el mismo `fetch` de §6.4 (el JSON incluye `count`).
+server-side vía middleware `injectCartCount`
+(`src/middlewares/global/inject-cart-count.middleware.ts`,
+`res.locals.cartCount = sum(quantity)`), montado en `app.ts` después de la
+sesión y antes de las rutas (spec §22). En `/cart`, el contador se actualiza en
+el mismo `fetch` de §6.4 (el JSON incluye `count`).
 
 ### §6.12 Ordenar productos por precio
 
@@ -627,7 +662,9 @@ amigable si no hay resultados). El form de búsqueda es `method="GET"` hacia
 por todas las páginas vía `express-ejs-layouts`
 (`app.set("layout", "templates/layout")`). Incluye `organisms/header.ejs`
 (con buscador y contador de carrito) y `organisms/footer.ejs`. El script
-`cart.js` se carga globalmente con `defer` antes de `</body>`.
+`cart.js` se carga globalmente con `defer` antes de `</body>`. El
+`<head>` declara el favicon una sola vez (§20): `favicon.ico`,
+`favicon.svg` y `apple-touch-icon.png` desde `public/`.
 
 ---
 
@@ -697,6 +734,8 @@ Requisitos de alto nivel (para cuando se aborde):
 - [ ] Todo ID recibido por URL pasa por `normalizeId` antes de llegar al
       repository.
 - [ ] `npx tsc --noEmit` pasa sin errores antes de mergear.
+- [ ] El favicon se declara **una sola vez** en el `<head>` del
+      layout, con los tres archivos en `public/` (§20).
 
 ---
 
@@ -712,7 +751,12 @@ Requisitos de alto nivel (para cuando se aborde):
   `src/controllers/pages/checkout.controller.ts`.
 - `src/routes/docs.routes.ts` — router que sirve Swagger UI en `/api-docs`.
 - `src/app.ts` monta `docsRouter` en `/api-docs` antes del catch-all 404.
+- `securitySchemes.bearerAuth` (`type: http, scheme: bearer, bearerFormat: JWT`)
+  y schemas `User`, `AuthResponse`, `RegisterRequest`, `LoginRequest` (spec §23).
+- Rutas de auth: `POST /api/auth/register`, `POST /api/auth/login`,
+  `GET /api/auth/me` (protegida con bearer).
 - Bloques `@swagger` con annotations en los handlers:
+  - `src/controllers/api/auth.controller.ts` — 3 endpoints (`register`, `login`, `me`).
   - `src/controllers/api/cart.controller.ts` — 5 endpoints (`addItem`,
     `increaseItem`, `decreaseItem`, `removeItem`, `clearCart`).
   - `src/controllers/pages/pages.controller.ts` — 6 endpoints (`getHome`,
@@ -732,7 +776,8 @@ swagger-jsdoc. No mezclar ambos en el mismo bloque.
 > **Sección nueva** (no existía en el spec original; PR #47).
 
 - Dependencia: `better-sqlite3-session-store` (`^0.1.0`).
-- En `src/app.ts` se configura `SqliteStore` con el cliente `db`:
+- En `src/middlewares/global/session.middleware.ts` (spec §22) se configura
+  `SqliteStore` con el cliente `db` y se exporta `sessionMiddleware`:
 
 ```typescript
 const SqliteStore = SqliteStoreFactory(session);
@@ -807,20 +852,29 @@ src/
 │   └── swagger.ts                  ← especificación OpenAPI (ver §10)
 ├── controllers/
 │   ├── api/
+│   │   ├── auth.controller.ts      ← register/login/me (§23)
 │   │   └── cart.controller.ts      ← endpoints AJAX del carrito
 │   └── pages/
 │       ├── checkout.controller.ts  ← checkout real: form, POST, confirmación (§19)
 │       └── pages.controller.ts     ← handlers de páginas SSR
 ├── middlewares/
-│   ├── error-handler.middleware.ts
-│   ├── injectCartCount.middleware.ts
-│   └── normalizeId.middleware.ts
+│   ├── global/
+│   │   ├── base.middleware.ts           ← static + body parsers + layouts (§22)
+│   │   ├── session.middleware.ts        ← express-session + SqliteStore
+│   │   └── inject-cart-count.middleware.ts ← res.locals.cartCount (§6.11)
+│   ├── route/
+│   │   ├── authenticate.middleware.ts   ← exige JWT, deja req.user (§23.3)
+│   │   └── validate-id.middleware.ts    ← validación de ids de la API (§6.9)
+│   └── error/
+│       ├── not-found.middleware.ts      ← 404 catch-all (§6.1)
+│       └── error-handler.middleware.ts  ← 500 / JSON de API (§6.2)
 ├── repositories/
 │   ├── product.repository.ts
 │   ├── category.repository.ts
 │   ├── order.repository.ts         ← placeOrder atómico + consultas de órdenes (§19)
 │   └── user.repository.ts          ← ensureGuestUser temporal (D5, @deprecated)
 ├── services/
+│   ├── auth.service.ts             ← register/login + firma/verificación JWT (§23.2)
 │   ├── product.service.ts
 │   ├── category.service.ts
 │   ├── cart.service.ts
@@ -831,27 +885,33 @@ src/
 │   ├── pages.routes.ts             ← router de páginas SSR
 │   ├── docs.routes.ts              ← Swagger UI (/api-docs)
 │   └── api/
-│       ├── auth.routes.ts          ← definido, sin backend real
+│       ├── auth.routes.ts          ← register/login/me (§23)
 │       ├── cart.routes.ts
 │       ├── categories.routes.ts
 │       ├── orders.routes.ts        ← definido, sin backend real
 │       └── products.routes.ts
 ├── models/                         ← interfaces de datos (user, product, category, cart, order, orderItem, productCategory)
-├── dtos/                           ← Data Transfer Objects (product.dto, cart.dto)
+├── dtos/                           ← Data Transfer Objects (product.dto, cart.dto, auth.dto, checkout.dto)
 ├── utils/
 │   ├── category-icons.ts           ← mapeo categoría → ícono Lucide
 │   ├── normalizeId.ts              ← helper puro de validación de IDs
 │   └── errors.ts                   ← OutOfStockError, ProductNotFoundError (§19)
 ├── types/
-│   └── better-sqlite3-session-store.d.ts  ← declaración de tipos
+│   ├── better-sqlite3-session-store.d.ts  ← declaración de tipos
+│   └── express.d.ts                ← aumento de `req.user` (§23.3)
 └── views/templates/                ← árbol atómico (ver §15)
 ```
 
 Notas:
-- `auth.routes.ts` y `orders.routes.ts` existen como scaffolds pero **no
-  tienen backend real** (sin login; el checkout vive en rutas de páginas, §19).
+- `orders.routes.ts` sigue como scaffold sin backend real (hasta el PR de
+  autorización, §23); `auth.routes.ts` ya tiene register/login/me (§23).
 - Services con contenido real: `cart.service.ts`, `product.service.ts`,
   `category.service.ts`, `promo.service.ts` y `checkout.service.ts`.
+- `public/` (raíz del proyecto, fuera de `src/`): estáticos del
+  cliente — `js/auth.js` (§23.4), `js/cart.js`, `js/register-validation.js` y los favicons
+  `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` (§20). El
+  build (`npm run build`) copia `public/**/*` a `dist/public`, que es
+  lo que sirve `express.static` (`src/app.ts`).
 
 ---
 
@@ -889,6 +949,19 @@ Resolución de rutas en Express:
 No existen vistas legacy en raíz (`views/`) ni en `src/views/pages/` —
 fueron eliminadas en el PR #51.
 
+**Raíz del proyecto (archivos nuevos, spec §21):**
+
+```
+├── Dockerfile                      ← multi-stage, Node 22, build + runtime separados
+├── .dockerignore                    ← excluye secretos, DBs, node_modules, etc.
+├── docker-compose.prod.yml          ← plantilla de despliegue (app + cloudflared)
+├── .env.prod.example                ← placeholders de producción
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml                ← CI/CD: build + test (push/PR), publish (solo main)
+└── AGENTS.md                        ← marco de trabajo para agentes (regla de CI)
+```
+
 ---
 
 ## §16. Variables de entorno
@@ -900,6 +973,8 @@ fueron eliminadas en el PR #51.
 |---|---|---|---|
 | `PORT` | Puerto del servidor Express | `3000` | numérico; si falta/inválido usa default |
 | `SESSION_SECRET` | Secreto de `express-session` | `""` | texto; usar un valor aleatorio largo en producción |
+| `JWT_SECRET` | Secreto de firma de los JWT (`§23.1`) | `""` | texto; **en producción** falta o <32 chars → falla al arrancar |
+| `JWT_EXPIRES_IN` | Vida del access token JWT | `"2h"` | formato de `jsonwebtoken` (`2h`, `30m`, `7d`) |
 | `FALLBACK_IMAGE_URL` | Imagen fallback de productos | `https://placehold.co/600x600?text=Sin+imagen` | URL `http(s)://...` o ruta que empiece con `/`; si falta/inválida → warning + default |
 | `DB_PATH` | Ruta del archivo SQLite | `dev.db` en la raíz del proyecto | si falta o está vacía → default; los tests de checkout usan una DB temporal (§19.6) |
 
@@ -908,6 +983,11 @@ fueron eliminadas en el PR #51.
 ```bash
 PORT=3000
 SESSION_SECRET=cambiar_por_un_secreto_largo_y_aleatorio
+# Secreto de firma de los JWT (spec §23.1). Obligatorio y >= 32 caracteres en producción.
+# Generar con: openssl rand -hex 48
+JWT_SECRET=cambiar_por_un_secreto_largo_y_aleatorio_de_al_menos_32_chars
+# Vida del access token JWT (formato de jsonwebtoken: "2h", "30m", "7d").
+JWT_EXPIRES_IN=2h
 # URL de la imagen que se muestra cuando un producto no tiene image_url.
 # Acepta http(s)://... o una ruta que empiece con "/". Si falta o es inválida, se usa el default.
 FALLBACK_IMAGE_URL=https://placehold.co/600x600?text=Sin+imagen
@@ -1091,6 +1171,362 @@ login real (usuario real en lugar de guest, CSRF, órdenes por usuario).
 
 ---
 
+## §20. Favicon / logo de la pestaña
+
+> **Sección nueva** (issue #80).
+
+Logo de MiEcommerce en la pestaña del navegador, en **todas** las
+páginas (incluidas 404 y 500, que también usan el layout base, §6.14).
+
+### §20.1 Archivos
+
+| Archivo (`public/`) | Formato | Detalle |
+|---|---|---|
+| `favicon.svg` | SVG | Logo vectorial (carrito blanco sobre teal `#0f766e`, coherente con la banda teal de Login/Register, §4.4); nítido a cualquier tamaño |
+| `favicon.ico` | ICO | 16/32/48 px; fallback para navegadores viejos + la petición implícita `GET /favicon.ico` (antes caía en el catch-all 404, §6.1) |
+| `apple-touch-icon.png` | PNG | 180×180; ícono al guardar en pantalla de inicio (iOS) |
+
+Los tres están en la raíz de `public/` (junto a `js/`); el build los
+copia a `dist/public/` y `express.static` los sirve desde ahí. No hay
+endpoints, controllers, servicios, variables de entorno ni TypeScript
+nuevos. Se descarta `site.webmanifest` e íconos 192/512 px: el
+proyecto no es una PWA.
+
+### §20.2 Declaración
+
+Una sola vez, en el `<head>` de `templates/layout.ejs` (después de
+`<title>`, antes de los estilos):
+
+```ejs
+<%# Favicon / logo de pestaña (spec §20) %>
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+```
+
+Las rutas son **absolutas** (`/favicon.svg`) para que funcionen en
+rutas anidadas (`/products/1`, `/categories/2`, …).
+
+### §20.3 Reemplazar el logo
+
+El logo actual es **provisional**. Para poner el definitivo: reemplazar
+los tres archivos de `public/` manteniendo nombres y tamaños (ICO con
+16/32/48 px, PNG 180×180); no hace falta tocar código.
+
+---
+
+## §21. CI/CD y despliegue
+
+> **Sección nueva.** Dockerización de MiEcommerce y pipeline CI/CD con GitHub
+> Actions. Publicación automática en GitHub Container Registry (ghcr.io) al
+> mergear PRs a `main`.
+
+### §21.1 Flujo
+
+```
+Pull Request dev → main ──► CI (build + tests) ← no publica nada
+merge del PR a main ─────► CI ──► si pasa ──► build de imagen ──► push a ghcr.io
+```
+
+- Los pushes a `dev` también ejecutan el job `ci` (solo build y tests), pero
+  **nunca** el job `publish`.
+- No existe push directo a `main`; el trabajo vive en `dev` y llega a `main`
+  mediante Pull Request.
+
+### §21.2 Archivos
+
+| Archivo | Propósito |
+|---|---|
+| `Dockerfile` | Imagen multi-stage: build tools solo en stage 1, runtime sin herramientas de compilación |
+| `.dockerignore` | Excluye secretos, DBs locales, node_modules, git, etc. de la imagen |
+| `.github/workflows/ci-cd.yml` | Pipeline: `ci` (build + test:checkout + test:middlewares) y `publish` (build + push a ghcr.io) |
+| `docker-compose.prod.yml` | Plantilla de despliegue para el servidor (app + cloudflared) |
+| `.env.prod.example` | Placeholder de variables de producción (SESSION_SECRET, TUNNEL_TOKEN) |
+| `AGENTS.md` | Marco de trabajo para agentes: regla de actualización del CI al crear tests |
+
+### §21.3 Dockerfile
+
+- **Base:** `node:22-bookworm-slim` (Node 22+, compat con el proyecto).
+- **Estrategia multi-stage:**
+  - **Stage 1 (builder):** instala `build-essential` y `python3` para compilar
+    `better-sqlite3` (módulo nativo), corre `npm ci` con todas las deps,
+    ejecuta `npm run build`.
+  - **Stage 2 (runtime):** sin build tools. Copia `node_modules` ya compilado
+    desde el builder + `dist/` + `src/` (necesario para que `npm run seed`
+    funcione, ya que el seed usa `tsx` e importa de `../src/...`).
+- **Decisión sobre devDeps:** se mantienen en runtime porque `npm run seed`
+  y `npm run test:checkout` necesitan `tsx` (devDep). No se podan.
+- **Usuario no root:** `USER node`.
+- **Volumen `/data`:** directorio completo para SQLite (el motor crea `-wal`
+  y `-shm` junto al `.db`).
+- **Sin secretos horneados:** `SESSION_SECRET`, `PORT`, etc. vía variables de
+  entorno en tiempo de ejecución.
+- **Comando de arranque:** `CMD ["node", "dist/app.js"]` (`package.json` start).
+
+### §21.4 Pipeline CI/CD
+
+Archivo: `.github/workflows/ci-cd.yml`.
+
+**Job `ci` (Build & test):**
+
+- Se ejecuta en:
+  - `push` a `main`
+  - `push` a `dev`
+  - `pull_request` hacia `main`
+- Pasos:
+  1. `actions/checkout@v4`
+  2. `actions/setup-node@v4` con Node 22, `cache: npm`
+  3. `npm ci`
+  4. `npm run build`
+  5. `npm run test:checkout` (tests T1–T7 del checkout, spec §19.6)
+  6. `npm run test:middlewares` (caracterización M1–M18, spec §22; requiere el
+     build del paso 4)
+- **Permisos:** `contents: read` (mínimos).
+
+**Job `publish` (Build & push Docker image):**
+
+- Solo se ejecuta en `push` a `main` (no en PRs, no en `dev`).
+- Depende de (`needs:`) el job `ci`.
+- Pasos:
+  1. `actions/checkout@v4`
+  2. Normaliza el nombre del repo a minúsculas (ghcr.io exige minúsculas).
+  3. `docker/login-action@v3` contra `ghcr.io` con `GITHUB_TOKEN`.
+  4. `docker/setup-buildx-action@v3`
+  5. `docker/build-push-action@v6` con push, y dos tags: `latest` y el SHA
+     del commit.
+- **Permisos:** `contents: read` + `packages: write` (elevación solo en este job).
+- Acciones oficiales con versión mayor fija (`@v4`, `@v3`, `@v6`).
+- **No** usa runners self-hosted (el repo es público).
+- **Nota para servidor ARM:** descomentar `platforms: linux/arm64` en el
+  workflow y agregar la emulación QEMU.
+
+### §21.5 docker-compose.prod.yml
+
+- Servicio `tienda`: imagen `ghcr.io/<usuario>/<repo>:latest`, `restart: unless-stopped`,
+  variables desde `.env`, volumen nombrado `tienda-data:/data` y **sin `ports`**
+  (el servidor está detrás de Cloudflare Tunnel).
+- Servicio `cloudflared`: `cloudflare/cloudflared:latest`, comando
+  `tunnel --no-autoupdate run`, `TUNNEL_TOKEN` desde `.env`.
+- Volumen `tienda-data` para persistencia de SQLite.
+
+### §21.6 Variables de producción
+
+| Variable | Propósito | Dónde se define |
+|---|---|---|
+| `SESSION_SECRET` | Secreto de express-session | `.env` en el servidor (ver `.env.prod.example`) |
+| `TUNNEL_TOKEN` | Token de Cloudflare Tunnel | `.env` en el servidor (ver `.env.prod.example`) |
+| `PORT` | Puerto (default 3000, heredado de §16) | `.env` o default |
+| `DB_PATH` | Ruta de la DB (default `/data/shop.db`, heredado de §16) | `.env` o default |
+| `FALLBACK_IMAGE_URL` | URL de imagen por defecto (heredado de §16) | `.env` o default |
+
+Ninguna se hornea en la imagen.
+
+### §21.7 Mantenimiento del CI
+
+Según `AGENTS.md`, cuando un agente cree tests o scripts de verificación
+nuevos que considere pertinentes para CI, debe:
+
+1. Añadirlos al job `ci` de `.github/workflows/ci-cd.yml`.
+2. Documentar la inclusión en esta sección (§21).
+3. Si requieren dependencias especiales, detallarlas en el workflow y aquí.
+
+### §21.8 Primer arranque en el servidor
+
+```bash
+# 1. Crear .env con SESSION_SECRET y TUNNEL_TOKEN (ver .env.prod.example)
+# 2. Iniciar los servicios
+docker compose -f docker-compose.prod.yml up -d
+
+# 3. Cargar datos de ejemplo (solo la primera vez)
+docker compose -f docker-compose.prod.yml run --rm tienda npm run seed
+
+# 4. Para actualizar después de cambios:
+docker compose pull && docker compose up -d
+```
+
+---
+
+## §22. Arquitectura de middlewares
+
+> **Sección nueva** (issue #91). Refactor puro: reorganiza los middlewares en
+tres grupos y saca de `app.ts` la configuración de librerías y el 404 inline,
+sin cambiar el comportamiento (verificado con `npm run test:middlewares`).
+
+### §22.1 Los tres tipos
+
+| Tipo | Qué es | Dónde se define | Dónde se monta |
+|---|---|---|---|
+| **Global** | Corre en (casi) todas las peticiones | `src/middlewares/global/` | `app.ts` con `app.use(...)` |
+| **Route** | Solo en rutas concretas, encadenado antes del controller | `src/middlewares/route/` | `src/routes/**/*.ts` |
+| **Error / terminal** | Cierra la cadena: 404 y manejo de errores | `src/middlewares/error/` | `app.ts`, al final, en orden fijo |
+
+### §22.2 Estructura
+
+```
+src/middlewares/
+├── global/
+│   ├── base.middleware.ts                   ← static + body parsers + layouts (librería)
+│   ├── session.middleware.ts                ← express-session + SqliteStore
+│   └── inject-cart-count.middleware.ts      ← res.locals.cartCount
+├── route/
+│   └── validate-id.middleware.ts            ← validateId(param) + validateCollectionId
+└── error/
+    ├── not-found.middleware.ts              ← 404 catch-all
+    └── error-handler.middleware.ts          ← 500 / JSON de API
+```
+
+- Archivos en **kebab-case** + sufijo `.middleware.ts`; exports en **camelCase**
+  (`injectCartCount`, `validateId`, `notFound`, `errorHandler`).
+- El helper puro `src/utils/normalizeId.ts` se queda en `utils/` (lo usan los
+  controllers de páginas y la factory `validateId`).
+- **Sin barrel files** (`index.ts`): cada consumidor importa el archivo directo.
+
+### §22.3 Regla de clasificación
+
+```
+¿Corre DESPUÉS de las rutas para cerrar la petición (404 / error)?
+   └─ Sí → error/
+¿Aplica a todas (o casi todas) las rutas, sin depender del endpoint?
+   └─ Sí → global/   (se monta con app.use en app.ts)
+¿Solo tiene sentido en rutas específicas (validar un param, exigir auth)?
+   └─ Sí → route/    (se encadena en routes/*.ts antes del controller)
+```
+
+**Principio: en `app.ts` no se define nada, solo se monta.** Los middlewares de
+librería también: los de configuración simple van al array `baseMiddlewares`
+(`global/base.middleware.ts`); `express-session` + `SqliteStore`, que tiene
+configuración propia no trivial, vive en `global/session.middleware.ts`.
+
+### §22.4 Contrato de orden de montaje
+
+Este orden es un contrato: cada paso depende de los anteriores.
+
+```
+1. baseMiddlewares      (static primero → los assets no pasan por la sesión)
+2. sessionMiddleware    (injectCartCount necesita req.session)
+3. globales propios      (injectCartCount)
+4. vistas / app.locals   (view engine, view root, layout, fallbackImageUrl)
+5. docsRouter            (/api-docs antes del 404, §10)
+6. routers               (páginas y API)
+7. notFound              (después de TODAS las rutas, §6.1)
+8. errorHandler          (último de todos, §6.2)
+```
+
+Dentro de `baseMiddlewares` el orden interno también es contrato:
+`static → json → urlencoded → expressLayouts` (el orden que tenía `app.ts`).
+
+### §22.5 Middlewares e inventario
+
+| Middleware | Origen | Definición | Montaje | Alcance real | Grupo | ¿SPEC previa? |
+|---|---|---|---|---|---|---|
+| `express.static`, `express.json`, `express.urlencoded`, `expressLayouts` | librería | `global/base.middleware.ts` | `app.ts` (`baseMiddlewares`) | global | global | parcial (§14/§15/§6.14) |
+| `sessionMiddleware` (express-session + SqliteStore) | librería | `global/session.middleware.ts` | `app.ts` | global | global | §6.4/§11 |
+| `injectCartCount` | propio | `global/inject-cart-count.middleware.ts` | `app.ts` | global | global | §6.11 |
+| `validateId("productId")` | propio | `route/validate-id.middleware.ts` | `routes/api/cart.routes.ts` | `/api/cart/*/:productId` | route | §6.9 |
+| `validateCollectionId` | propio | `route/validate-id.middleware.ts` | `routes/api/{products,categories,orders}.routes.ts` | `/api/{colecciones}/:segmento` | route | §6.9 (implícito) |
+| `notFound` | propio | `error/not-found.middleware.ts` | `app.ts` | terminal | error | §6.1 |
+| `errorHandler` | propio | `error/error-handler.middleware.ts` | `app.ts` | terminal último | error | §6.2 |
+| `swaggerUi.serve` / `swaggerUi.setup` | librería | `routes/docs.routes.ts` | router `/api-docs` | `/api-docs` | (router) | §10 |
+
+No se encontraron más middlewares. Quedan fuera de este inventario (no son
+middlewares): los handlers de páginas `renderRegisterPage`/`renderLoginPage`
+(`routes/pages.routes.ts`) y `parseProductId`, que es validación dentro del
+controller del carrito.
+
+**Deuda documentada (bug de la validación de colecciones).** El antiguo
+middleware global de ids capturaba con su regex el **grupo 1** (el nombre de la
+colección `products|categories|orders`) en vez del grupo 2 (el id), así que
+respondía 400 a *toda* ruta de un segmento bajo esas colecciones, incluidos ids
+numéricos (`/api/products/5`, `/api/products/999999`). Como las rutas
+`routes/api/{products,categories,orders}.routes.ts` están vacías, no hay
+controller que resuelva un 404. El refactor de este PR es **puro** y conserva
+esa respuesta 400 en `validateCollectionId`; corregirla (numérico → 404) queda
+como deuda para otro PR y cambiaría el baseline M8/M9 de
+`scripts/test-middlewares.ts`.
+
+### §22.6 Cómo agregar un middleware nuevo
+
+1. Elegí el grupo con la regla de §22.3.
+2. Creá `src/middlewares/<grupo>/<nombre-kebab>.middleware.ts` con JSDoc
+   (`@fileoverview`, `@param`, `@returns`) y referencia `(spec §X.Y)`.
+3. Montalo: global/error → `app.ts` en el paso que corresponda del contrato
+   §22.4; route → encadenado en el `routes/**` correspondiente antes del
+   controller.
+4. Agregá el caso al test de caracterización (`scripts/test-middlewares.ts`) y
+   corré `npm run build && npm run test:middlewares && npm run test:checkout`.
+
+---
+
+## §23. Autenticación y autorización (JWT)
+
+> **Sección nueva** (issue #93, parte 1 de 3). Autenticación JWT **stateless**:
+> sin cookies ni sesiones. La autorización por rol/propiedad llega en la parte 2.
+
+### §23.1 Configuración y claims
+
+- `env.jwtSecret` (de `JWT_SECRET`) y `env.jwtExpiresIn` (de `JWT_EXPIRES_IN`,
+  default `2h`). En producción `JWT_SECRET` es obligatorio y **≥ 32 caracteres**;
+  si falta o es corto, la app **falla al arrancar** (un secreto vacío permitiría
+  firmar tokens válidos).
+- Firma **HS256**; al verificar se fija `algorithms: ["HS256"]` para evitar
+  ataques de cambio de algoritmo.
+- El payload solo lleva `sub` (id) y `role`; el token es legible, nunca datos
+  sensibles. El `role` viaja en el token (ver limitaciones §23.5).
+- Contraseñas con `bcrypt` (cost 12). Se valida máximo **72** caracteres porque
+  bcrypt trunca silenciosamente a 72 bytes.
+
+### §23.2 Endpoints y service
+
+| Endpoint | Protegido | Respuestas |
+|---|---|---|
+| `POST /api/auth/register` | No | `201 { user, token }` · `400 { errors }` · `409 { errors }` |
+| `POST /api/auth/login` | No | `200 { user, token }` · `401 { errors }` |
+| `GET /api/auth/me` | Sí | `200 { user }` · `401 { error }` |
+
+- `src/services/auth.service.ts` (`authService`): no conoce Express ni SQL (regla
+  §0). Los errores de negocio **se devuelven** como resultado tipado
+  (`{ ok: false, reason, errors }`), igual que el checkout (§19.5);
+  `validation` → 400, `email_taken` → 409, `invalid_credentials` → 401.
+- `register` une `name` + `lastname` en `users.name`; el rol siempre nace
+  `customer` (el admin se crea por seed, nunca por `/register`).
+- Login usa un hash falso cuando el email no existe para tardar lo mismo en
+  ambos casos (no enumera usuarios) y devuelve el mismo mensaje.
+- `PublicUser` nunca incluye `password_hash`.
+- `src/repositories/user.repository.ts`: `findByEmail`, `findById`, `create`;
+  `ensureGuestUser` sigue vivo hasta migrar el checkout (§19/D5).
+
+### §23.3 Middleware `authenticate`
+
+`src/middlewares/route/authenticate.middleware.ts` (spec §22.3: exigir auth es
+middleware **de ruta**). Verifica `Authorization: Bearer <jwt>` y deja
+`req.user = { id, role }` (tipado en `src/types/express.d.ts`). Responde 401 con
+`{ error }` si falta el header, el token es inválido/expiró o el usuario ya no
+existe (`GET /me`).
+
+### §23.4 Frontend
+
+- `public/js/auth.js` (cargado en `layout.ejs` **antes** de `cart.js`): guarda el
+  token en `localStorage`, expone `window.Auth` (con `Auth.fetch`, que adjunta el
+  bearer y en 401 limpia y redirige a `/login?next=`), hidrata el header y maneja
+  los formularios `[data-auth-form]` y el logout `[data-auth-logout]`.
+- El `next` se valida (solo rutas internas que empiezan con `/` y no con `//`)
+  para evitar open redirect.
+- Los formularios de §4.4/§4.5 mandan JSON a la API; `register-validation.js`
+  (§6.3) corre antes y el server sigue siendo la autoridad.
+- Nuevos `data-*` documentados en §5.
+
+### §23.5 Limitaciones (documentadas)
+
+- **Sin revocación:** con JWT puro el logout solo borra el token del cliente; un
+  token robado vale hasta su `exp`. Por eso la vida es corta.
+- **XSS es el riesgo principal:** el token vive en `localStorage`, legible por JS.
+  Mitigaciones: escapar siempre con `<%= %>`, vida corta y `helmet`/CSP (parte 3).
+- **CSRF desaparece:** sin cookies no hay credencial automática que falsificar.
+- El rol viaja en el token; quitárselo a alguien conserva el permiso hasta que
+  expire.
+
+---
+
 ## Tabla de equivalencias — `§` original → `SPEC.md`
 
 | `§` original (spec sprint 1) | `§` en `SPEC.md` | Estado |
@@ -1124,6 +1560,10 @@ login real (usuario real en lugar de guest, CSRF, órdenes por usuario).
 | — (nuevo) | §17 Documentación generada `docs/` | Nuevo |
 | — (nuevo) | §18 Convención JSDoc | Nuevo |
 | — (nuevo) | §19 Checkout | Nuevo |
+| — (nuevo) | §20 Favicon / logo de pestaña | Nuevo |
+| — (nuevo) | §21 CI/CD y despliegue | Nuevo |
+| — (nuevo) | §22 Arquitectura de middlewares | Nuevo |
+| — (nuevo) | §23 Autenticación y autorización (JWT) | Nuevo |
 
 ---
 
@@ -1144,6 +1584,10 @@ login real (usuario real en lugar de guest, CSRF, órdenes por usuario).
 | 2026-10-03 | Este PR | Creación de la SPEC viva; históricos marcados | — |
 | 2026-10-07 | Este PR / issue #77 | Card de producto clickeable a /products/:id (link extendido) | — |
 | 2026-10-07 | Este PR / issue #68 | Checkout real (§19): formulario, orden atómica con descuento de stock, idempotencia por token, confirmación y tests T1–T7 | — |
+| 2026-10-08 | Este PR / issue #80 | Favicon / logo de la pestaña (§20): tres archivos en `public/` + `<link>` en el `<head>` del layout; `GET /favicon.ico` deja de caer en el 404 | — |
+| 2026-10-08 | PR #? / issue #? | Dockerización y CI/CD (§21): Dockerfile multi-stage, .dockerignore, workflow CI/CD, docker-compose.prod.yml, .env.prod.example, AGENTS.md | — |
+| 2026-10-11 | Este PR / issue #91 | Arquitectura de middlewares (§22): reorganización en `global/route/error`, base y sesión extraídos de `app.ts`, tests M1–M18 en CI y bug de validación de colecciones documentado como deuda | — |
+| 2026-10-11 | Este PR / issue #93 | Autenticación JWT stateless (§23, parte 1/3): `authService` (register/login/me), middleware `authenticate`, API `/api/auth/*`, `role` en `users`, frontend de login/registro con token y tests A1–A6 en CI | — |
 
 ---
 

@@ -8,7 +8,7 @@
 <div class="col-content">
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
-<li><a href="../modules/middlewares_injectCartCount.middleware.html">middlewares/injectCartCount.middleware</a></li>
+<li><a href="../modules/middlewares_global_inject-cart-count.middleware.html">middlewares/global/inject-cart-count.middleware</a></li>
 <li><a href="" aria-current="page">injectCartCount</a></li></ul>
 <h1>Function injectCartCount</h1></div>
 <section class="tsd-panel">
@@ -19,7 +19,8 @@
 <div class="tsd-comment tsd-typography"><p>Middleware que calcula la cantidad total de productos en el carrito de sesión
 y la inyecta en <code>res.locals</code> para que esté disponible en todas las vistas.</p>
 <p>(spec §6.11): suma <code>quantity</code> (no subtotales) del carrito de sesión en cada
-request. Requiere que <code>express-session</code> esté montado ANTES en <code>app.ts</code>.
+request. Requiere que <code>express-session</code> esté montado ANTES (ver el contrato
+de orden de <code>app.ts</code> y la spec §22).
 En <code>/cart</code> el contador además se actualiza inline con el JSON de <code>/api/cart/*</code>
 (<code>data-cart-count</code>).</p>
 </div>
@@ -37,7 +38,7 @@ En <code>/cart</code> el contador además se actualiza inline con el JSON de <co
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/dc2bb929c903728ec09e6c483ce8681c6fa76483/src/middlewares/injectCartCount.middleware.ts#L17">src/middlewares/injectCartCount.middleware.ts:17</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/middlewares/global/inject-cart-count.middleware.ts#L23">src/middlewares/global/inject-cart-count.middleware.ts:23</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

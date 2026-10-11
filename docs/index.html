@@ -72,25 +72,19 @@ Este proyecto usa <code>better-sqlite3</code>, un módulo que en algunos sistema
 </code><button type="button">Copy</button></pre>
 
 <ol start="3">
-<li>Instala las dependencias necesarias</li>
+<li>Prepará el entorno completo con un solo comando</li>
 </ol>
-<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">install</span>
+<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">init</span>
 </code><button type="button">Copy</button></pre>
 
+<p>Este comando instala las dependencias, crea el archivo <code>.env</code> desde <code>.env.example</code> <strong>solo si no existe</strong> (no sobrescribe uno ya existente), compila el build y carga los datos de ejemplo (el seed es idempotente).</p>
 <blockquote>
-<p>Si esta instalación falla por errores de compilación (por ejemplo, relacionados con <code>better-sqlite3</code> o <code>node-gyp</code>), revisá la sección <a href="#requisitos-previos">Requisitos previos</a>.</p>
+<p>Si <code>npm run init</code> falla por errores de compilación (por ejemplo, relacionados con <code>better-sqlite3</code> o <code>node-gyp</code>), revisá la sección <a href="#requisitos-previos">Requisitos previos</a>.</p>
 </blockquote>
 <ol start="4">
-<li>Configura las variables de entorno</li>
+<li>Completá tus variables de entorno (opcional)</li>
 </ol>
-<p>Este proyecto necesita un archivo <code>.env</code> en la raíz con tus propias claves (no se sube al repositorio por seguridad). Creá el archivo copiando la plantilla:</p>
-<pre><code class="bash"><span class="hl-0">cp</span><span class="hl-1"> </span><span class="hl-3">.env.example</span><span class="hl-1"> </span><span class="hl-3">.env</span>
-</code><button type="button">Copy</button></pre>
-
-<p>Y completá los valores dentro de <code>.env</code>:</p>
-<pre><code><span class="hl-4">PORT</span><span class="hl-1">=</span><span class="hl-5">3000</span><br/><span class="hl-4">SESSION_SECRET</span><span class="hl-1">=</span><span class="hl-6">cambiar_por_un_secreto_largo_y_aleatorio</span><br/><span class="hl-1"># </span><span class="hl-4">URL</span><span class="hl-1"> </span><span class="hl-6">de</span><span class="hl-1"> </span><span class="hl-6">la</span><span class="hl-1"> </span><span class="hl-6">imagen</span><span class="hl-1"> </span><span class="hl-6">que</span><span class="hl-1"> </span><span class="hl-6">se</span><span class="hl-1"> </span><span class="hl-6">muestra</span><span class="hl-1"> </span><span class="hl-6">cuando</span><span class="hl-1"> </span><span class="hl-6">un</span><span class="hl-1"> </span><span class="hl-6">producto</span><span class="hl-1"> </span><span class="hl-6">no</span><span class="hl-1"> </span><span class="hl-6">tiene</span><span class="hl-1"> </span><span class="hl-6">image_url</span><span class="hl-1">.</span><br/><span class="hl-1"># </span><span class="hl-6">Acepta</span><span class="hl-1"> </span><span class="hl-0">http</span><span class="hl-1">(</span><span class="hl-6">s</span><span class="hl-1">):</span><span class="hl-7">//... o una ruta que empiece con &quot;/&quot;. Si falta o es inválida, se usa el default.</span><br/><span class="hl-4">FALLBACK_IMAGE_URL</span><span class="hl-1">=</span><span class="hl-8">https</span><span class="hl-1">:</span><span class="hl-7">//placehold.co/600x600?text=Sin+imagen</span>
-</code><button>Copy</button></pre>
-
+<p><code>npm run init</code> te deja el archivo <code>.env</code> creado en la raíz, listo para editar.</p>
 <blockquote>
 <p>Ya no hay claves externas que pedir: <code>SESSION_SECRET</code> generala con un valor aleatorio largo (por ejemplo, la salida de <code>node -e &quot;console.log(require('crypto').randomBytes(32).toString('hex'))&quot;</code>) y no la compartas públicamente. <code>FALLBACK_IMAGE_URL</code> puede dejarse con el valor por defecto.</p>
 </blockquote>
@@ -101,37 +95,97 @@ Este proyecto usa <code>better-sqlite3</code>, un módulo que en algunos sistema
 </code><button type="button">Copy</button></pre>
 
 <ol start="6">
-<li>Cargá los datos de ejemplo (opcional; el script es idempotente y crea el esquema si no existe)</li>
-</ol>
-<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">seed</span>
-</code><button type="button">Copy</button></pre>
-
-<ol start="7">
 <li>Ver página</li>
 </ol>
-<pre><code><span class="hl-8">http</span><span class="hl-1">:</span><span class="hl-7">//localhost:3000</span>
+<pre><code><span class="hl-4">http</span><span class="hl-1">:</span><span class="hl-5">//localhost:3000</span>
 </code><button>Copy</button></pre>
 
 <p>La documentación interactiva de la API (Swagger UI) queda disponible en <code>http://localhost:3000/api-docs</code>.</p>
-<ol start="8">
-<li>Hacer el build para producción</li>
-</ol>
+<h3 id="build-de-producción" class="tsd-anchor-link">Build de producción<a href="#build-de-producción" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p><code>npm run init</code> ya ejecuta el build de producción, así que no hace falta correrlo durante la instalación. Solo hace falta correrlo a mano para regenerar <code>dist/</code> tras un cambio:</p>
 <pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build</span>
 </code><button type="button">Copy</button></pre>
 
+<h2 id="scripts-disponibles" class="tsd-anchor-link">Scripts disponibles<a href="#scripts-disponibles" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<table>
+<thead>
+<tr>
+<th>Comando</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>npm run init</code></td>
+<td>Prepara el entorno completo (deps + <code>.env</code> + build + seed)</td>
+</tr>
+<tr>
+<td><code>npm run dev</code></td>
+<td>Servidor de desarrollo (<code>tsx watch</code> + Tailwind watch)</td>
+</tr>
+<tr>
+<td><code>npm run build</code></td>
+<td>Compilación de producción a <code>dist/</code></td>
+</tr>
+<tr>
+<td><code>npm run seed</code></td>
+<td>Carga los datos de ejemplo (idempotente)</td>
+</tr>
+<tr>
+<td><code>npm run test:checkout</code></td>
+<td>Tests del checkout T1–T7 (DB temporal)</td>
+</tr>
+<tr>
+<td><code>npm run test:middlewares</code></td>
+<td>Tests de caracterización de middlewares M1–M18 (DB temporal)</td>
+</tr>
+<tr>
+<td><code>npm run test:auth</code></td>
+<td>Tests de autenticación JWT A1–A6 (DB temporal)</td>
+</tr>
+<tr>
+<td><code>npm run build:docs</code></td>
+<td>Regenera <code>docs/</code> (TypeDoc + grafo, requiere Graphviz)</td>
+</tr>
+</tbody>
+</table>
 <h2 id="tests" class="tsd-anchor-link">Tests<a href="#tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:checkout</span>
+<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:checkout</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:middlewares</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:auth</span>
 </code><button type="button">Copy</button></pre>
 
-<p>Corre los tests del checkout (<code>scripts/test-checkout.ts</code>, casos T1–T7: stock,
-rollback, idempotencia por token, precio congelado, carrera multi-proceso y
-validación) contra una <strong>DB temporal</strong> — nunca toca <code>dev.db</code>. El exit code es
-≠ 0 si algo falla.</p>
+<p><code>npm run test:checkout</code> corre los tests del checkout (<code>scripts/test-checkout.ts</code>,
+casos T1–T7: stock, rollback, idempotencia por token, precio congelado, carrera
+multi-proceso y validación).</p>
+<p><code>npm run test:middlewares</code> levanta la app como proceso hijo y verifica el
+comportamiento de los middlewares (<code>scripts/test-middlewares.ts</code>, casos M1–M18:
+contador del carrito, cookies de sesión, 404, validación de ids, estáticos,
+Swagger, body parsers y el error handler). Requiere <code>npm run build</code> previo.</p>
+<p><code>npm run test:auth</code> verifica la autenticación JWT (<code>scripts/test-auth.ts</code>, casos
+A1–A6: registro, email repetido y su carrera, validación, login, credenciales
+inválidas y <code>/api/auth/me</code> con tokens válidos/ausentes/expirados/manipulados).</p>
+<p>Ambos usan una <strong>DB temporal</strong> — nunca tocan <code>dev.db</code> — y su exit code es ≠ 0
+si algo falla.</p>
 <h2 id="documentación" class="tsd-anchor-link">Documentación<a href="#documentación" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
 <li><a href="media/SPEC.md"><code>spectsEccomerce/SPEC.md</code></a> es la <strong>especificación viva</strong>: describe el proyecto tal como es hoy y es la única fuente de verdad que se edita. El resto de los <code>.md</code> en <code>spectsEccomerce/</code> son históricos y no se actualizan. Las referencias <code>(spec §X.Y)</code> de los comentarios del código apuntan a <code>SPEC.md</code>.</li>
 <li><code>npm run build:docs</code> regenera la documentación en <code>docs/</code> (carpeta versionada en git): el HTML de TypeDoc (según <code>scripts/typedoc.json</code>) y el grafo de dependencias <code>docs/graphs/dependencias.svg</code> (madge). Requiere Graphviz instalado en el sistema. Si cambió la arquitectura, commitear el resultado.</li>
 </ul>
+<h2 id="despliegue-docker-cicd" class="tsd-anchor-link">Despliegue (Docker + CI/CD)<a href="#despliegue-docker-cicd" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>El proyecto está dockerizado y se publica automáticamente en <strong>GitHub Container Registry (<a href="http://ghcr.io">ghcr.io</a>)</strong> al mergear un Pull Request a <code>main</code>. Más detalles en <a href="media/SPEC.md#21-cicd-y-despliegue"><code>spectsEccomerce/SPEC.md §21</code></a>.</p>
+<h3 id="primer-arranque-en-el-servidor" class="tsd-anchor-link">Primer arranque en el servidor<a href="#primer-arranque-en-el-servidor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="bash"><span class="hl-5"># 1. Crear .env con SESSION_SECRET y TUNNEL_TOKEN (ver .env.prod.example)</span><br/><span class="hl-5"># 2. Iniciar servicios</span><br/><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-3">compose</span><span class="hl-1"> </span><span class="hl-2">-f</span><span class="hl-1"> </span><span class="hl-3">docker-compose.prod.yml</span><span class="hl-1"> </span><span class="hl-3">up</span><span class="hl-1"> </span><span class="hl-2">-d</span><br/><br/><span class="hl-5"># 3. Cargar datos de ejemplo (solo la primera vez)</span><br/><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-3">compose</span><span class="hl-1"> </span><span class="hl-2">-f</span><span class="hl-1"> </span><span class="hl-3">docker-compose.prod.yml</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-2">--rm</span><span class="hl-1"> </span><span class="hl-3">tienda</span><span class="hl-1"> </span><span class="hl-3">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">seed</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="actualizar-después-de-cambios" class="tsd-anchor-link">Actualizar después de cambios<a href="#actualizar-después-de-cambios" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="bash"><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-3">compose</span><span class="hl-1"> </span><span class="hl-3">pull</span><span class="hl-1"> &amp;&amp; </span><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-3">compose</span><span class="hl-1"> </span><span class="hl-3">up</span><span class="hl-1"> </span><span class="hl-2">-d</span>
+</code><button type="button">Copy</button></pre>
+
+<blockquote>
+<p><strong>Nota:</strong> el servidor está detrás de un Cloudflare Tunnel; no expone puertos.
+La base de datos SQLite persiste en un volumen Docker nombrado (<code>tienda-data</code>).
+Las variables de entorno (<code>SESSION_SECRET</code>, <code>PORT</code>, <code>DB_PATH</code>, <code>FALLBACK_IMAGE_URL</code>)
+se configuran en <code>.env</code>, nunca en la imagen.</p>
+</blockquote>
 </div></div>
 <div class="col-sidebar">
 <div class="page-menu">
@@ -162,8 +216,17 @@ validación) contra una <strong>DB temporal</strong> — nunca toca <code>dev.db
 <li><a href="#tecnologías-utilizadas"><span>Tecnologías utilizadas</span></a></li>
 <li><a href="#requisitos-previos"><span>Requisitos previos</span></a></li>
 <li><a href="#instalación"><span>Instalación</span></a></li>
+<li>
+<ul>
+<li><a href="#build-de-producción"><span>Build de producción</span></a></li></ul></li>
+<li><a href="#scripts-disponibles"><span>Scripts disponibles</span></a></li>
 <li><a href="#tests"><span>Tests</span></a></li>
-<li><a href="#documentación"><span>Documentación</span></a></li></ul></div></details></div>
+<li><a href="#documentación"><span>Documentación</span></a></li>
+<li><a href="#despliegue-docker-cicd"><span>Despliegue (<wbr/>Docker + <wbr/>CI/<wbr/>CD)</span></a></li>
+<li>
+<ul>
+<li><a href="#primer-arranque-en-el-servidor"><span>Primer arranque en el servidor</span></a></li>
+<li><a href="#actualizar-después-de-cambios"><span>Actualizar después de cambios</span></a></li></ul></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="modules.html">MiEcommerce - Documentación de Código Fuente - v1.0.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
