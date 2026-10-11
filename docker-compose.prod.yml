@@ -18,6 +18,9 @@ services:
     environment:
       # Redis del carrito (spec §24); la clave se define una sola vez en .env.
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      # CSP (spec §22.2): default false para deploys por http://IP:PUERTO. Si el
+      # sitio va por HTTPS, poner CSP_UPGRADE_INSECURE=true en .env.
+      CSP_UPGRADE_INSECURE: ${CSP_UPGRADE_INSECURE:-false}
     depends_on:
       redis:
         condition: service_healthy
