@@ -95,7 +95,7 @@ siguen funcionando.</p>
 </ol>
 <p><code>npm run init</code> te deja el archivo <code>.env</code> creado en la raíz, listo para editar.</p>
 <blockquote>
-<p>Variables principales: <code>JWT_SECRET</code> generala con un valor aleatorio largo (por ejemplo, la salida de <code>openssl rand -hex 48</code>) y no la compartas públicamente; <code>REDIS_URL</code> apunta a tu Redis local; <code>FALLBACK_IMAGE_URL</code> puede dejarse con el valor por defecto. No hay cookies de sesión: la autenticación es JWT.</p>
+<p>Variables principales: <code>JWT_SECRET</code> generala con un valor aleatorio largo (por ejemplo, la salida de <code>openssl rand -hex 48</code>) y no la compartas públicamente; <code>REDIS_URL</code> apunta a tu Redis local; <code>CSP_UPGRADE_INSECURE</code> queda en <code>false</code> por defecto (ponelo en <code>true</code> <strong>solo</strong> detrás de HTTPS, porque si accedés por <code>http://IP:PUERTO</code> el navegador subiría <code>/css</code> y <code>/js</code> a <code>https</code> y la página saldría sin estilos); <code>FALLBACK_IMAGE_URL</code> puede dejarse con el valor por defecto. No hay cookies de sesión: la autenticación es JWT.</p>
 </blockquote>
 <ol start="5">
 <li>Inicia el servidor de desarrollo</li>
@@ -203,7 +203,7 @@ si algo falla.</p>
 <blockquote>
 <p><strong>Nota:</strong> el servidor está detrás de un Cloudflare Tunnel; no expone puertos.
 La base de datos SQLite persiste en un volumen Docker nombrado (<code>tienda-data</code>).
-Las variables de entorno (<code>JWT_SECRET</code>, <code>JWT_EXPIRES_IN</code>, <code>REDIS_PASSWORD</code>, <code>PORT</code>, <code>DB_PATH</code>, <code>FALLBACK_IMAGE_URL</code>)
+Las variables de entorno (<code>JWT_SECRET</code>, <code>JWT_EXPIRES_IN</code>, <code>REDIS_PASSWORD</code>, <code>CSP_UPGRADE_INSECURE</code>, <code>PORT</code>, <code>DB_PATH</code>, <code>FALLBACK_IMAGE_URL</code>)
 se configuran en <code>.env</code>, nunca en la imagen.</p>
 </blockquote>
 </div></div>
