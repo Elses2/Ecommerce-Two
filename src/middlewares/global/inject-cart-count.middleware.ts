@@ -1,11 +1,17 @@
 import type { NextFunction, Request, Response } from "express";
 
 /**
+ * @fileoverview Middleware global propio que expone el contador del carrito a
+ * las vistas (spec §6.11 / §22).
+ */
+
+/**
  * Middleware que calcula la cantidad total de productos en el carrito de sesión
  * y la inyecta en `res.locals` para que esté disponible en todas las vistas.
  *
  * (spec §6.11): suma `quantity` (no subtotales) del carrito de sesión en cada
- * request. Requiere que `express-session` esté montado ANTES en `app.ts`.
+ * request. Requiere que `express-session` esté montado ANTES (ver el contrato
+ * de orden de `app.ts` y la spec §22).
  * En `/cart` el contador además se actualiza inline con el JSON de `/api/cart/*`
  * (`data-cart-count`).
  *
