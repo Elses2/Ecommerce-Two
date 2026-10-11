@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-11** (autorización y órdenes §23.6)
+> - Última actualización: **2026-10-11** (carrito en Redis y stateless §24)
 > - Rama base de referencia: `dev`
 
 ---
@@ -69,6 +69,7 @@
 | [§21](#21-cicd-y-despliegue) | CI/CD y despliegue | Nuevo |
 | [§22](#22-arquitectura-de-middlewares) | Arquitectura de middlewares | Nuevo |
 | [§23](#23-autenticación-y-autorización-jwt) | Autenticación y autorización (JWT) | Nuevo |
+| [§24](#24-carrito-en-redis-y-arquitectura-stateless) | Carrito en Redis y arquitectura stateless | Nuevo |
 
 ---
 
@@ -119,8 +120,9 @@ Reglas ya acordadas que **deben respetarse** en todo lo que sigue:
 
 - **Controller** → orquesta, nunca contiene lógica de negocio ni queries.
 - **Service** → lógica de negocio pura, no conoce Express ni SQL.
-- **Repository** → único lugar que sabe de dónde vienen los datos
-  (SQLite vía `better-sqlite3`, síncrono).
+- **Repository** → único lugar que sabe de dónde vienen los datos:
+  **SQLite** (vía `better-sqlite3`, síncrono) y **Redis** (asíncrono, **solo**
+  `cart.repository.ts`, spec §24).
 - **Model** → solo forma de los datos (interfaces).
 - **DTO** → forma de los datos que entra/sale por un endpoint específico.
 - **Atom/Molecule** → sin datos reales, reciben todo por props/variables EJS.
@@ -459,10 +461,13 @@ generan **junto con** el HTML del componente:
 | Botón "Quitar" | `data-cart-action="remove"` `data-product-id="<id>"` | `<button>` en `organisms/cart-item.ejs` | `cart.js` |
 | Botón "Vaciar carrito" | `data-cart-action="clear"` | `<button>` en `pages/cart.ejs` | `cart.js` |
 | Total del carrito | `data-cart-total` | `<span>` del total en `pages/cart.ejs` | `cart.js` |
-| Contador del header | `data-cart-count` | `atoms/badge-counter.ejs` → `cart-icon.ejs` → `header-right.ejs` → `header.ejs` | `cart.js` y middleware `injectCartCount` |
+| Contador del header | `data-cart-count` | `atoms/badge-counter.ejs` → `cart-icon.ejs` → `header-right.ejs` → `header.ejs` | `cart.js` (hidratado con `GET /api/cart`, §24) |
 | Mensaje de carrito vacío | `data-cart-empty` (con clase `hidden` por defecto) | `pages/cart.ejs` | `cart.js` |
-| Formulario de checkout | `data-checkout-form` | `<form>` en `pages/checkout.ejs` | `checkout-validation.js` (§19) |
-| Botón de confirmar compra | `data-checkout-submit` | `<button type="submit">` en `pages/checkout.ejs` | `checkout-validation.js` (§19) |
+| Plantilla de fila del carrito | `id="cart-item-template"` | `<template>` en `pages/cart.ejs` | `cart.js` (clona y rellena, §24) |
+| Formulario de checkout | `data-checkout-form` | `<form>` en `pages/checkout.ejs` | `checkout-validation.js` + `checkout.js` (§19/§24) |
+| Botón de confirmar compra | `data-checkout-submit` | `<button type="submit">` en `pages/checkout.ejs` | `checkout.js` (§19/§24) |
+| Resumen del checkout | `data-checkout-summary` `data-checkout-total` | `pages/checkout.ejs` (aside) | `checkout.js` (`GET /api/checkout`) |
+| Errores del checkout | `data-checkout-errors` | `pages/checkout.ejs` | `checkout.js` (400 del server) |
 | Formulario de login/registro | `data-auth-form` `data-auth-endpoint` | `<form>` en `pages/login.ejs` / `pages/register.ejs` | `auth.js` (§23.4) |
 | Caja de errores de auth | `data-auth-error` | `<div role="alert">` en los forms de auth | `auth.js` (400/409/401 del server) |
 | Botón de logout | `data-auth-logout` | `<button>` (header, oculto por defecto) | `auth.js` |
@@ -512,6 +517,10 @@ nombre/email del formulario); no es igual al email. Mensajes de error
 específicos por campo.
 
 ### §6.4 Carrito en sesión
+
+> ⚠️ **Reemplazado:** el carrito ya **no** vive en `req.session`: se guarda en
+> Redis por usuario y requiere JWT — ver **§24**. Lo de abajo describe el modelo
+> anterior (histórico) y se conserva por trazabilidad.
 
 **SÍ es AJAX.** El carrito se implementa con `fetch` hacia rutas bajo
 `/api/cart/*`, que devuelven JSON con el carrito actualizado, y el
@@ -638,12 +647,12 @@ export function normalizeId(raw: string): number | null {
 
 ### §6.11 Total del carrito en el header
 
-**Mixto:** en la mayoría de las páginas el contador se recalcula
-server-side vía middleware `injectCartCount`
-(`src/middlewares/global/inject-cart-count.middleware.ts`,
-`res.locals.cartCount = sum(quantity)`), montado en `app.ts` después de la
-sesión y antes de las rutas (spec §22). En `/cart`, el contador se actualiza en
-el mismo `fetch` de §6.4 (el JSON incluye `count`).
+**100 % client-side (spec §24).** Sin cookies el servidor no conoce al usuario
+en una navegación normal, así que no puede calcular el contador al renderizar.
+`public/js/cart.js` pide `GET /api/cart` al cargar la página y actualiza todos
+los `[data-cart-count]`; tras cada mutación del carrito usa el `count` del JSON.
+> ⚠️ **Reemplazado:** el antiguo middleware `injectCartCount` (server-side) se
+> eliminó con la sesión.
 
 ### §6.12 Ordenar productos por precio
 
@@ -759,17 +768,20 @@ Requisitos de alto nivel (para cuando se aborde):
   `OrderItem` (spec §23).
 - Rutas de auth: `POST /api/auth/register`, `POST /api/auth/login`,
   `GET /api/auth/me` (protegida con bearer). Rutas de órdenes: `GET /api/orders`
-  y `GET /api/orders/:id` (protegidas con bearer, §23.6).
+  y `GET /api/orders/:id` (protegidas con bearer, §23.6). Rutas del carrito:
+  `GET /api/cart` + las 5 de mutación (todas con bearer, §24). Rutas del
+  checkout: `GET /api/checkout` y `POST /api/checkout` (con bearer, §24).
 - Bloques `@swagger` con annotations en los handlers:
   - `src/controllers/api/auth.controller.ts` — 3 endpoints (`register`, `login`, `me`).
   - `src/controllers/api/order.controller.ts` — 2 endpoints (`list`, `getById`).
-  - `src/controllers/api/cart.controller.ts` — 5 endpoints (`addItem`,
+  - `src/controllers/api/checkout.controller.ts` — 2 endpoints (`showCheckout`, `submitCheckout`).
+  - `src/controllers/api/cart.controller.ts` — 6 endpoints (`getCart`, `addItem`,
     `increaseItem`, `decreaseItem`, `removeItem`, `clearCart`).
   - `src/controllers/pages/pages.controller.ts` — 6 endpoints (`getHome`,
-    `getCart`, `getProductDetail`, `getCategory`, `getProducts`,
+    `getCart` (cascarón, §24), `getProductDetail`, `getCategory`, `getProducts`,
     `searchProducts`).
-  - `src/controllers/pages/checkout.controller.ts` — 3 endpoints
-    (`showCheckout`, `submitCheckout`, `showConfirmation`; ver §19).
+  - `src/controllers/pages/checkout.controller.ts` — 2 endpoints
+    (`showCheckout` (cascarón), `showConfirmation`; ver §19/§24).
 
 **Nota:** swagger-jsdoc lee los bloques `@swagger` de los archivos listados
 en `apis`; los `@param` de TypeScript normales **no** son leídos por
@@ -778,6 +790,10 @@ swagger-jsdoc. No mezclar ambos en el mismo bloque.
 ---
 
 ## §11. Persistencia de sesión en SQLite
+
+> ⚠️ **Reemplazado:** `express-session` y `better-sqlite3-session-store` se
+> eliminaron; el carrito ahora persiste en **Redis** — ver **§24**. Lo de abajo
+> describe el modelo de sesión anterior (histórico).
 
 > **Sección nueva** (no existía en el spec original; PR #47).
 
@@ -857,21 +873,20 @@ src/
 ├── styles.css                      ← estilos Tailwind (clases .btn-*, .badge, etc.)
 ├── config/
 │   ├── database.ts                 ← SQLite bootstrap + pragmas
-│   ├── env.ts                      ← configuración tipada de env vars (PORT, SESSION_SECRET, FALLBACK_IMAGE_URL)
+│   ├── env.ts                      ← configuración tipada de env vars (PORT, JWT_SECRET, REDIS_URL, FALLBACK_IMAGE_URL)
 │   └── swagger.ts                  ← especificación OpenAPI (ver §10)
 ├── controllers/
 │   ├── api/
 │   │   ├── auth.controller.ts      ← register/login/me (§23)
 │   │   ├── order.controller.ts     ← órdenes del usuario (§23.6)
-│   │   └── cart.controller.ts      ← endpoints AJAX del carrito
+│   │   ├── checkout.controller.ts  ← GET/POST /api/checkout (§24)
+│   │   └── cart.controller.ts      ← carrito por usuario en Redis (§24)
 │   └── pages/
-│       ├── checkout.controller.ts  ← checkout real: form, POST, confirmación (§19)
+│       ├── checkout.controller.ts  ← cascarón + confirmación por token (§24)
 │       └── pages.controller.ts     ← handlers de páginas SSR
 ├── middlewares/
 │   ├── global/
-│   │   ├── base.middleware.ts           ← static + body parsers + layouts (§22)
-│   │   ├── session.middleware.ts        ← express-session + SqliteStore
-│   │   └── inject-cart-count.middleware.ts ← res.locals.cartCount (§6.11)
+│   │   └── base.middleware.ts           ← helmet + static + body parsers + layouts (§22)
 │   ├── route/
 │   │   ├── authenticate.middleware.ts   ← exige JWT, deja req.user (§23.3)
 │   │   ├── authorize.middleware.ts      ← autorización por rol (§23.6)
@@ -882,8 +897,9 @@ src/
 ├── repositories/
 │   ├── product.repository.ts
 │   ├── category.repository.ts
-│   ├── order.repository.ts         ← placeOrder atómico + consultas de órdenes (§19)
-│   └── user.repository.ts          ← ensureGuestUser temporal (D5, @deprecated)
+│   ├── order.repository.ts         ← placeOrder atómico + consultas de órdenes (§19/§23.6)
+│   ├── cart.repository.ts          ← Redis Hash por usuario (spec §24)
+│   └── user.repository.ts          ← findByEmail/findById/create (spec §23)
 ├── services/
 │   ├── auth.service.ts             ← register/login + firma/verificación JWT (§23.2)
 │   ├── product.service.ts
@@ -898,7 +914,8 @@ src/
 │   ├── docs.routes.ts              ← Swagger UI (/api-docs)
 │   └── api/
 │       ├── auth.routes.ts          ← register/login/me (§23)
-│       ├── cart.routes.ts
+│       ├── cart.routes.ts          ← carrito autenticado (§24)
+│       ├── checkout.routes.ts      ← GET/POST /api/checkout (§24)
 │       ├── categories.routes.ts
 │       ├── orders.routes.ts        ← GET /api/orders y /:id (§23.6)
 │       └── products.routes.ts
@@ -909,7 +926,6 @@ src/
 │   ├── normalizeId.ts              ← helper puro de validación de IDs
 │   └── errors.ts                   ← OutOfStockError, ProductNotFoundError (§19)
 ├── types/
-│   ├── better-sqlite3-session-store.d.ts  ← declaración de tipos
 │   └── express.d.ts                ← aumento de `req.user` (§23.3)
 └── views/templates/                ← árbol atómico (ver §15)
 ```
@@ -921,7 +937,8 @@ Notas:
 - Services con contenido real: `cart.service.ts`, `product.service.ts`,
   `category.service.ts`, `promo.service.ts` y `checkout.service.ts`.
 - `public/` (raíz del proyecto, fuera de `src/`): estáticos del
-  cliente — `js/auth.js` (§23.4), `js/cart.js`, `js/register-validation.js` y los favicons
+  cliente — `js/auth.js` (§23.4), `js/cart.js` y `js/checkout.js` (§24),
+  `js/register-validation.js`, `js/checkout-validation.js` y los favicons
   `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` (§20). El
   build (`npm run build`) copia `public/**/*` a `dist/public`, que es
   lo que sirve `express.static` (`src/app.ts`).
@@ -985,7 +1002,7 @@ fueron eliminadas en el PR #51.
 | Variable | Uso | Default en código | Validación |
 |---|---|---|---|
 | `PORT` | Puerto del servidor Express | `3000` | numérico; si falta/inválido usa default |
-| `SESSION_SECRET` | Secreto de `express-session` | `""` | texto; usar un valor aleatorio largo en producción |
+| `REDIS_URL` | URL de conexión del carrito (§24) | `redis://localhost:6379` (dev) | en producción es obligatoria (falla al arrancar) |
 | `JWT_SECRET` | Secreto de firma de los JWT (`§23.1`) | `""` | texto; **en producción** falta o <32 chars → falla al arrancar |
 | `JWT_EXPIRES_IN` | Vida del access token JWT | `"2h"` | formato de `jsonwebtoken` (`2h`, `30m`, `7d`) |
 | `FALLBACK_IMAGE_URL` | Imagen fallback de productos | `https://placehold.co/600x600?text=Sin+imagen` | URL `http(s)://...` o ruta que empiece con `/`; si falta/inválida → warning + default |
@@ -995,7 +1012,8 @@ fueron eliminadas en el PR #51.
 
 ```bash
 PORT=3000
-SESSION_SECRET=cambiar_por_un_secreto_largo_y_aleatorio
+# URL de conexión a Redis (carrito, spec §24). En producción la arma docker-compose.
+REDIS_URL=redis://localhost:6379
 # Secreto de firma de los JWT (spec §23.1). Obligatorio y >= 32 caracteres en producción.
 # Generar con: openssl rand -hex 48
 JWT_SECRET=cambiar_por_un_secreto_largo_y_aleatorio_de_al_menos_32_chars
@@ -1012,6 +1030,10 @@ FALLBACK_IMAGE_URL=https://placehold.co/600x600?text=Sin+imagen
 `dev.db`, `dist/`, `node_modules/`, `.env`, `*.log`, `.DS_Store` están en
 `.gitignore`. (Pendiente conocido: `dev.db-shm` y `dev.db-wal` no están en
 `.gitignore`.)
+
+**Producción (§21.6):** además de `JWT_SECRET` y `JWT_EXPIRES_IN`, se define
+`REDIS_PASSWORD` en `.env`; `docker-compose.prod.yml` arma `REDIS_URL`
+(`redis://:<password>@redis:6379`) y no expone Redis al host.
 
 ---
 
@@ -1066,7 +1088,7 @@ en el plan de ejecución (no re-discutir):
 | D2 | La seguridad ante concurrencia sale de la DB: transacción real + `UPDATE` atómico de stock |
 | D3 | Nunca read-then-write de stock en JS: `UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?` + verificar `changes` |
 | D4 | Precios **siempre** desde la DB, leídos dentro de la transacción |
-| D5 | Usuario guest temporal (`userRepository.ensureGuestUser()`, `@deprecated`) que satisface la FK `orders.user_id`; traspaso documentado en `contexto-usuarios-auth.md` |
+| D5 | ~~Usuario guest temporal~~ **Reemplazado** por el usuario autenticado real (`req.user.id`, spec §23/§24). `ensureGuestUser` se eliminó. |
 | D6 | Idempotencia por `checkout_token` UNIQUE: un reenvío del mismo formulario devuelve la orden ya creada |
 | D7 | La confirmación se accede por token, nunca por `orders.id` |
 | D8 | El stock se descuenta al crear la orden (estado `pending`) |
@@ -1074,6 +1096,12 @@ en el plan de ejecución (no re-discutir):
 | D10 | No se crea ninguna tabla nueva; solo columnas aditivas en `orders` (§1.1) |
 
 ### §19.2 Flujo
+
+> ⚠️ **Actualizado (spec §24):** el checkout es **API JSON autenticada**.
+> `GET /api/checkout` devuelve `{ checkoutToken, cart }` y `POST /api/checkout`
+> crea la orden. La página `/checkout` es un cascarón que hidrata `checkout.js`.
+> La confirmación por token (D7) sigue siendo SSR y pública. Los pasos de abajo
+> describen el flujo original con form POST.
 
 1. `GET /checkout` → `checkoutController.showCheckout`: carrito vacío →
    redirect `/cart`; genera un `checkoutToken` nuevo
@@ -1162,10 +1190,15 @@ IMMEDIATE` + busy timeout), no el event loop. Si algún día el checkout depende
 de un servicio externo (pasarela de pago, email) o de una DB remota, ese es el
 momento de evaluar async.
 
+**Carrito en Redis (spec §24):** el carrito se lee de Redis **antes** de la
+transacción y se limpia **después** del commit; `placeOrder` sigue 100 %
+síncrono. Redis nunca entra dentro de la transacción (D1/D2/D3 intactas).
+
 ### §19.8 Limitaciones y deuda conocida
 
-- **Sin CSRF**: `POST /checkout` no valida token CSRF; el `checkout_token` es
-  de idempotencia, no de origen. Pendiente de abordar junto con auth (§19.9).
+- **Sin CSRF**: `POST /api/checkout` no valida token CSRF.
+  > ✅ **Cerrado por diseño (spec §24):** sin cookies no hay credencial ambiente
+  > que falsificar; el token es de idempotencia, no de origen.
 - **`price`/`total` son `REAL`**: posible pérdida de precisión con decimales;
   el total se redondea a 2 decimales al crear la orden. Migrar a `INTEGER`
   (centavos) es una mejora futura.
@@ -1173,8 +1206,9 @@ momento de evaluar async.
   la orden y no se libera si queda pendiente o se cancela (no existe flujo de
   cancelación todavía). Aceptado por D8; revisar cuando exista estado
   `cancelled` real.
-- **Guest sin auth**: todas las órdenes caen en el mismo usuario
-  `guest@local` (D5). Traspaso documentado en `contexto-usuarios-auth.md`.
+- **Guest sin auth**: todas las órdenes caían en el mismo usuario `guest@local`.
+  > ⚠️ **Reemplazado:** cada orden pertenece al usuario autenticado (`req.user.id`,
+  > §23/§24); las órdenes viejas de `guest@local` se conservan por la FK RESTRICT.
 - **Sin historial de compras** para el usuario.
   > ⚠️ **Reemplazado:** el historial llega con la autenticación real — ver
   > §23.6 (`GET /api/orders` y `GET /api/orders/:id` por usuario).
@@ -1254,9 +1288,9 @@ merge del PR a main ─────► CI ──► si pasa ──► build de i
 |---|---|
 | `Dockerfile` | Imagen multi-stage: build tools solo en stage 1, runtime sin herramientas de compilación |
 | `.dockerignore` | Excluye secretos, DBs locales, node_modules, git, etc. de la imagen |
-| `.github/workflows/ci-cd.yml` | Pipeline: `ci` (build + test:checkout + test:middlewares) y `publish` (build + push a ghcr.io) |
+| `.github/workflows/ci-cd.yml` | Pipeline: `ci` (build + test:checkout + test:middlewares + test:auth + test:cart) y `publish` (build + push a ghcr.io) |
 | `docker-compose.prod.yml` | Plantilla de despliegue para el servidor (app + cloudflared) |
-| `.env.prod.example` | Placeholder de variables de producción (SESSION_SECRET, TUNNEL_TOKEN) |
+| `.env.prod.example` | Placeholder de variables de producción (JWT_SECRET, JWT_EXPIRES_IN, REDIS_PASSWORD, TUNNEL_TOKEN) |
 | `AGENTS.md` | Marco de trabajo para agentes: regla de actualización del CI al crear tests |
 
 ### §21.3 Dockerfile
@@ -1274,7 +1308,7 @@ merge del PR a main ─────► CI ──► si pasa ──► build de i
 - **Usuario no root:** `USER node`.
 - **Volumen `/data`:** directorio completo para SQLite (el motor crea `-wal`
   y `-shm` junto al `.db`).
-- **Sin secretos horneados:** `SESSION_SECRET`, `PORT`, etc. vía variables de
+- **Sin secretos horneados:** `JWT_SECRET`, `REDIS_PASSWORD`, `PORT`, etc. vía variables de
   entorno en tiempo de ejecución.
 - **Comando de arranque:** `CMD ["node", "dist/app.js"]` (`package.json` start).
 
@@ -1288,14 +1322,19 @@ Archivo: `.github/workflows/ci-cd.yml`.
   - `push` a `main`
   - `push` a `dev`
   - `pull_request` hacia `main`
+- **Servicio `redis`** (`redis:7-alpine`, healthcheck `redis-cli ping`):
+  necesario para `test:cart` (spec §24).
+- **Env del job:** `REDIS_URL=redis://localhost:6379/15` y `JWT_SECRET` de CI.
 - Pasos:
   1. `actions/checkout@v4`
   2. `actions/setup-node@v4` con Node 22, `cache: npm`
   3. `npm ci`
   4. `npm run build`
   5. `npm run test:checkout` (tests T1–T7 del checkout, spec §19.6)
-  6. `npm run test:middlewares` (caracterización M1–M18, spec §22; requiere el
+  6. `npm run test:middlewares` (caracterización M1–M22, spec §22; requiere el
      build del paso 4)
+  7. `npm run test:auth` (autenticación/autorización A1–A8, spec §23)
+  8. `npm run test:cart` (carrito en Redis C1–C6, spec §24; usa el servicio Redis)
 - **Permisos:** `contents: read` (mínimos).
 
 **Job `publish` (Build & push Docker image):**
@@ -1318,17 +1357,24 @@ Archivo: `.github/workflows/ci-cd.yml`.
 ### §21.5 docker-compose.prod.yml
 
 - Servicio `tienda`: imagen `ghcr.io/<usuario>/<repo>:latest`, `restart: unless-stopped`,
-  variables desde `.env`, volumen nombrado `tienda-data:/data` y **sin `ports`**
-  (el servidor está detrás de Cloudflare Tunnel).
+  variables desde `.env`, volumen nombrado `tienda-data:/data`, **sin `ports`**
+  (detrás de Cloudflare Tunnel) y `depends_on: redis` (healthy). Recibe
+  `REDIS_URL=redis://:<REDIS_PASSWORD>@redis:6379`.
+- Servicio `redis` (spec §24): `redis:7-alpine`, `--appendonly yes` + volumen
+  `redis-data` (persistencia del carrito), `--maxmemory 128mb` +
+  `--maxmemory-policy noeviction` (no descartar carritos), `--requirepass` y
+  healthcheck `redis-cli ping`. **Sin `ports`**: solo red interna de Compose.
 - Servicio `cloudflared`: `cloudflare/cloudflared:latest`, comando
   `tunnel --no-autoupdate run`, `TUNNEL_TOKEN` desde `.env`.
-- Volumen `tienda-data` para persistencia de SQLite.
+- Volúmenes `tienda-data` (SQLite) y `redis-data` (Redis).
 
 ### §21.6 Variables de producción
 
 | Variable | Propósito | Dónde se define |
 |---|---|---|
-| `SESSION_SECRET` | Secreto de express-session | `.env` en el servidor (ver `.env.prod.example`) |
+| `JWT_SECRET` | Secreto de firma de JWT (≥ 32 chars) | `.env` en el servidor (ver `.env.prod.example`) |
+| `JWT_EXPIRES_IN` | Vida del access token (default `2h`) | `.env` o default |
+| `REDIS_PASSWORD` | Contraseña de Redis; compose arma `REDIS_URL` | `.env` en el servidor |
 | `TUNNEL_TOKEN` | Token de Cloudflare Tunnel | `.env` en el servidor (ver `.env.prod.example`) |
 | `PORT` | Puerto (default 3000, heredado de §16) | `.env` o default |
 | `DB_PATH` | Ruta de la DB (default `/data/shop.db`, heredado de §16) | `.env` o default |
@@ -1348,7 +1394,7 @@ nuevos que considere pertinentes para CI, debe:
 ### §21.8 Primer arranque en el servidor
 
 ```bash
-# 1. Crear .env con SESSION_SECRET y TUNNEL_TOKEN (ver .env.prod.example)
+# 1. Crear .env con JWT_SECRET, REDIS_PASSWORD y TUNNEL_TOKEN (ver .env.prod.example)
 # 2. Iniciar los servicios
 docker compose -f docker-compose.prod.yml up -d
 
@@ -1380,10 +1426,10 @@ sin cambiar el comportamiento (verificado con `npm run test:middlewares`).
 ```
 src/middlewares/
 ├── global/
-│   ├── base.middleware.ts                   ← static + body parsers + layouts (librería)
-│   ├── session.middleware.ts                ← express-session + SqliteStore
-│   └── inject-cart-count.middleware.ts      ← res.locals.cartCount
+│   └── base.middleware.ts                   ← helmet + static + body parsers + layouts
 ├── route/
+│   ├── authenticate.middleware.ts           ← exige JWT, deja req.user (§23.3)
+│   ├── authorize.middleware.ts              ← autorización por rol (§23.6)
 │   └── validate-id.middleware.ts            ← validateId(param) + validateCollectionId
 └── error/
     ├── not-found.middleware.ts              ← 404 catch-all
@@ -1417,26 +1463,25 @@ configuración propia no trivial, vive en `global/session.middleware.ts`.
 Este orden es un contrato: cada paso depende de los anteriores.
 
 ```
-1. baseMiddlewares      (static primero → los assets no pasan por la sesión)
-2. sessionMiddleware    (injectCartCount necesita req.session)
-3. globales propios      (injectCartCount)
-4. vistas / app.locals   (view engine, view root, layout, fallbackImageUrl)
-5. docsRouter            (/api-docs antes del 404, §10)
-6. routers               (páginas y API)
-7. notFound              (después de TODAS las rutas, §6.1)
-8. errorHandler          (último de todos, §6.2)
+1. baseMiddlewares      (helmet → static → body parsers → layouts)
+2. vistas / app.locals   (view engine, view root, layout, fallbackImageUrl)
+3. docsRouter            (/api-docs antes del 404, §10)
+4. routers               (páginas y API; las protegidas usan authenticate/authorize)
+5. notFound              (después de TODAS las rutas, §6.1)
+6. errorHandler          (último de todos, §6.2)
 ```
 
 Dentro de `baseMiddlewares` el orden interno también es contrato:
-`static → json → urlencoded → expressLayouts` (el orden que tenía `app.ts`).
+`helmet → static → json → urlencoded → expressLayouts`.
+
+> ⚠️ **Actualizado (spec §24):** el contrato pierde los pasos de `sessionMiddleware`
+> y `injectCartCount` al eliminarse la sesión.
 
 ### §22.5 Middlewares e inventario
 
 | Middleware | Origen | Definición | Montaje | Alcance real | Grupo | ¿SPEC previa? |
 |---|---|---|---|---|---|---|
-| `express.static`, `express.json`, `express.urlencoded`, `expressLayouts` | librería | `global/base.middleware.ts` | `app.ts` (`baseMiddlewares`) | global | global | parcial (§14/§15/§6.14) |
-| `sessionMiddleware` (express-session + SqliteStore) | librería | `global/session.middleware.ts` | `app.ts` | global | global | §6.4/§11 |
-| `injectCartCount` | propio | `global/inject-cart-count.middleware.ts` | `app.ts` | global | global | §6.11 |
+| `helmet`, `express.static`, `express.json`, `express.urlencoded`, `expressLayouts` | librería | `global/base.middleware.ts` | `app.ts` (`baseMiddlewares`) | global | global | parcial (§14/§15/§6.14/§24) |
 | `validateId(param)` | propio | `route/validate-id.middleware.ts` | `routes/api/cart.routes.ts` y `routes/api/orders.routes.ts` | `/api/cart/*/:productId` y `/api/orders/:id` | route | §6.9 |
 | `validateCollectionId` | propio | `route/validate-id.middleware.ts` | `routes/api/{products,categories}.routes.ts` | `/api/{colecciones}/:segmento` | route | §6.9 (deuda) |
 | `authenticate` | propio | `route/authenticate.middleware.ts` | `routes/api/auth.routes.ts` (me) y `routes/api/orders.routes.ts` | rutas protegidas | route | §23.3 |
@@ -1539,7 +1584,8 @@ existe (`GET /me`).
 - **Sin revocación:** con JWT puro el logout solo borra el token del cliente; un
   token robado vale hasta su `exp`. Por eso la vida es corta.
 - **XSS es el riesgo principal:** el token vive en `localStorage`, legible por JS.
-  Mitigaciones: escapar siempre con `<%= %>`, vida corta y `helmet`/CSP (parte 3).
+  Mitigaciones: escapar siempre con `<%= %>`, vida corta y `helmet`/CSP (ya
+  activo en `baseMiddlewares`, spec §24).
 - **CSRF desaparece:** sin cookies no hay credencial automática que falsificar.
 - El rol viaja en el token; quitárselo a alguien conserva el permiso hasta que
   expire.
@@ -1580,6 +1626,69 @@ crea con rol `admin` e `INSERT OR IGNORE` (idempotente).
 
 ---
 
+## §24. Carrito en Redis y arquitectura stateless
+
+> **Sección nueva** (issue #97, parte 3/3). Elimina `express-session` y la
+> persistencia de sesión en SQLite; el carrito pasa a Redis y toda la app queda
+> **stateless** (JWT). Reemplaza §6.4 y §11.
+
+### §24.1 Modelo del carrito
+
+- Un **Hash de Redis por usuario**: `cart:<userId>`, campo = `productId`, valor
+  = cantidad. Solo ids y cantidades; **nunca** precios ni el producto completo.
+- `HINCRBY` es atómico: dos clics simultáneos no se pisan (el
+  leer-modificar-guardar de la sesión sí podía). Cantidad `<= 0` elimina el ítem.
+- TTL de 30 días sin actividad. Los precios y subtotales se recalculan
+  **siempre** desde SQLite (`cart.service.getCartWithDetails`); los productos
+  huérfanos se descartan y se limpian del Hash (self-healing).
+- `src/repositories/cart.repository.ts` es el **único** lugar que conoce Redis
+  (regla del §0, enmendada). Redis solo se usa en carrito/checkout: si cae, el
+  catálogo y el login siguen funcionando.
+- **El carrito requiere login**: la clave es el `userId` del JWT, así que todas
+  las rutas `/api/cart/*` exigen `authenticate`.
+
+### §24.2 Endpoints
+
+| Endpoint | Protegido | Notas |
+|---|---|---|
+| `GET /api/cart` | Sí | Carga inicial + contador del header. |
+| `POST /api/cart/add/:productId` | Sí | Igual que antes (existencia/stock en el controller). |
+| `PATCH /api/cart/increase|decrease/:productId` | Sí | `validateId` encadenado. |
+| `DELETE /api/cart/remove/:productId` | Sí | — |
+| `DELETE /api/cart/clear` | Sí | — |
+| `GET /api/checkout` | Sí | `{ checkoutToken, cart }`. |
+| `POST /api/checkout` | Sí | `201 { confirmationToken }`; líneas **siempre** de Redis. |
+| `GET /checkout/confirmation/:token` | No | SSR; el token de 128 bits es la credencial (D7). |
+
+- El checkout lee el carrito de Redis **antes** de la transacción SQLite y lo
+  limpia **después** del commit (D1/D2/D3 intactas, §19.7).
+- `checkoutService.createOrder(lines, dto, userId)`: recibe el usuario real;
+  `ensureGuestUser` (D5) se eliminó.
+
+### §24.3 Frontend
+
+- `public/js/cart.js`: usa `window.Auth.fetch`; hidrata el contador y el carrito
+  con `GET /api/cart`; clona `#cart-item-template` (en `pages/cart.ejs`) y
+  rellena cada fila conservando los `data-*` del §5. Sin token, «agregar»
+  redirige a `/login?next=…`.
+- `public/js/checkout.js`: carga el token y el resumen con `GET /api/checkout` y
+  envía el form por `fetch` a `POST /api/checkout`; en éxito redirige a la
+  confirmación. `checkout-validation.js` (§19) sigue validando antes.
+- Las páginas `/cart` y `/checkout` son **cascarones**: el servidor ya no conoce
+  al usuario sin token.
+
+### §24.4 Infraestructura
+
+- `docker-compose.prod.yml` agrega el servicio `redis` (`redis:7-alpine`) con
+  `--appendonly yes` + volumen `redis-data`, `--maxmemory-policy noeviction`,
+  `--requirepass ${REDIS_PASSWORD}` y healthcheck; `tienda` espera
+  `depends_on: redis (healthy)` y recibe `REDIS_URL`.
+- `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` (spec §23.6) se definen solo para el
+  primer `npm run seed` y luego se quitan.
+- El `Dockerfile` no cambia: `ioredis` y `bcryptjs` son JS puro.
+
+---
+
 ## Tabla de equivalencias — `§` original → `SPEC.md`
 
 | `§` original (spec sprint 1) | `§` en `SPEC.md` | Estado |
@@ -1617,6 +1726,7 @@ crea con rol `admin` e `INSERT OR IGNORE` (idempotente).
 | — (nuevo) | §21 CI/CD y despliegue | Nuevo |
 | — (nuevo) | §22 Arquitectura de middlewares | Nuevo |
 | — (nuevo) | §23 Autenticación y autorización (JWT) | Nuevo |
+| — (nuevo) | §24 Carrito en Redis y arquitectura stateless | Nuevo |
 
 ---
 
@@ -1642,6 +1752,7 @@ crea con rol `admin` e `INSERT OR IGNORE` (idempotente).
 | 2026-10-11 | Este PR / issue #91 | Arquitectura de middlewares (§22): reorganización en `global/route/error`, base y sesión extraídos de `app.ts`, tests M1–M18 en CI y bug de validación de colecciones documentado como deuda | — |
 | 2026-10-11 | Este PR / issue #93 | Autenticación JWT stateless (§23, parte 1/3): `authService` (register/login/me), middleware `authenticate`, API `/api/auth/*`, `role` en `users`, frontend de login/registro con token y tests A1–A6 en CI | — |
 | 2026-10-11 | Este PR / issue #95 | Autorización (§23.6, parte 2/3): middleware `authorize` por rol, ownership de órdenes (`GET /api/orders` y `/:id`), `orderService`, seed de admin por env y tests A7–A8 | — |
+| 2026-10-11 | Este PR / issue #97 | Carrito en Redis y stateless (§24, parte 3/3): `cart.repository` (Hash + TTL), carrito/checkout autenticados por API JSON, `helmet`, eliminación de `express-session` y de `injectCartCount`, compose con Redis, tests C1–C6 y M1–M22 actualizados | — |
 
 ---
 

@@ -57,6 +57,16 @@ Antes de instalar el proyecto, asegurate de tener instalado en tu sistema:
   - Descargalas desde [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
   - Durante la instalación, seleccioná el workload **"Desktop development with C++"**
 
+- **Redis** (carrito, spec §24). En desarrollo podés levantarlo con Docker:
+
+  ```bash
+  docker run -d --name redis-dev -p 6379:6379 redis:7-alpine
+  ```
+
+  La URL se configura con `REDIS_URL` (default `redis://localhost:6379`). Si Redis
+  no está disponible, el carrito y el checkout fallan; el catálogo y el login
+  siguen funcionando.
+
 ## Instalación
 
 1. Clona el repositorio
@@ -85,7 +95,7 @@ Este comando instala las dependencias, crea el archivo `.env` desde `.env.exampl
 
 `npm run init` te deja el archivo `.env` creado en la raíz, listo para editar.
 
-> Ya no hay claves externas que pedir: `SESSION_SECRET` generala con un valor aleatorio largo (por ejemplo, la salida de `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`) y no la compartas públicamente. `FALLBACK_IMAGE_URL` puede dejarse con el valor por defecto.
+> Variables principales: `JWT_SECRET` generala con un valor aleatorio largo (por ejemplo, la salida de `openssl rand -hex 48`) y no la compartas públicamente; `REDIS_URL` apunta a tu Redis local; `FALLBACK_IMAGE_URL` puede dejarse con el valor por defecto. No hay cookies de sesión: la autenticación es JWT.
 
 5. Inicia el servidor de desarrollo
 
@@ -118,8 +128,9 @@ npm run build
 | `npm run build`            | Compilación de producción a `dist/`                          |
 | `npm run seed`             | Carga los datos de ejemplo (idempotente)                     |
 | `npm run test:checkout`    | Tests del checkout T1–T7 (DB temporal)                       |
-| `npm run test:middlewares` | Tests de caracterización de middlewares M1–M18 (DB temporal) |
-| `npm run test:auth`        | Tests de autenticación JWT A1–A6 (DB temporal)               |
+| `npm run test:middlewares` | Tests de caracterización de middlewares M1–M22 (DB temporal) |
+| `npm run test:auth`        | Tests de autenticación/autorización A1–A8 (DB temporal)      |
+| `npm run test:cart`        | Tests del carrito en Redis C1–C6 (DB temporal + Redis `/15`) |
 | `npm run build:docs`       | Regenera `docs/` (TypeDoc + grafo, requiere Graphviz)        |
 
 ## Tests
@@ -128,6 +139,7 @@ npm run build
 npm run test:checkout
 npm run test:middlewares
 npm run test:auth
+npm run test:cart
 ```
 
 `npm run test:checkout` corre los tests del checkout (`scripts/test-checkout.ts`,
@@ -135,13 +147,21 @@ casos T1–T7: stock, rollback, idempotencia por token, precio congelado, carrer
 multi-proceso y validación).
 
 `npm run test:middlewares` levanta la app como proceso hijo y verifica el
-comportamiento de los middlewares (`scripts/test-middlewares.ts`, casos M1–M18:
-contador del carrito, cookies de sesión, 404, validación de ids, estáticos,
-Swagger, body parsers y el error handler). Requiere `npm run build` previo.
+comportamiento de los middlewares (`scripts/test-middlewares.ts`, casos M1–M22:
+contador del carrito, stateless sin cookies, helmet/CSP, 404, validación de ids,
+estáticos, Swagger, body parsers, autenticación y el error handler). Requiere
+`npm run build` previo.
 
-`npm run test:auth` verifica la autenticación JWT (`scripts/test-auth.ts`, casos
-A1–A6: registro, email repetido y su carrera, validación, login, credenciales
-inválidas y `/api/auth/me` con tokens válidos/ausentes/expirados/manipulados).
+`npm run test:auth` verifica la autenticación/autorización JWT
+(`scripts/test-auth.ts`, casos A1–A8: registro, email repetido y su carrera,
+validación, login, credenciales inválidas, `/api/auth/me` con tokens
+válidos/ausentes/expirados/manipulados, `authorize` por rol y ownership de
+órdenes).
+
+`npm run test:cart` verifica el carrito en Redis (`scripts/test-cart.ts`, casos
+C1–C6: aislamiento entre usuarios, `HINCRBY` concurrente, eliminación al llegar
+a 0, persistencia, precios recalculados desde SQLite y vaciado tras el checkout).
+Necesita Redis y usa la base `/15`; solo hace `FLUSHDB` si la URL apunta ahí.
 
 Ambos usan una **DB temporal** — nunca tocan `dev.db` — y su exit code es ≠ 0
 si algo falla.
@@ -158,7 +178,7 @@ El proyecto está dockerizado y se publica automáticamente en **GitHub Containe
 ### Primer arranque en el servidor
 
 ```bash
-# 1. Crear .env con SESSION_SECRET y TUNNEL_TOKEN (ver .env.prod.example)
+# 1. Crear .env con JWT_SECRET, REDIS_PASSWORD y TUNNEL_TOKEN (ver .env.prod.example)
 # 2. Iniciar servicios
 docker compose -f docker-compose.prod.yml up -d
 
@@ -174,5 +194,5 @@ docker compose pull && docker compose up -d
 
 > **Nota:** el servidor está detrás de un Cloudflare Tunnel; no expone puertos.
 > La base de datos SQLite persiste en un volumen Docker nombrado (`tienda-data`).
-> Las variables de entorno (`SESSION_SECRET`, `PORT`, `DB_PATH`, `FALLBACK_IMAGE_URL`)
+> Las variables de entorno (`JWT_SECRET`, `JWT_EXPIRES_IN`, `REDIS_PASSWORD`, `PORT`, `DB_PATH`, `FALLBACK_IMAGE_URL`)
 > se configuran en `.env`, nunca en la imagen.
