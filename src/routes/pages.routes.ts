@@ -38,8 +38,10 @@ router.get("/cart", pagesController.getCart); // render inicial (spec §6.4), mu
 // por id). El param se llama :token para no chocar con normalizeId (solo
 // cubre /api/(products|categories|orders)/:id).
 router.get("/checkout", checkoutController.showCheckout);
-router.post("/checkout", checkoutController.submitCheckout);
-router.get("/checkout/confirmation/:token", checkoutController.showConfirmation);
+router.get(
+  "/checkout/confirmation/:token",
+  checkoutController.showConfirmation,
+);
 
 // Login/Register (spec §4.4/§4.5, Paso 9): atomic templates from the new tree
 

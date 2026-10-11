@@ -12,16 +12,6 @@ function parsePort(rawPort: string | undefined, defaultPort: number): number {
   return isNaN(parsed) || !rawPort ? defaultPort : parsed;
 }
 
-/**
- * Obtiene el valor de una variable de entorno de texto, asegurando una cadena vacía por defecto.
- *
- * @param {string | undefined} rawValue - Valor de la variable de entorno.
- * @returns {string} Texto leído de la variable o `""` si es indefinido.
- */
-function getEnvString(rawValue: string | undefined): string {
-  return rawValue ?? "";
-}
-
 const DEFAULT_FALLBACK_IMAGE_URL =
   "https://placehold.co/600x600?text=Sin+imagen";
 
@@ -73,6 +63,26 @@ function parseJwtSecret(
 }
 
 /**
+ * Resuelve la URL de Redis (spec §24). En producción es obligatoria; en
+ * desarrollo cae a `redis://localhost:6379`.
+ *
+ * @param {string | undefined} rawValue - Valor de `REDIS_URL`.
+ * @param {boolean} isProduction - `true` si `NODE_ENV === "production"`.
+ * @returns {string} URL de conexión a Redis.
+ * @throws {Error} Si en producción falta `REDIS_URL`.
+ */
+function parseRedisUrl(
+  rawValue: string | undefined,
+  isProduction: boolean,
+): string {
+  const value = rawValue?.trim() ?? "";
+  if (!value && isProduction) {
+    throw new Error("[env] REDIS_URL es obligatorio en producción");
+  }
+  return value || "redis://localhost:6379";
+}
+
+/**
  * Construye el objeto de configuración tipado a partir del entorno global.
  *
  * @param {NodeJS.ProcessEnv} envVars - Objeto global de variables de entorno (`process.env`).
@@ -82,9 +92,9 @@ function createEnvConfig(envVars: NodeJS.ProcessEnv) {
   const isProduction = envVars.NODE_ENV === "production";
   return {
     port: parsePort(envVars.PORT, 3000),
-    sessionSecret: getEnvString(envVars.SESSION_SECRET),
     jwtSecret: parseJwtSecret(envVars.JWT_SECRET, isProduction),
     jwtExpiresIn: envVars.JWT_EXPIRES_IN?.trim() || "2h",
+    redisUrl: parseRedisUrl(envVars.REDIS_URL, isProduction),
     images: {
       fallbackUrl: parseImageUrl(envVars.FALLBACK_IMAGE_URL),
     },
