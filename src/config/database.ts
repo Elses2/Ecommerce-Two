@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer','admin')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -147,6 +148,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
   for (const [column, ddl] of orderColumns) {
     addColumnIfMissing(database, "orders", column, ddl);
   }
+
+  // Migración aditiva (spec §23.1): rol del usuario para autorización. Las DBs
+  // existentes se migran con default 'customer'; las nuevas ya nacen con la
+  // columna en el DDL de arriba.
+  addColumnIfMissing(
+    database,
+    "users",
+    "role",
+    "role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer','admin'))",
+  );
 
   // Índice UNIQUE sobre checkout_token (spec §1.1 / §19): SQLite permite varios
   // NULL en un índice único — las órdenes sin token confirmado conviven y los
