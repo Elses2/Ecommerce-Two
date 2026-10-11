@@ -18,6 +18,9 @@ services:
     environment:
       # Redis del carrito (spec §24); la clave se define una sola vez en .env.
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      # Cookie de sesión (spec §21.5, enmienda cookie httpOnly): true solo
+      # detrás de HTTPS, junto a CSP_UPGRADE_INSECURE=true.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
       # CSP (spec §22.2): default false para deploys por http://IP:PUERTO. Si el
       # sitio va por HTTPS, poner CSP_UPGRADE_INSECURE=true en .env.
       CSP_UPGRADE_INSECURE: ${CSP_UPGRADE_INSECURE:-false}

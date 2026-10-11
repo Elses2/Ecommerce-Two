@@ -95,7 +95,7 @@ Este comando instala las dependencias, crea el archivo `.env` desde `.env.exampl
 
 `npm run init` te deja el archivo `.env` creado en la raíz, listo para editar.
 
-> Variables principales: `JWT_SECRET` generala con un valor aleatorio largo (por ejemplo, la salida de `openssl rand -hex 48`) y no la compartas públicamente; `REDIS_URL` apunta a tu Redis local; `CSP_UPGRADE_INSECURE` queda en `false` por defecto (ponelo en `true` **solo** detrás de HTTPS, porque si accedés por `http://IP:PUERTO` el navegador subiría `/css` y `/js` a `https` y la página saldría sin estilos); `FALLBACK_IMAGE_URL` puede dejarse con el valor por defecto. No hay cookies de sesión: la autenticación es JWT.
+> Variables principales: `JWT_SECRET` generala con un valor aleatorio largo (por ejemplo, la salida de `openssl rand -hex 48`) y no la compartas públicamente; `REDIS_URL` apunta a tu Redis local; `FALLBACK_IMAGE_URL` puede dejarse con el valor por defecto; `COOKIE_SECURE` queda en `false` salvo que sirvas detrás de HTTPS (si la activás y entrás por `http://`, la cookie se descarta y la sesión no se mantiene); `CSP_UPGRADE_INSECURE` queda en `false` por defecto (ponelo en `true` **solo** detrás de HTTPS, porque si accedés por `http://IP:PUERTO` el navegador subiría `/css` y `/js` a `https` y la página saldría sin estilos). La autenticación es JWT y viaja en una cookie `httpOnly` (spec §23).
 
 5. Inicia el servidor de desarrollo
 
@@ -128,8 +128,8 @@ npm run build
 | `npm run build`            | Compilación de producción a `dist/`                          |
 | `npm run seed`             | Carga los datos de ejemplo (idempotente)                     |
 | `npm run test:checkout`    | Tests del checkout T1–T7 (DB temporal)                       |
-| `npm run test:middlewares` | Tests de caracterización de middlewares M1–M22 (DB temporal) |
-| `npm run test:auth`        | Tests de autenticación/autorización A1–A8 (DB temporal)      |
+| `npm run test:middlewares` | Tests de caracterización de middlewares M1–M26 (DB temporal) |
+| `npm run test:auth`        | Tests de autenticación/autorización A1–A11 (DB temporal)      |
 | `npm run test:cart`        | Tests del carrito en Redis C1–C6 (DB temporal + Redis `/15`) |
 | `npm run build:docs`       | Regenera `docs/` (TypeDoc + grafo, requiere Graphviz)        |
 
@@ -147,16 +147,17 @@ casos T1–T7: stock, rollback, idempotencia por token, precio congelado, carrer
 multi-proceso y validación).
 
 `npm run test:middlewares` levanta la app como proceso hijo y verifica el
-comportamiento de los middlewares (`scripts/test-middlewares.ts`, casos M1–M22:
+comportamiento de los middlewares (`scripts/test-middlewares.ts`, casos M1–M26:
 contador del carrito, stateless sin cookies, helmet/CSP, 404, validación de ids,
-estáticos, Swagger, body parsers, autenticación y el error handler). Requiere
+estáticos, Swagger, body parsers, autenticación (header o cookie), attachUser,
+páginas protegidas, CSRF por origen, logout y el error handler). Requiere
 `npm run build` previo.
 
-`npm run test:auth` verifica la autenticación/autorización JWT
-(`scripts/test-auth.ts`, casos A1–A8: registro, email repetido y su carrera,
-validación, login, credenciales inválidas, `/api/auth/me` con tokens
-válidos/ausentes/expirados/manipulados, `authorize` por rol y ownership de
-órdenes).
+`npm run test:auth` verifica la autenticación/autorización JWT con cookie
+`httpOnly` (`scripts/test-auth.ts`, casos A1–A11: registro, email repetido y su
+carrera, validación, login, credenciales inválidas, `/api/auth/me` con tokens
+válidos/ausentes/expirados/manipulados, `authorize` por rol, ownership de
+órdenes, atributos de la cookie y logout, CSRF por origen y `COOKIE_SECURE`).
 
 `npm run test:cart` verifica el carrito en Redis (`scripts/test-cart.ts`, casos
 C1–C6: aislamiento entre usuarios, `HINCRBY` concurrente, eliminación al llegar
@@ -194,5 +195,6 @@ docker compose pull && docker compose up -d
 
 > **Nota:** el servidor está detrás de un Cloudflare Tunnel; no expone puertos.
 > La base de datos SQLite persiste en un volumen Docker nombrado (`tienda-data`).
-> Las variables de entorno (`JWT_SECRET`, `JWT_EXPIRES_IN`, `REDIS_PASSWORD`, `CSP_UPGRADE_INSECURE`, `PORT`, `DB_PATH`, `FALLBACK_IMAGE_URL`)
+> Las variables de entorno (`JWT_SECRET`, `JWT_EXPIRES_IN`, `REDIS_PASSWORD`, `PORT`, `DB_PATH`, `FALLBACK_IMAGE_URL`, `COOKIE_SECURE`, `CSP_UPGRADE_INSECURE`)
+
 > se configuran en `.env`, nunca en la imagen.

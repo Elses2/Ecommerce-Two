@@ -104,6 +104,32 @@ function parseBoolean(rawValue: string | undefined, fallback = false): boolean {
 }
 
 /**
+ * Parsea el flag booleano `COOKIE_SECURE` (spec §16, enmienda §21.5/§21.6).
+ *
+ * NO depende de `NODE_ENV`: se pone en `true` solo detrás de HTTPS, igual
+ * que `CSP_UPGRADE_INSECURE` (§22.2). Un valor inválido o ausente cae a
+ * `false` y, en producción, se avisa por consola (los despliegues por HTTP
+ * son válidos).
+ *
+ * @param {string | undefined} rawValue - Valor de `COOKIE_SECURE`.
+ * @param {boolean} isProduction - `true` si `NODE_ENV === "production"`.
+ * @returns {boolean} `true` solo si el valor parseado es verdadero.
+ */
+function parseCookieSecure(
+  rawValue: string | undefined,
+  isProduction: boolean,
+): boolean {
+  const secure = parseBoolean(rawValue, false);
+  if (isProduction && !secure) {
+    console.warn(
+      "[env] COOKIE_SECURE=false en producción. Activá COOKIE_SECURE=true detrás de HTTPS " +
+        "(junto a CSP_UPGRADE_INSECURE=true); por http:// el navegador descarta la cookie.",
+    );
+  }
+  return secure;
+}
+
+/**
  * Construye el objeto de configuración tipado a partir del entorno global.
  *
  * @param {NodeJS.ProcessEnv} envVars - Objeto global de variables de entorno (`process.env`).
@@ -120,6 +146,8 @@ function createEnvConfig(envVars: NodeJS.ProcessEnv) {
     // por http://IP:PUERTO necesita false, o el navegador sube los assets a
     // https y la página queda sin estilos.
     cspUpgradeInsecure: parseBoolean(envVars.CSP_UPGRADE_INSECURE, false),
+    // Cookie de sesión (spec §16, enmienda §23.1/C5): true solo detrás de HTTPS.
+    cookieSecure: parseCookieSecure(envVars.COOKIE_SECURE, isProduction),
     images: {
       fallbackUrl: parseImageUrl(envVars.FALLBACK_IMAGE_URL),
     },

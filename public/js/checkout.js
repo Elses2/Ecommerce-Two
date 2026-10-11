@@ -1,7 +1,9 @@
-// Checkout client (spec §19/§24): carga el token de idempotencia y el resumen
-// por GET /api/checkout (con el JWT) y envía el formulario por fetch a
-// POST /api/checkout. Sin cookies, el servidor no puede renderizar el carrito
-// del usuario: la página es un cascarón que este script hidrata.
+// Checkout client (spec §19/§24, enmienda cookie httpOnly): carga el token de
+// idempotencia y el resumen por GET /api/checkout y envía el formulario por
+// fetch a POST /api/checkout. La cookie `auth_token` viaja sola (fetch con
+// credentials: "same-origin"); la página /checkout ya está protegida por
+// `requirePageAuth` (302 del servidor si no hay sesión), así que este script
+// solo maneja el 401 de una sesión vencida a mitad de navegación (Auth.fetch).
 //
 // La validación cliente de §19 (checkout-validation.js) corre antes y marca
 // `defaultPrevented` cuando hay errores; acá se respeta.
@@ -54,10 +56,7 @@
   }
 
   async function loadCheckout(form) {
-    if (!window.Auth || !window.Auth.getToken()) {
-      window.location.href = "/login?next=" + encodeURIComponent("/checkout");
-      return;
-    }
+    if (!window.Auth) return;
     try {
       const res = await window.Auth.fetch("/api/checkout");
       if (!res.ok) return;

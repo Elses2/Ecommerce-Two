@@ -1,36 +1,22 @@
 /*
- * Auth client (spec §23): token JWT en localStorage, `Auth.fetch` que adjunta
- * `Authorization: Bearer`, wiring de los formularios de login/registro por
- * `fetch` JSON y render del header (invitado vs usuario).
+ * Auth client (spec §23.4, enmienda cookie httpOnly): con la cookie
+ * `auth_token` el navegador envía la sesión sola; este archivo ya no guarda
+ * ni adjunta el token. Solo queda:
+ *  - `Auth.fetch`: fetch con `credentials: "same-origin"`; un 401 manda al
+ *    login (sesión vencida a mitad de navegación).
+ *  - Wiring de formularios `[data-auth-form]` (login/registro): fetch JSON
+ *    normal (un 401 de credenciales inválidas se muestra en `data-auth-error`,
+ *    no redirige) y en éxito redirige a `next` validado.
+ *  - Logout `[data-auth-logout]`: `POST /api/auth/logout` y a `/`.
+ *  - Limpieza única: el token de la versión anterior (localStorage) no debe
+ *    quedar legible.
  *
- * Sin cookies: el token vive en localStorage y se manda a mano. El servidor
- * sigue siendo la autoridad; esto es solo el cliente.
- *
- * Cargado en layout.ejs ANTES de cart.js para que `window.Auth` exista cuando
- * el carrito lo use.
+ * Cargado en layout.ejs ANTES de cart.js para que `window.Auth` exista.
  */
 (function () {
   "use strict";
 
   var TOKEN_KEY = "auth_token";
-  var USER_KEY = "auth_user";
-
-  function readStorage(key) {
-    try {
-      return window.localStorage.getItem(key);
-    } catch (_err) {
-      return null;
-    }
-  }
-
-  function writeStorage(key, value) {
-    try {
-      if (value === null) window.localStorage.removeItem(key);
-      else window.localStorage.setItem(key, value);
-    } catch (_err) {
-      /* modo incógnito o storage bloqueado: degradar sin romper */
-    }
-  }
 
   function safeNext(value) {
     // Evita open redirect: solo rutas internas ("/...") y nunca "//host".
@@ -45,62 +31,21 @@
   }
 
   var Auth = {
-    getToken: function () {
-      return readStorage(TOKEN_KEY);
-    },
-    setToken: function (token) {
-      writeStorage(TOKEN_KEY, token);
-    },
-    getUser: function () {
-      var raw = readStorage(USER_KEY);
-      if (!raw) return null;
-      try {
-        return JSON.parse(raw);
-      } catch (_err) {
-        return null;
-      }
-    },
-    setUser: function (user) {
-      writeStorage(USER_KEY, user ? JSON.stringify(user) : null);
-    },
-    clear: function () {
-      writeStorage(TOKEN_KEY, null);
-      writeStorage(USER_KEY, null);
-    },
-
     /**
-     * fetch con el token adjunto. Un 401 con token enviado limpia la sesión y
-     * redirige a /login (nunca para llamadas sin token, p. ej. el login mismo).
+     * fetch con la cookie de sesión. Solo un 401 redirige al login: es la
+     * sesión vencida a mitad de navegación, no un error del endpoint.
      */
     fetch: async function (url, options) {
       var opts = options || {};
-      var token = Auth.getToken();
-      var headers = Object.assign({}, opts.headers || {});
-      if (token) headers.Authorization = "Bearer " + token;
       var res = await window.fetch(
         url,
-        Object.assign({}, opts, { headers: headers }),
+        Object.assign({}, opts, { credentials: "same-origin" }),
       );
-      if (res.status === 401 && token) {
-        Auth.clear();
+      if (res.status === 401) {
         window.location.href =
           "/login?next=" + encodeURIComponent(window.location.pathname);
       }
       return res;
-    },
-
-    renderHeader: function () {
-      var user = Auth.getUser();
-      var nameEls = document.querySelectorAll("[data-auth-name]");
-      var logoutEls = document.querySelectorAll("[data-auth-logout]");
-      var profileEls = document.querySelectorAll("[data-auth-profile]");
-      var label = user && user.name ? user.name : "Invitado";
-      for (var i = 0; i < nameEls.length; i++) nameEls[i].textContent = label;
-      for (var j = 0; j < logoutEls.length; j++)
-        logoutEls[j].classList.toggle("hidden", !user);
-      for (var k = 0; k < profileEls.length; k++) {
-        profileEls[k].setAttribute("href", user ? "#" : "/login");
-      }
     },
   };
 
@@ -160,14 +105,14 @@
         var res = await window.fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
           body: JSON.stringify(formValues(form)),
         });
         var data = await res.json().catch(function () {
           return {};
         });
-        if (res.ok && data.token) {
-          Auth.setToken(data.token);
-          Auth.setUser(data.user || null);
+        if (res.ok) {
+          // La cookie ya está puesta (httpOnly); solo hay que navegar al next.
           window.location.href = currentNext();
           return;
         }
@@ -188,25 +133,27 @@
     for (var i = 0; i < els.length; i++) {
       els[i].addEventListener("click", function (event) {
         event.preventDefault();
-        Auth.clear();
-        window.location.href = "/";
+        // La cookie la borra el servidor (C9); el navegador no puede.
+        window
+          .fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" })
+          .then(function () {
+            window.location.href = "/";
+          })
+          .catch(function () {
+            // Sin red: igual se navega (la cookie quedará y expirará sola).
+            window.location.href = "/";
+          });
       });
     }
   }
 
-  async function hydrateUser() {
-    if (!Auth.getToken()) {
-      Auth.setUser(null);
-      return;
-    }
+  function cleanupLegacyToken() {
+    // Limpieza única: el token de la versión anterior (localStorage) no debe
+    // seguir legible por XSS. Falla silenciosamente sin storage.
     try {
-      var res = await Auth.fetch("/api/auth/me");
-      if (res.ok) {
-        var data = await res.json();
-        Auth.setUser(data.user || null);
-      }
+      window.localStorage.removeItem(TOKEN_KEY);
     } catch (_err) {
-      /* sin red: se conserva el usuario cacheado */
+      /* sin storage */
     }
   }
 
@@ -214,8 +161,7 @@
     var forms = document.querySelectorAll("[data-auth-form]");
     for (var i = 0; i < forms.length; i++) initAuthForm(forms[i]);
     initLogout();
-    Auth.renderHeader();
-    hydrateUser().then(Auth.renderHeader);
+    cleanupLegacyToken();
   }
 
   if (typeof document !== "undefined") {

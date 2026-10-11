@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-11** (CSP `upgrade-insecure-requests` configurable §16/§22.2)
+> - Última actualización: **2026-10-11** (cookie httpOnly para el JWT §23/§24; CSP configurable §16/§22.2)
 > - Rama base de referencia: `dev`
 
 ---
@@ -128,11 +128,13 @@ Reglas ya acordadas que **deben respetarse** en todo lo que sigue:
 - **Atom/Molecule** → sin datos reales, reciben todo por props/variables EJS.
 - **Organism** → puede tener datos reales inyectados por el controller.
 - `routes/api/*` existe para toda funcionalidad que el cliente consume con
-  `fetch` + token (hoy: auth, §23; el carrito y el checkout se suman en las
-  siguientes partes). Sin cookies, el servidor no conoce al usuario en una
-  navegación normal, así que no puede renderizar páginas por usuario; las
-  páginas protegidas serán cascarones y su JS pedirá los datos por `fetch`.
-  Todo lo demás usa `res.render` / `res.redirect` desde `controllers/pages`.
+  `fetch` + la cookie de autenticación (hoy: auth, §23; carrito y checkout,
+  §24). Con la cookie `httpOnly` (§23.1, enmienda), el servidor conoce al
+  usuario en una navegación normal (`attachUser`), así que las páginas
+  protegidas se resuelven **en el servidor** (`requirePageAuth`, 302). El
+  contenido dinámico (carrito, checkout) sigue hidratándose con `fetch` desde
+  `controllers/api`. Todo lo demás usa `res.render` / `res.redirect` desde
+  `controllers/pages`.
 - La API se documenta con Swagger en `/api-docs` (ver §10).
 
 ---
@@ -414,9 +416,9 @@ El input de usuario es `type="email" name="email"` por dentro (la tabla
 "usuario", es cosmético.
 
 **Envío (spec §23.4):** `data-auth-form` + `data-auth-endpoint="/api/auth/login"`;
-`public/js/auth.js` intercepta el submit, envía JSON por `fetch`, guarda el
-token en `localStorage` y redirige a `?next` (validado). El `action`/`method`
-quedan como fallback sin JS.
+`public/js/auth.js` intercepta el submit, envía JSON por `fetch` (la cookie
+`httpOnly` la pone el servidor: la respuesta ya no trae token y el JS solo
+navega a `?next` validado). El `action`/`method` quedan como fallback sin JS.
 
 ### §4.5 Register
 
@@ -427,7 +429,8 @@ referencia por esos nombres.
 
 **Envío (spec §23.4):** `data-auth-form` + `data-auth-endpoint="/api/auth/register"`.
 La validación cliente de §6.3 corre primero (marca `defaultPrevented`); si pasa,
-`auth.js` manda JSON a la API. El server sigue siendo la autoridad.
+`auth.js` manda JSON a la API (la cookie la pone el servidor). El server sigue
+siendo la autoridad.
 
 ### §4.6 Páginas sin mockup todavía
 
@@ -470,8 +473,14 @@ generan **junto con** el HTML del componente:
 | Errores del checkout | `data-checkout-errors` | `pages/checkout.ejs` | `checkout.js` (400 del server) |
 | Formulario de login/registro | `data-auth-form` `data-auth-endpoint` | `<form>` en `pages/login.ejs` / `pages/register.ejs` | `auth.js` (§23.4) |
 | Caja de errores de auth | `data-auth-error` | `<div role="alert">` en los forms de auth | `auth.js` (400/409/401 del server) |
-| Botón de logout | `data-auth-logout` | `<button>` (header, oculto por defecto) | `auth.js` |
-| Botón de perfil | `data-auth-profile` `data-auth-name` | `molecules/profile-btn.ejs` (span del nombre) | `auth.js` (hidrata invitado/usuario) |
+| Botón de logout | `data-auth-logout` | `<button>` (header, solo renderizado si hay usuario) | `auth.js` (POST /api/auth/logout, C9) |
+| Estado de sesión en `<body>` | `data-logged-in="true\|false"` | `templates/layout.ejs` | `cart.js` (¿hay sesión? para el carrito, §24.3) y páginas |
+
+> **Nota — perfil (spec §23.4, enmienda cookie httpOnly):** el botón de perfil
+> (`profile-btn.ejs`) y el nombre del header ya **no** se hidratan por JS: los
+> pinta el servidor (`attachUser` → `res.locals.user`, §23.3). Por eso los
+> atributos `data-auth-profile` y `data-auth-name` anteriores quedaron
+> obsoletos y se eliminaron.
 
 > **Nota — link extendido (2026-10-07):** la card de producto
 > (`molecules/product.ejs`) contiene un `<a href="/products/<id>">` en el
@@ -647,10 +656,12 @@ export function normalizeId(raw: string): number | null {
 
 ### §6.11 Total del carrito en el header
 
-**100 % client-side (spec §24).** Sin cookies el servidor no conoce al usuario
-en una navegación normal, así que no puede calcular el contador al renderizar.
-`public/js/cart.js` pide `GET /api/cart` al cargar la página y actualiza todos
-los `[data-cart-count]`; tras cada mutación del carrito usa el `count` del JSON.
+**100 % client-side (spec §24).** El contador del header se rellena con
+`GET /api/cart` al cargar la página y tras cada mutación (`cart.js` actualiza
+los `[data-cart-count]` con el `count` del JSON). Se mantiene client-side para
+no meter a Redis en cada render de página (C7): si Redis cae, las páginas
+siguen funcionando. Con la cookie httpOnly, la página sabe si hay sesión por
+`data-logged-in` y `cart.js` solo hidrata con sesión.
 > ⚠️ **Reemplazado:** el antiguo middleware `injectCartCount` (server-side) se
 > eliminó con la sesión.
 
@@ -764,24 +775,28 @@ Requisitos de alto nivel (para cuando se aborde):
 - `src/routes/docs.routes.ts` — router que sirve Swagger UI en `/api-docs`.
 - `src/app.ts` monta `docsRouter` en `/api-docs` antes del catch-all 404.
 - `securitySchemes.bearerAuth` (`type: http, scheme: bearer, bearerFormat: JWT`)
-  y schemas `User`, `AuthResponse`, `RegisterRequest`, `LoginRequest`, `Order`,
+  y `securitySchemes.cookieAuth` (`type: apiKey, in: cookie, name: auth_token`,
+  enmienda cookie httpOnly), y schemas `User`, `AuthResponse` (sin `token`:
+  solo `user`, C2), `RegisterRequest`, `LoginRequest`, `Order`,
   `OrderItem` (spec §23).
 - Rutas de auth: `POST /api/auth/register`, `POST /api/auth/login`,
-  `GET /api/auth/me` (protegida con bearer). Rutas de órdenes: `GET /api/orders`
+  `POST /api/auth/logout` (204, borra la cookie, C9) y `GET /api/auth/me`
+  (protegida con bearer). Rutas de órdenes: `GET /api/orders`
   y `GET /api/orders/:id` (protegidas con bearer, §23.6). Rutas del carrito:
   `GET /api/cart` + las 5 de mutación (todas con bearer, §24). Rutas del
   checkout: `GET /api/checkout` y `POST /api/checkout` (con bearer, §24).
 - Bloques `@swagger` con annotations en los handlers:
-  - `src/controllers/api/auth.controller.ts` — 3 endpoints (`register`, `login`, `me`).
+  - `src/controllers/api/auth.controller.ts` — 4 endpoints (`register`, `login`,
+    `logout`, `me`).
   - `src/controllers/api/order.controller.ts` — 2 endpoints (`list`, `getById`).
   - `src/controllers/api/checkout.controller.ts` — 2 endpoints (`showCheckout`, `submitCheckout`).
   - `src/controllers/api/cart.controller.ts` — 6 endpoints (`getCart`, `addItem`,
     `increaseItem`, `decreaseItem`, `removeItem`, `clearCart`).
   - `src/controllers/pages/pages.controller.ts` — 6 endpoints (`getHome`,
-    `getCart` (cascarón, §24), `getProductDetail`, `getCategory`, `getProducts`,
+    `getCart` (con `requirePageAuth`, §24.3), `getProductDetail`, `getCategory`, `getProducts`,
     `searchProducts`).
   - `src/controllers/pages/checkout.controller.ts` — 2 endpoints
-    (`showCheckout` (cascarón), `showConfirmation`; ver §19/§24).
+    (`showCheckout` (con `requirePageAuth`, §24.3), `showConfirmation`; ver §19/§24).
 
 **Nota:** swagger-jsdoc lee los bloques `@swagger` de los archivos listados
 en `apis`; los `@param` de TypeScript normales **no** son leídos por
@@ -882,7 +897,7 @@ src/
 │   │   ├── checkout.controller.ts  ← GET/POST /api/checkout (§24)
 │   │   └── cart.controller.ts      ← carrito por usuario en Redis (§24)
 │   └── pages/
-│       ├── checkout.controller.ts  ← cascarón + confirmación por token (§24)
+│       ├── checkout.controller.ts  ← página con sesión + confirmación por token (§24.3)
 │       └── pages.controller.ts     ← handlers de páginas SSR
 ├── middlewares/
 │   ├── global/
@@ -922,6 +937,7 @@ src/
 ├── models/                         ← interfaces de datos (user, product, category, cart, order, orderItem, productCategory)
 ├── dtos/                           ← Data Transfer Objects (product.dto, cart.dto, auth.dto, checkout.dto)
 ├── utils/
+│   ├── auth-cookie.ts              ← cookie httpOnly auth_token: set/clear/extract (§23.1)
 │   ├── category-icons.ts           ← mapeo categoría → ícono Lucide
 │   ├── normalizeId.ts              ← helper puro de validación de IDs
 │   └── errors.ts                   ← OutOfStockError, ProductNotFoundError (§19)
@@ -1007,6 +1023,7 @@ fueron eliminadas en el PR #51.
 | `JWT_EXPIRES_IN` | Vida del access token JWT | `"2h"` | formato de `jsonwebtoken` (`2h`, `30m`, `7d`) |
 | `CSP_UPGRADE_INSECURE` | Fuerza HTTPS en subrecursos (`upgrade-insecure-requests`) | `false` | booleano (`true/1/yes/on`, `false/0/no/off`); inválido → warning + `false` |
 | `FALLBACK_IMAGE_URL` | Imagen fallback de productos | `https://placehold.co/600x600?text=Sin+imagen` | URL `http(s)://...` o ruta que empiece con `/`; si falta/inválida → warning + default |
+| `COOKIE_SECURE` | Cookie httpOnly con `Secure` (§23.1/C5, enmienda) | `false` | booleano (`true/1/yes/on`, `false/0/no/off`); si falta o es inválido → warning + `false`. Se activa **solo detrás de HTTPS** |
 | `DB_PATH` | Ruta del archivo SQLite | `dev.db` en la raíz del proyecto | si falta o está vacía → default; los tests de checkout usan una DB temporal (§19.6) |
 
 `.env.example`:
@@ -1020,6 +1037,10 @@ REDIS_URL=redis://localhost:6379
 JWT_SECRET=cambiar_por_un_secreto_largo_y_aleatorio_de_al_menos_32_chars
 # Vida del access token JWT (formato de jsonwebtoken: "2h", "30m", "7d").
 JWT_EXPIRES_IN=2h
+# Cookie de sesión con Secure (spec §16/§23.1): true SOLO detrás de HTTPS. Si se
+# pone true y se entra por http://IP:PUERTO, el navegador descarta la cookie y
+# el login parece funcionar pero la sesión no se mantiene.
+COOKIE_SECURE=false
 # CSP (spec §22.2): forzar HTTPS en subrecursos (upgrade-insecure-requests).
 # Default false. Ponelo en true SOLO detrás de HTTPS; con acceso por http://IP:PUERTO
 # debe quedar false, o el navegador pide /css y /js por https y la página sale sin estilos.
@@ -1040,6 +1061,8 @@ FALLBACK_IMAGE_URL=https://placehold.co/600x600?text=Sin+imagen
 `REDIS_PASSWORD` y (si el sitio va por **HTTP**, p. ej. `http://IP:PUERTO`)
 `CSP_UPGRADE_INSECURE=false` (default) en `.env`; `docker-compose.prod.yml` arma
 `REDIS_URL` (`redis://:<password>@redis:6379`) y no expone Redis al host.
+Detrás de HTTPS se activa `COOKIE_SECURE=true` (junto a
+`CSP_UPGRADE_INSECURE=true`, spec §23.1/C5 y §22.2).
 
 ---
 
@@ -1103,11 +1126,13 @@ en el plan de ejecución (no re-discutir):
 
 ### §19.2 Flujo
 
-> ⚠️ **Actualizado (spec §24):** el checkout es **API JSON autenticada**.
-> `GET /api/checkout` devuelve `{ checkoutToken, cart }` y `POST /api/checkout`
-> crea la orden. La página `/checkout` es un cascarón que hidrata `checkout.js`.
-> La confirmación por token (D7) sigue siendo SSR y pública. Los pasos de abajo
-> describen el flujo original con form POST.
+> ⚠️ **Actualizado (spec §24 y enmienda cookie httpOnly):** el checkout es
+> **API JSON autenticada**. `GET /api/checkout` devuelve `{ checkoutToken, cart }`
+> y `POST /api/checkout` crea la orden. La página `/checkout` exige sesión
+> (`requirePageAuth`, 302 a `/login`) y `checkout.js` hidrata su contenido
+> (resumen + token) con `GET /api/checkout`. La confirmación por token (D7)
+> sigue siendo SSR y pública. Los pasos de abajo describen el flujo original
+> con form POST.
 
 1. `GET /checkout` → `checkoutController.showCheckout`: carrito vacío →
    redirect `/cart`; genera un `checkoutToken` nuevo
@@ -1202,9 +1227,12 @@ síncrono. Redis nunca entra dentro de la transacción (D1/D2/D3 intactas).
 
 ### §19.8 Limitaciones y deuda conocida
 
-- **Sin CSRF**: `POST /api/checkout` no valida token CSRF.
-  > ✅ **Cerrado por diseño (spec §24):** sin cookies no hay credencial ambiente
-  > que falsificar; el token es de idempotencia, no de origen.
+- **CSRF**: con cookie `httpOnly` vuelve a ser relevante; se mitiga (C4) con
+  `SameSite=Lax` + el middleware global `csrfOrigin` (§23.5): bloquea
+  mutaciones con `Origin` ajeno, deja pasar cliente no navegador (curl,
+  tests).
+  > ⚠️ **Reemplazado (spec §23.5):** el cierre «sin cookies» del §24 quedó
+  > obsoleto al migrar el JWT a cookie; ver §23.5.
 - **`price`/`total` son `REAL`**: posible pérdida de precisión con decimales;
   el total se redondea a 2 decimales al crear la orden. Migrar a `INTEGER`
   (centavos) es una mejora futura.
@@ -1365,7 +1393,8 @@ Archivo: `.github/workflows/ci-cd.yml`.
 - Servicio `tienda`: imagen `ghcr.io/<usuario>/<repo>:latest`, `restart: unless-stopped`,
   variables desde `.env`, volumen nombrado `tienda-data:/data`, **sin `ports`**
   (detrás de Cloudflare Tunnel) y `depends_on: redis` (healthy). Recibe
-  `REDIS_URL=redis://:<REDIS_PASSWORD>@redis:6379` y
+  `REDIS_URL=redis://:<REDIS_PASSWORD>@redis:6379`, `COOKIE_SECURE`
+  (`${COOKIE_SECURE:-false}`, enmienda cookie httpOnly §23.1/C5) y
   `CSP_UPGRADE_INSECURE` (default `false`).
 - Servicio `redis` (spec §24): `redis:7-alpine`, `--appendonly yes` + volumen
   `redis-data` (persistencia del carrito), `--maxmemory 128mb` +
@@ -1384,6 +1413,7 @@ Archivo: `.github/workflows/ci-cd.yml`.
 | `REDIS_PASSWORD` | Contraseña de Redis; compose arma `REDIS_URL` | `.env` en el servidor |
 | `CSP_UPGRADE_INSECURE` | `true` solo detrás de HTTPS; `false` para `http://IP:PUERTO` (default `false`) | `.env` o default |
 | `TUNNEL_TOKEN` | Token de Cloudflare Tunnel | `.env` en el servidor (ver `.env.prod.example`) |
+| `COOKIE_SECURE` | Cookie httpOnly con `Secure` (§23.1/C5); `true` solo detrás de HTTPS | `.env` o default `false` (ver `.env.prod.example`) |
 | `PORT` | Puerto (default 3000, heredado de §16) | `.env` o default |
 | `DB_PATH` | Ruta de la DB (default `/data/shop.db`, heredado de §16) | `.env` o default |
 | `FALLBACK_IMAGE_URL` | URL de imagen por defecto (heredado de §16) | `.env` o default |
@@ -1434,10 +1464,13 @@ sin cambiar el comportamiento (verificado con `npm run test:middlewares`).
 ```
 src/middlewares/
 ├── global/
-│   └── base.middleware.ts                   ← helmet + static + body parsers + layouts
+│   ├── base.middleware.ts                   ← helmet + static + cookieParser + body parsers + layouts
+│   ├── attach-user.middleware.ts            ← identidad blanda (req.user / res.locals.user, §23.3)
+│   └── csrf-origin.middleware.ts            ← CSRF por origen en mutaciones (§23.5, C4)
 ├── route/
-│   ├── authenticate.middleware.ts           ← exige JWT, deja req.user (§23.3)
+│   ├── authenticate.middleware.ts           ← exige JWT (header o cookie), deja req.user (§23.3)
 │   ├── authorize.middleware.ts              ← autorización por rol (§23.6)
+│   ├── require-page-auth.middleware.ts      ← 302 a /login?next para páginas (§24.3)
 │   └── validate-id.middleware.ts            ← validateId(param) + validateCollectionId
 └── error/
     ├── not-found.middleware.ts              ← 404 catch-all
@@ -1477,28 +1510,36 @@ configuración propia no trivial, vive en `global/session.middleware.ts`.
 Este orden es un contrato: cada paso depende de los anteriores.
 
 ```
-1. baseMiddlewares      (helmet → static → body parsers → layouts)
-2. vistas / app.locals   (view engine, view root, layout, fallbackImageUrl)
-3. docsRouter            (/api-docs antes del 404, §10)
-4. routers               (páginas y API; las protegidas usan authenticate/authorize)
-5. notFound              (después de TODAS las rutas, §6.1)
-6. errorHandler          (último de todos, §6.2)
+1. baseMiddlewares      (helmet → static → cookieParser → json → urlencoded → layouts)
+2. attachUser           (global, blando: identidad para vistas y páginas)
+3. csrfOrigin           (global: mutaciones con origen ajeno → 403)
+4. vistas / app.locals   (view engine, view root, layout, fallbackImageUrl)
+5. docsRouter            (/api-docs antes del 404, §10)
+6. routers               (páginas y API; las protegidas usan authenticate /
+                         requirePageAuth)
+7. notFound              (después de TODAS las rutas, §6.1)
+8. errorHandler          (último de todos, §6.2)
 ```
 
 Dentro de `baseMiddlewares` el orden interno también es contrato:
-`helmet → static → json → urlencoded → expressLayouts`.
+`helmet → static → cookieParser → json → urlencoded → expressLayouts`.
 
-> ⚠️ **Actualizado (spec §24):** el contrato pierde los pasos de `sessionMiddleware`
-> y `injectCartCount` al eliminarse la sesión.
+> ⚠️ **Actualizado (spec §24 + enmienda cookie httpOnly):** el contrato suma
+> `attachUser` y `csrfOrigin` entre los middlewares base y las vistas, y
+> `cookieParser` dentro de `baseMiddlewares`; las páginas protegidas
+> (`/cart`, `/checkout`) usan `requirePageAuth`.
 
 ### §22.5 Middlewares e inventario
 
 | Middleware | Origen | Definición | Montaje | Alcance real | Grupo | ¿SPEC previa? |
 |---|---|---|---|---|---|---|
-| `helmet`, `express.static`, `express.json`, `express.urlencoded`, `expressLayouts` | librería | `global/base.middleware.ts` | `app.ts` (`baseMiddlewares`) | global | global | parcial (§14/§15/§6.14/§24) |
+| `helmet`, `express.static`, `cookieParser`, `express.json`, `express.urlencoded`, `expressLayouts` | librería | `global/base.middleware.ts` | `app.ts` (`baseMiddlewares`) | global | global | parcial (§14/§15/§6.14/§24/§23.1) |
+| `attachUser` | propio | `global/attach-user.middleware.ts` | `app.ts` (`app.use`) | global, blando: identidad para vistas | global | §23.3 (enmienda cookie httpOnly) |
+| `csrfOrigin` | propio | `global/csrf-origin.middleware.ts` | `app.ts` (`app.use`) | global: mutaciones con origen ajeno → 403 | global | §23.5 (C4, enmienda) |
 | `validateId(param)` | propio | `route/validate-id.middleware.ts` | `routes/api/cart.routes.ts` y `routes/api/orders.routes.ts` | `/api/cart/*/:productId` y `/api/orders/:id` | route | §6.9 |
 | `validateCollectionId` | propio | `route/validate-id.middleware.ts` | `routes/api/{products,categories}.routes.ts` | `/api/{colecciones}/:segmento` | route | §6.9 (deuda) |
-| `authenticate` | propio | `route/authenticate.middleware.ts` | `routes/api/auth.routes.ts` (me) y `routes/api/orders.routes.ts` | rutas protegidas | route | §23.3 |
+| `authenticate` | propio | `route/authenticate.middleware.ts` | `routes/api/auth.routes.ts` (me) y `routes/api/orders.routes.ts` | rutas protegidas | route | §23.3 (header o cookie, C3) |
+| `requirePageAuth` | propio | `route/require-page-auth.middleware.ts` | `routes/pages.routes.ts` (`/cart`, `/checkout`) | páginas con sesión | route | §24.3 (enmienda) |
 | `authorize(...roles)` | propio | `route/authorize.middleware.ts` | sin endpoints admin todavía (cubierto por A7) | rutas admin | route | §23.6 |
 | `notFound` | propio | `error/not-found.middleware.ts` | `app.ts` | terminal | error | §6.1 |
 | `errorHandler` | propio | `error/error-handler.middleware.ts` | `app.ts` | terminal último | error | §6.2 |
@@ -1538,9 +1579,12 @@ sigue siendo deuda: cambiaría el baseline M7/M8/M9 de
 ## §23. Autenticación y autorización (JWT)
 
 > **Sección nueva** (issue #93, parte 1 de 3). Autenticación JWT **stateless**:
-> sin cookies ni sesiones. La autorización por rol/propiedad llega en la parte 2.
+> sin sesiones en el servidor; el JWT viaja en una cookie `httpOnly` (enmienda
+> de la decisión «sin cookies» del §24: la cookie es solo el medio de
+> transporte, el servidor no guarda nada). La autorización por rol/propiedad
+> llega en la parte 2.
 
-### §23.1 Configuración y claims
+### §23.1 Configuración, claims y cookie
 
 - `env.jwtSecret` (de `JWT_SECRET`) y `env.jwtExpiresIn` (de `JWT_EXPIRES_IN`,
   default `2h`). En producción `JWT_SECRET` es obligatorio y **≥ 32 caracteres**;
@@ -1548,17 +1592,25 @@ sigue siendo deuda: cambiaría el baseline M7/M8/M9 de
   firmar tokens válidos).
 - Firma **HS256**; al verificar se fija `algorithms: ["HS256"]` para evitar
   ataques de cambio de algoritmo.
-- El payload solo lleva `sub` (id) y `role`; el token es legible, nunca datos
-  sensibles. El `role` viaja en el token (ver limitaciones §23.5).
+- El payload lleva `sub` (id), `role` y `name` (C6); es legible, nunca datos
+  sensibles. El `name` se agrega para pintar el header sin consultar la base
+  (la cookie no es legible por JS).
 - Contraseñas con `bcrypt` (cost 12). Se valida máximo **72** caracteres porque
   bcrypt trunca silenciosamente a 72 bytes.
+- **Cookie `auth_token` (C1):** `httpOnly`, `SameSite=Lax`, `Path=/` y
+  `Secure` según `COOKIE_SECURE` (§16/C5; solo detrás de HTTPS). Sin prefijo
+  `__Host-` (exige `Secure` y hoy se sirve por HTTP). Utilidades en
+  `src/utils/auth-cookie.ts` (`setAuthCookie`, `clearAuthCookie`, `extractToken`).
+- **C8:** la vida de la cookie se deriva del `exp` del token (`maxAge`), no se
+  duplica la duración; sin renovación deslizante (2 h, `JWT_EXPIRES_IN`).
 
 ### §23.2 Endpoints y service
 
 | Endpoint | Protegido | Respuestas |
 |---|---|---|
-| `POST /api/auth/register` | No | `201 { user, token }` · `400 { errors }` · `409 { errors }` |
-| `POST /api/auth/login` | No | `200 { user, token }` · `401 { errors }` |
+| `POST /api/auth/register` | No | `201 { user }` + cookie · `400 { errors }` · `409 { errors }` |
+| `POST /api/auth/login` | No | `200 { user }` + cookie · `401 { errors }` |
+| `POST /api/auth/logout` | No | `204` (borra la cookie, C9) |
 | `GET /api/auth/me` | Sí | `200 { user }` · `401 { error }` |
 
 - `src/services/auth.service.ts` (`authService`): no conoce Express ni SQL (regla
@@ -1570,37 +1622,62 @@ sigue siendo deuda: cambiaría el baseline M7/M8/M9 de
 - Login usa un hash falso cuando el email no existe para tardar lo mismo en
   ambos casos (no enumera usuarios) y devuelve el mismo mensaje.
 - `PublicUser` nunca incluye `password_hash`.
+- **C2:** las respuestas de login/registro **no** contienen `token` en el body;
+  el JWT viaja solo en la cookie. El controller (`auth.controller.ts`) llama
+  `setAuthCookie` en éxito y `clearAuthCookie` en `logout`.
 - `src/repositories/user.repository.ts`: `findByEmail`, `findById`, `create`;
-  `ensureGuestUser` sigue vivo hasta migrar el checkout (§19/D5).
+  `ensureGuestUser` quedó eliminado con el checkout autenticado (§19/D5).
 
-### §23.3 Middleware `authenticate`
+### §23.3 Middlewares `authenticate`, `attachUser` y `requirePageAuth`
 
-`src/middlewares/route/authenticate.middleware.ts` (spec §22.3: exigir auth es
-middleware **de ruta**). Verifica `Authorization: Bearer <jwt>` y deja
-`req.user = { id, role }` (tipado en `src/types/express.d.ts`). Responde 401 con
-`{ error }` si falta el header, el token es inválido/expiró o el usuario ya no
-existe (`GET /me`).
+- `src/middlewares/route/authenticate.middleware.ts` (spec §22.3: exigir auth es
+  middleware **de ruta**). Verifica el token con `extractToken` (C3): header
+  `Authorization: Bearer <jwt>` si viene, si no la cookie `auth_token`. Deja
+  `req.user = { id, role }` (tipado en `src/types/express.d.ts`). Responde 401
+  con `{ error }` si falta, es inválido o expiró (`GET /me`).
+- `src/middlewares/global/attach-user.middleware.ts` (global, **blando**):
+  verifica el mismo token (header o cookie) y deja `req.user` y
+  `res.locals.user = { id, name, role }` para las vistas. Si falta o es
+  inválido, deja `null` y **no falla**.
+- `src/middlewares/route/require-page-auth.middleware.ts`: para páginas con
+  sesión (`/cart`, `/checkout`): si `attachUser` no dejó `req.user` → **302** a
+  `/login?next=<req.originalUrl codificado>`. El 302 lo emite el servidor, sin
+  parpadeo ni hidratación.
 
 ### §23.4 Frontend
 
-- `public/js/auth.js` (cargado en `layout.ejs` **antes** de `cart.js`): guarda el
-  token en `localStorage`, expone `window.Auth` (con `Auth.fetch`, que adjunta el
-  bearer y en 401 limpia y redirige a `/login?next=`), hidrata el header y maneja
-  los formularios `[data-auth-form]` y el logout `[data-auth-logout]`.
+- `public/js/auth.js` (cargado en `layout.ejs` **antes** de `cart.js`): mínimo.
+  Expone `window.Auth` (con `Auth.fetch`, que usa `credentials: "same-origin"`
+  y en 401 redirige a `/login?next=`), maneja los formularios `[data-auth-form]`
+  (fetch JSON normal: un 401 de credenciales inválidas se muestra en
+  `data-auth-error`, no redirige), el logout `[data-auth-logout]`
+  (`POST /api/auth/logout` y a `/`) y hace una **limpieza única** del token
+  legacy en `localStorage` (ya no se guarda ni se lee). El header **no se
+  hidrata**: lo pinta el servidor (`res.locals.user`, §23.3).
 - El `next` se valida (solo rutas internas que empiezan con `/` y no con `//`)
-  para evitar open redirect.
+  para evitar open redirect; el `next` del servidor sale de `req.originalUrl`.
 - Los formularios de §4.4/§4.5 mandan JSON a la API; `register-validation.js`
   (§6.3) corre antes y el server sigue siendo la autoridad.
-- Nuevos `data-*` documentados en §5.
+- **`cart.js` / `checkout.js` (§24.3):** la sesión se lee de
+  `document.body.dataset.loggedIn` (`data-logged-in`, §5); sin sesión,
+  «Agregar» guarda `{ productId }` en `sessionStorage` (`pending_cart_add`) y
+  redirige a `/login?next=...&reason=cart`; al cargar con sesión y acción
+  pendiente, la ejecuta.
 
-### §23.5 Limitaciones (documentadas)
+### §23.5 Limitaciones (documentadas) y CSRF
 
-- **Sin revocación:** con JWT puro el logout solo borra el token del cliente; un
-  token robado vale hasta su `exp`. Por eso la vida es corta.
-- **XSS es el riesgo principal:** el token vive en `localStorage`, legible por JS.
-  Mitigaciones: escapar siempre con `<%= %>`, vida corta y `helmet`/CSP (ya
-  activo en `baseMiddlewares`, spec §24).
-- **CSRF desaparece:** sin cookies no hay credencial automática que falsificar.
+- **Sin revocación:** con JWT puro el logout solo borra la cookie del cliente;
+  un token robado vale hasta su `exp`. Por eso la vida es corta (C8/C9).
+- **XSS deja de leer el token:** con cookie `httpOnly` el token ya no vive en
+  `localStorage`. Mitigaciones vigentes: escapar siempre con `<%= %>`, vida
+  corta y `helmet`/CSP (ya activo en `baseMiddlewares`, spec §24).
+- **CSRF (C4):** con cookie, el navegador manda la credencial sola, así que
+  vuelve a ser un riesgo. Se mitiga sin librería: `SameSite=Lax` + el
+  middleware global `csrfOrigin` (`src/middlewares/global/csrf-origin.middleware.ts`)
+  bloquea mutaciones (`POST/PUT/PATCH/DELETE`) con `Origin` ajeno (403) y
+  rechaza `Sec-Fetch-Site: cross-site` sin `Origin`; sin `Origin` ni
+  `Sec-Fetch-Site` (curl, tests, clientes no navegador) deja pasar. Los `GET`
+  nunca se bloquean y **ningún GET tiene efectos secundarios**.
 - El rol viaja en el token; quitárselo a alguien conserva el permiso hasta que
   expire.
 
@@ -1681,15 +1758,19 @@ crea con rol `admin` e `INSERT OR IGNORE` (idempotente).
 
 ### §24.3 Frontend
 
-- `public/js/cart.js`: usa `window.Auth.fetch`; hidrata el contador y el carrito
-  con `GET /api/cart`; clona `#cart-item-template` (en `pages/cart.ejs`) y
-  rellena cada fila conservando los `data-*` del §5. Sin token, «agregar»
-  redirige a `/login?next=…`.
+- `public/js/cart.js`: usa `window.Auth.fetch` (cookie incluida); hidrata el
+  contador y el carrito con `GET /api/cart`; clona `#cart-item-template` (en
+  `pages/cart.ejs`) y rellena cada fila conservando los `data-*` del §5. Sin
+  sesión (`data-logged-in="false"`, §23.3), «agregar» guarda la intención en
+  `sessionStorage` (`pending_cart_add`) y redirige a `/login?next=…&reason=cart`;
+  al volver con sesión la ejecuta (enmienda cookie httpOnly).
 - `public/js/checkout.js`: carga el token y el resumen con `GET /api/checkout` y
   envía el form por `fetch` a `POST /api/checkout`; en éxito redirige a la
   confirmación. `checkout-validation.js` (§19) sigue validando antes.
-- Las páginas `/cart` y `/checkout` son **cascarones**: el servidor ya no conoce
-  al usuario sin token.
+- Las páginas `/cart` y `/checkout` **ya no son cascarones de auth**: el
+  servidor las protege con `requirePageAuth` (302 a `/login?next=`, sin
+  parpadeo) y siguen hidratando su **contenido** (carrito, resumen) con
+  `GET /api/cart` y `GET /api/checkout` (enmienda cookie httpOnly, §23.3).
 
 ### §24.4 Infraestructura
 
@@ -1768,6 +1849,7 @@ crea con rol `admin` e `INSERT OR IGNORE` (idempotente).
 | 2026-10-11 | Este PR / issue #95 | Autorización (§23.6, parte 2/3): middleware `authorize` por rol, ownership de órdenes (`GET /api/orders` y `/:id`), `orderService`, seed de admin por env y tests A7–A8 | — |
 | 2026-10-11 | Este PR / issue #97 | Carrito en Redis y stateless (§24, parte 3/3): `cart.repository` (Hash + TTL), carrito/checkout autenticados por API JSON, `helmet`, eliminación de `express-session` y de `injectCartCount`, compose con Redis, tests C1–C6 y M1–M22 actualizados | — |
 | 2026-10-11 | Este PR / issue #102 | CSP `upgrade-insecure-requests` configurable por `CSP_UPGRADE_INSECURE` (default `false`); `script-src-attr` para los `onerror` inline; docs en §16/§21.5/§21.6/§22.2 y compose; test M23 | — |
+| 2026-10-11 | Este PR / issue #105 | Cookie httpOnly para el JWT (enmienda §23/§24): `auth_token` (`httpOnly`, `SameSite=Lax`, `Secure` según `COOKIE_SECURE`), sin token en el body (C2), `attachUser`/`csrfOrigin`/`requirePageAuth`, header SSR sin hidratación, `auth.js` mínimo con limpieza del token legacy, tests A1–A11 y M1–M23+M24–M27 | `decision-auth-cookie-httponly.md` |
 
 ---
 
