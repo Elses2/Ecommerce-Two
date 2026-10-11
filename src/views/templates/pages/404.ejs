@@ -8,8 +8,9 @@
   // Nota de rutas: el spec nombra `views/pages/404.ejs` (árbol legacy); el
   // árbol atómico del proyecto renderiza desde `views/templates/pages`
   // (mismo intento, misma herencia de layout.ejs vía express-ejs-layouts).
-  // Se invoca con res.status(404) desde el catch-all de app.ts (§6.1) y
-  // desde pagesController.getProductDetail (producto inexistente, §6.9).
+  // Se invoca con res.status(404) desde el catch-all
+  // middlewares/error/not-found.middleware.ts (§6.1) y desde
+  // pagesController.getProductDetail (producto inexistente, §6.9).
 %>
 <section class="flex min-h-[60vh] items-center justify-center px-4 py-16">
   <div class="flex w-full max-w-sm flex-col items-center rounded-2xl bg-white p-6 text-center shadow-md md:p-8">

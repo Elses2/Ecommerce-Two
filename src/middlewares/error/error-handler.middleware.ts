@@ -1,11 +1,15 @@
 import type { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 
 /**
+ * @fileoverview Middleware terminal de errores (spec §6.2).
+ */
+
+/**
  * Middleware global para la gestión de errores de la aplicación.
  *
  * // errorHandler (spec §6.2): captura errores lanzados y responde según el
  * // tipo de request; debe montarse siempre al final (firma de 4 argumentos),
- * // después del 404 catch-all de app.ts.
+ * // después del 404 de `middlewares/error/not-found.middleware.ts`.
  * // - Logueo server-side con prefijo "Error interno:" (snippet del spec):
  * //   nunca se filtra err.message ni stack a la VISTA (validación clave §6.2).
  * // - /api/*: JSON, no HTML (los consumidores AJAX del carrito no deben

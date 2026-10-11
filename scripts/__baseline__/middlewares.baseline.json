@@ -54,9 +54,11 @@
       "setCookies": []
     },
     "m4": {
-      "setCookies": [
-        "connect.sid=s%3AdGfbiyUvdtzOQetsb1VQR9j7fuaxjhcJ.m7KY8bsKfeWu%2BlWqwsgoLsaKNxcTbfkxfHq7957avLw; Path=/; HttpOnly; SameSite=Lax"
-      ]
+      "hasConnectSid": true,
+      "httpOnly": true,
+      "sameSiteLax": true,
+      "hasMaxAge": false,
+      "hasExpires": false
     },
     "m5": {
       "status": 404,

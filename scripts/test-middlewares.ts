@@ -190,7 +190,7 @@ function mockRes(
 
 async function runErrorHandlerUnit(): Promise<void> {
   const { errorHandler } = await import(
-    "../src/middlewares/error-handler.middleware.js"
+    "../src/middlewares/error/error-handler.middleware.js"
   );
 
   await check("M15a: errorHandler renderiza 500 sin filtrar err.message al template", () => {
@@ -268,7 +268,15 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
   await check("M4: la cookie de sesión es HttpOnly, SameSite=Lax y sin Max-Age/Expires", async () => {
     const res = await request("POST", `${baseUrl}/api/cart/add/2`);
     const cookie = res.setCookies.find((c) => c.startsWith("connect.sid=")) ?? "";
-    observations.m4 = { setCookies: res.setCookies };
+    // El valor de connect.sid es aleatorio: se observan sus atributos, no el
+    // valor crudo, para que el snapshot del baseline sea determinista.
+    observations.m4 = {
+      hasConnectSid: cookie.length > 0,
+      httpOnly: /HttpOnly/i.test(cookie),
+      sameSiteLax: /SameSite=Lax/i.test(cookie),
+      hasMaxAge: /Max-Age/i.test(cookie),
+      hasExpires: /Expires/i.test(cookie),
+    };
     assert(cookie.length > 0, "emite connect.sid");
     assert(/HttpOnly/i.test(cookie), "HttpOnly presente");
     assert(/SameSite=Lax/i.test(cookie), "SameSite=Lax presente");

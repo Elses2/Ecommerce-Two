@@ -5,9 +5,11 @@ import { productService } from "../../services/product.service.js";
 /**
  * Parsea y valida el parámetro de ID del producto enviado en las peticiones HTTP.
  *
- * // §6.9: id no numérico → 400. El middleware normalizeId solo cubre rutas
- * // /api/{recurso}/:id — las de carrito son /api/cart/{verbo}/:productId y se
- * // validan acá (el segmento "clear" es estático, no un id).
+ * // §6.9: id no numérico → 400. El guard de colecciones
+ * // (`middlewares/route/validate-id.middleware.ts`) cubre /api/{recurso}/:id —
+ * // las de carrito son /api/cart/{verbo}/:productId y además de la factory
+ * // `validateId` encadenada en su router, se validan acá (el segmento "clear"
+ * // es estático, no un id).
  *
  * @param {string | string[] | undefined} raw - Valor obtenido de `req.params.productId`.
  * @returns {number | null} Retorna el ID numérico entero positivo o `null` si no es válido.

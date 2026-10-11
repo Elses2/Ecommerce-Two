@@ -1,6 +1,17 @@
 import type { NextFunction, Request, Response } from "express";
 
 /**
+ * @fileoverview Guard de ids de las colecciones API (spec §6.9). Vive en
+ * `middlewares/route/` porque valida el parámetro id de rutas concretas de
+ * `/api/{products|categories|orders}` — no es un middleware cross-cutting de
+ * páginas.
+ *
+ * FASE 3 del refactor (issue #91): solo se movió y renombró (`normalizeId` →
+ * `validateId`); la lógica y el montaje se mantienen intactos. La Fase 4 lo
+ * encadena en las rutas.
+ */
+
+/**
  * Patrón RegExp para identificar el parámetro ID en rutas específicas de la API.
  */
 const ID_PATH_PATTERN = /^\/api\/(products|categories|orders)\/([^/]+)$/;
@@ -22,7 +33,7 @@ const ID_PATH_PATTERN = /^\/api\/(products|categories|orders)\/([^/]+)$/;
  * @param {NextFunction} next - Función para continuar hacia el siguiente middleware o controller.
  * @returns {void}
  */
-export function normalizeId(req: Request, res: Response, next: NextFunction): void {
+export function validateId(req: Request, res: Response, next: NextFunction): void {
   // @types/express 5 tipa params/path como string | string[]
   const rawId = req.params.id;
   const routeId = Array.isArray(rawId) ? rawId[0] : rawId;

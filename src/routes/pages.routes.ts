@@ -24,9 +24,10 @@ router.get("/search", pagesController.searchProducts);
 router.get("/products/:id", pagesController.getProductDetail);
 
 // Categoría (spec §4.6/Paso 11): la URL canónica del spec para el listado por
-// categoría (§6.9: normalizeId aplica a ":id" numérico). Sin conflicto de
-// shadowing: no hay otra ruta /categories* en este router (las /api/categories
-// viven montadas bajo /api). El :categoryId lo valida el controller (§6.9).
+// categoría (§6.9: el helper normalizeId aplica a ":id" numérico). Sin
+// conflicto de shadowing: no hay otra ruta /categories* en este router (las
+// /api/categories viven montadas bajo /api). El :categoryId lo valida el
+// controller (§6.9).
 router.get("/categories/:categoryId", pagesController.getCategory);
 
 router.get("/cart", pagesController.getCart); // render inicial (spec §6.4), mutaciones por /api/cart

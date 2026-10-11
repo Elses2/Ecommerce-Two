@@ -8,9 +8,10 @@ import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
 import session from "express-session";
 import { env } from "./config/env.js";
-import { injectCartCount } from "./middlewares/injectCartCount.middleware.js";
-import { normalizeId } from "./middlewares/normalizeId.middleware.js";
-import { errorHandler } from "./middlewares/error-handler.middleware.js";
+import { injectCartCount } from "./middlewares/global/inject-cart-count.middleware.js";
+import { validateId } from "./middlewares/route/validate-id.middleware.js";
+import { notFound } from "./middlewares/error/not-found.middleware.js";
+import { errorHandler } from "./middlewares/error/error-handler.middleware.js";
 import { productService } from "./services/product.service.js";
 import { getCategoryIconSvg } from "./utils/category-icons.js";
 ///database
@@ -77,33 +78,14 @@ app.set("views", [
 
 // --- Middlewares cross-cutting (orden: ver design D6) ---
 app.use(injectCartCount); // expone cartCount a las vistas (suma de cantidades en req.session.cart, §6.11)
-app.use(normalizeId); // valida :id numérico, 400 si no
+app.use(validateId); // valida :id numérico de las colecciones API, 400 si no
 
 // --- Routers (acá usamos imports relativos, sin `path`) ---
 app.use("/", pagesRoutes); // Frontend: /, /products, /cart, /login, etc.
 app.use("/api", apiRoutes); // Backend: /api/products, /api/categories, etc.
 app.use("/api-docs", docsRouter); // Swagger UI interactiva
 
-/**
- * Middleware catch-all de recurso no encontrado (spec §6.1):
- * Se ejecuta después de evaluar todas las rutas registradas.
- * Responde con un objeto JSON para `/api/*` y renderiza la vista 404 para el resto.
- *
- * @param {Request} req - Objeto de solicitud HTTP de Express.
- * @param {Response} res - Objeto de respuesta HTTP de Express.
- * @returns {void}
- */
-function handleNotFound(req: Request, res: Response): void {
-  if (req.path.startsWith("/api")) {
-    res.status(404).json({ error: "Not found" });
-    return;
-  }
-  res
-    .status(404)
-    .render("templates/pages/404", { title: "Página no encontrada" });
-}
-
-app.use(handleNotFound);
+app.use(notFound); // 404 catch-all (spec §6.1), después de TODAS las rutas
 
 // --- Error handler: SIEMPRE al final ---
 app.use(errorHandler);

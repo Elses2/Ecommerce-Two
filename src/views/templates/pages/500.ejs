@@ -2,7 +2,7 @@
   // Page: 500 (spec §6.2 + §4.6): misma estructura centrada que la 404.
   // Validación clave de §6.2: NUNCA se muestran err.message ni stack al
   // usuario — el logueo vive server-side en
-  // middlewares/error-handler.middleware.ts y esta vista solo lleva copy
+  // middlewares/error/error-handler.middleware.ts y esta vista solo lleva copy
   // estático. Se invoca con res.status(500) desde el errorHandler.
 %>
 <section class="flex min-h-[60vh] items-center justify-center px-4 py-16">
