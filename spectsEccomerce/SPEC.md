@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-11** (autenticación JWT §23)
+> - Última actualización: **2026-10-11** (autorización y órdenes §23.6)
 > - Rama base de referencia: `dev`
 
 ---
@@ -616,12 +616,15 @@ export function normalizeId(raw: string): number | null {
   (`getProductDetail`, `getCategory`).
 - ID numérico pero inexistente en DB → 404 (resuelto en el controller,
   nunca en el validador).
-- Colecciones `/api/{products|categories|orders}/:segmento`: las rutas están
-  vacías (no hay controller) y el guard `validateCollectionId` preserva el
-  comportamiento heredado del antiguo middleware global. **Deuda documentada
-  (§22.5):** ese middleware tenía un bug (capturaba el grupo 1 de la regex, la
-  colección, en vez del id) y respondía 400 a *todo* id, incluidos los
-  numéricos. Este refactor conserva el 400 y no lo "arregla".
+- Colecciones `products|categories` (`/api/products/:segmento`,
+  `/api/categories/:segmento`): no tienen rutas, así que el guard
+  `validateCollectionId` preserva el 400 heredado del antiguo middleware global.
+  **Deuda documentada (§22.5):** ese middleware tenía un bug (capturaba el grupo
+  1 de la regex, la colección, en vez del id) y responde 400 a *todo* id,
+  incluidos los numéricos.
+- Órdenes (`/api/orders/:id`): ya tiene rutas, así que valida su id por ruta con
+  `validateId("id")` antes de `authenticate` (spec §23.6) — no usa el guard
+  legacy.
 - `DELETE /api/cart/clear` no se interpreta como `:id` (el segmento `clear` es
   estático y no lleva `validateId`).
 
@@ -752,11 +755,14 @@ Requisitos de alto nivel (para cuando se aborde):
 - `src/routes/docs.routes.ts` — router que sirve Swagger UI en `/api-docs`.
 - `src/app.ts` monta `docsRouter` en `/api-docs` antes del catch-all 404.
 - `securitySchemes.bearerAuth` (`type: http, scheme: bearer, bearerFormat: JWT`)
-  y schemas `User`, `AuthResponse`, `RegisterRequest`, `LoginRequest` (spec §23).
+  y schemas `User`, `AuthResponse`, `RegisterRequest`, `LoginRequest`, `Order`,
+  `OrderItem` (spec §23).
 - Rutas de auth: `POST /api/auth/register`, `POST /api/auth/login`,
-  `GET /api/auth/me` (protegida con bearer).
+  `GET /api/auth/me` (protegida con bearer). Rutas de órdenes: `GET /api/orders`
+  y `GET /api/orders/:id` (protegidas con bearer, §23.6).
 - Bloques `@swagger` con annotations en los handlers:
   - `src/controllers/api/auth.controller.ts` — 3 endpoints (`register`, `login`, `me`).
+  - `src/controllers/api/order.controller.ts` — 2 endpoints (`list`, `getById`).
   - `src/controllers/api/cart.controller.ts` — 5 endpoints (`addItem`,
     `increaseItem`, `decreaseItem`, `removeItem`, `clearCart`).
   - `src/controllers/pages/pages.controller.ts` — 6 endpoints (`getHome`,
@@ -803,6 +809,9 @@ store: new SqliteStore({
 > **Sección nueva** (no existía en el spec original; PR #29).
 
 - `scripts/seed.ts`, ejecutable con `npm run seed`.
+- Admin opcional (spec §23.6): con `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`
+  crea/garantiza un usuario `admin` (bcrypt); si faltan, lo omite con un warning
+  y nunca usa una contraseña por defecto.
 - Inserta 3 categorías (Periféricos, Monitores, Audio) y 4 productos
   (Teclado Mecánico, Mouse Gamer, Monitor 24", Headset) con
   `INSERT OR IGNORE` + índices UNIQUE (`idx_products_name`,
@@ -853,6 +862,7 @@ src/
 ├── controllers/
 │   ├── api/
 │   │   ├── auth.controller.ts      ← register/login/me (§23)
+│   │   ├── order.controller.ts     ← órdenes del usuario (§23.6)
 │   │   └── cart.controller.ts      ← endpoints AJAX del carrito
 │   └── pages/
 │       ├── checkout.controller.ts  ← checkout real: form, POST, confirmación (§19)
@@ -864,6 +874,7 @@ src/
 │   │   └── inject-cart-count.middleware.ts ← res.locals.cartCount (§6.11)
 │   ├── route/
 │   │   ├── authenticate.middleware.ts   ← exige JWT, deja req.user (§23.3)
+│   │   ├── authorize.middleware.ts      ← autorización por rol (§23.6)
 │   │   └── validate-id.middleware.ts    ← validación de ids de la API (§6.9)
 │   └── error/
 │       ├── not-found.middleware.ts      ← 404 catch-all (§6.1)
@@ -878,6 +889,7 @@ src/
 │   ├── product.service.ts
 │   ├── category.service.ts
 │   ├── cart.service.ts
+│   ├── order.service.ts            ← órdenes por usuario + ownership (§23.6)
 │   ├── promo.service.ts
 │   └── checkout.service.ts         ← validación + idempotencia del checkout (§19)
 ├── routes/
@@ -888,7 +900,7 @@ src/
 │       ├── auth.routes.ts          ← register/login/me (§23)
 │       ├── cart.routes.ts
 │       ├── categories.routes.ts
-│       ├── orders.routes.ts        ← definido, sin backend real
+│       ├── orders.routes.ts        ← GET /api/orders y /:id (§23.6)
 │       └── products.routes.ts
 ├── models/                         ← interfaces de datos (user, product, category, cart, order, orderItem, productCategory)
 ├── dtos/                           ← Data Transfer Objects (product.dto, cart.dto, auth.dto, checkout.dto)
@@ -903,8 +915,9 @@ src/
 ```
 
 Notas:
-- `orders.routes.ts` sigue como scaffold sin backend real (hasta el PR de
-  autorización, §23); `auth.routes.ts` ya tiene register/login/me (§23).
+- `orders.routes.ts` ya tiene `GET /api/orders` y `GET /api/orders/:id`
+  (autenticadas, §23.6); `auth.routes.ts` tiene register/login/me (§23).
+  `products.routes.ts` y `categories.routes.ts` siguen sin endpoints reales.
 - Services con contenido real: `cart.service.ts`, `product.service.ts`,
   `category.service.ts`, `promo.service.ts` y `checkout.service.ts`.
 - `public/` (raíz del proyecto, fuera de `src/`): estáticos del
@@ -1162,7 +1175,9 @@ momento de evaluar async.
   `cancelled` real.
 - **Guest sin auth**: todas las órdenes caen en el mismo usuario
   `guest@local` (D5). Traspaso documentado en `contexto-usuarios-auth.md`.
-- **Sin historial de compras** para el usuario (fuera de alcance).
+- **Sin historial de compras** para el usuario.
+  > ⚠️ **Reemplazado:** el historial llega con la autenticación real — ver
+  > §23.6 (`GET /api/orders` y `GET /api/orders/:id` por usuario).
 
 ### §19.9 Auth futura
 
@@ -1422,8 +1437,10 @@ Dentro de `baseMiddlewares` el orden interno también es contrato:
 | `express.static`, `express.json`, `express.urlencoded`, `expressLayouts` | librería | `global/base.middleware.ts` | `app.ts` (`baseMiddlewares`) | global | global | parcial (§14/§15/§6.14) |
 | `sessionMiddleware` (express-session + SqliteStore) | librería | `global/session.middleware.ts` | `app.ts` | global | global | §6.4/§11 |
 | `injectCartCount` | propio | `global/inject-cart-count.middleware.ts` | `app.ts` | global | global | §6.11 |
-| `validateId("productId")` | propio | `route/validate-id.middleware.ts` | `routes/api/cart.routes.ts` | `/api/cart/*/:productId` | route | §6.9 |
-| `validateCollectionId` | propio | `route/validate-id.middleware.ts` | `routes/api/{products,categories,orders}.routes.ts` | `/api/{colecciones}/:segmento` | route | §6.9 (implícito) |
+| `validateId(param)` | propio | `route/validate-id.middleware.ts` | `routes/api/cart.routes.ts` y `routes/api/orders.routes.ts` | `/api/cart/*/:productId` y `/api/orders/:id` | route | §6.9 |
+| `validateCollectionId` | propio | `route/validate-id.middleware.ts` | `routes/api/{products,categories}.routes.ts` | `/api/{colecciones}/:segmento` | route | §6.9 (deuda) |
+| `authenticate` | propio | `route/authenticate.middleware.ts` | `routes/api/auth.routes.ts` (me) y `routes/api/orders.routes.ts` | rutas protegidas | route | §23.3 |
+| `authorize(...roles)` | propio | `route/authorize.middleware.ts` | sin endpoints admin todavía (cubierto por A7) | rutas admin | route | §23.6 |
 | `notFound` | propio | `error/not-found.middleware.ts` | `app.ts` | terminal | error | §6.1 |
 | `errorHandler` | propio | `error/error-handler.middleware.ts` | `app.ts` | terminal último | error | §6.2 |
 | `swaggerUi.serve` / `swaggerUi.setup` | librería | `routes/docs.routes.ts` | router `/api-docs` | `/api-docs` | (router) | §10 |
@@ -1437,11 +1454,13 @@ controller del carrito.
 middleware global de ids capturaba con su regex el **grupo 1** (el nombre de la
 colección `products|categories|orders`) en vez del grupo 2 (el id), así que
 respondía 400 a *toda* ruta de un segmento bajo esas colecciones, incluidos ids
-numéricos (`/api/products/5`, `/api/products/999999`). Como las rutas
-`routes/api/{products,categories,orders}.routes.ts` están vacías, no hay
-controller que resuelva un 404. El refactor de este PR es **puro** y conserva
-esa respuesta 400 en `validateCollectionId`; corregirla (numérico → 404) queda
-como deuda para otro PR y cambiaría el baseline M8/M9 de
+numéricos (`/api/products/5`, `/api/products/999999`). En el PR de middlewares
+se conservó ese 400 en `validateCollectionId` (refactor puro). En el PR de
+autorización, **órdenes dejó de usar el guard** (ya tiene rutas y valida su `:id`
+con `validateId`), así que el guard legacy queda solo en `products` y
+`categories`, que siguen **sin rutas** y por eso no tienen impacto observable
+más allá de responder 400 en vez de 404. Corregirlo del todo (numérico → 404)
+sigue siendo deuda: cambiaría el baseline M7/M8/M9 de
 `scripts/test-middlewares.ts`.
 
 ### §22.6 Cómo agregar un middleware nuevo
@@ -1525,6 +1544,40 @@ existe (`GET /me`).
 - El rol viaja en el token; quitárselo a alguien conserva el permiso hasta que
   expire.
 
+### §23.6 Autorización (roles y propiedad)
+
+La autenticación responde «¿quién sos?» (401); la autorización, «¿podés hacer
+esto?» (403).
+
+**Por rol** — `src/middlewares/route/authorize.middleware.ts`:
+`authorize(...roles)` exige que `req.user.role` esté en la lista. Se encadena
+después de `authenticate`: `authenticate, authorize("admin"), controller`. Hoy
+no hay endpoints de administración, así que queda cubierto por tests (A7) y
+listo para cuando existan. El rol **no** se crea por `/register` (siempre
+`customer`).
+
+**Por propiedad** — regla de negocio en `src/services/order.service.ts`:
+`orderService.getForUser(orderId, user)` devuelve la orden solo si el usuario es
+su dueño o es admin; si no, `null` y el controller responde **404** (nunca 403,
+para no revelar que la orden existe). `listForUser(userId)` lista solo las
+propias.
+
+| Endpoint | Protegido | Respuestas |
+|---|---|---|
+| `GET /api/orders` | Sí | `200 { orders }` (con items) · `401` |
+| `GET /api/orders/:id` | Sí | `200 { order, items }` · `400` id malformado · `401` · `404` inexistente o ajena |
+
+- `src/repositories/order.repository.ts` suma `findById` y `findByUserId`.
+- `src/controllers/api/order.controller.ts` orquesta; `routes/api/orders.routes.ts`
+  encadena `validateId("id")` antes de `authenticate` (un id malformado responde
+  400 aunque falte el token — comportamiento heredado del guard de colecciones).
+- Esto cierra el «sin historial de compras» del §19.8.
+
+**Seed de admin (spec §12):** `scripts/seed.ts` lee `SEED_ADMIN_EMAIL` y
+`SEED_ADMIN_PASSWORD`; si faltan, omite el admin con un warning. **Nunca** se
+commitea una contraseña por defecto (el repo es público, §21.4). El admin se
+crea con rol `admin` e `INSERT OR IGNORE` (idempotente).
+
 ---
 
 ## Tabla de equivalencias — `§` original → `SPEC.md`
@@ -1588,6 +1641,7 @@ existe (`GET /me`).
 | 2026-10-08 | PR #? / issue #? | Dockerización y CI/CD (§21): Dockerfile multi-stage, .dockerignore, workflow CI/CD, docker-compose.prod.yml, .env.prod.example, AGENTS.md | — |
 | 2026-10-11 | Este PR / issue #91 | Arquitectura de middlewares (§22): reorganización en `global/route/error`, base y sesión extraídos de `app.ts`, tests M1–M18 en CI y bug de validación de colecciones documentado como deuda | — |
 | 2026-10-11 | Este PR / issue #93 | Autenticación JWT stateless (§23, parte 1/3): `authService` (register/login/me), middleware `authenticate`, API `/api/auth/*`, `role` en `users`, frontend de login/registro con token y tests A1–A6 en CI | — |
+| 2026-10-11 | Este PR / issue #95 | Autorización (§23.6, parte 2/3): middleware `authorize` por rol, ownership de órdenes (`GET /api/orders` y `/:id`), `orderService`, seed de admin por env y tests A7–A8 | — |
 
 ---
 
