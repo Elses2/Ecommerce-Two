@@ -12,7 +12,7 @@
 <li><a href="" aria-current="page">CheckoutService</a></li></ul>
 <h1>Class CheckoutService</h1></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/services/checkout.service.ts#L56">src/services/checkout.service.ts:56</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/services/checkout.service.ts#L69">src/services/checkout.service.ts:69</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -25,7 +25,6 @@
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-index-list"><a href="#orders" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>orders</span></a>
-<a href="#users" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>users</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
@@ -41,22 +40,19 @@
 <h3 class="tsd-anchor-link" id="constructor"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="constructorcheckoutservice"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">CheckoutService</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">orders</span><span class="tsd-signature-symbol">?:</span> <a href="repositories_order.repository.OrderRepository.html" class="tsd-signature-type tsd-kind-class">OrderRepository</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">users</span><span class="tsd-signature-symbol">?:</span> <a href="repositories_user.repository.UserRepository.html" class="tsd-signature-type tsd-kind-class">UserRepository</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">CheckoutService</a><a href="#constructorcheckoutservice" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="constructorcheckoutservice"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">CheckoutService</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">orders</span><span class="tsd-signature-symbol">?:</span> <a href="repositories_order.repository.OrderRepository.html" class="tsd-signature-type tsd-kind-class">OrderRepository</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">CheckoutService</a><a href="#constructorcheckoutservice" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Crea una instancia de CheckoutService con los repositorios inyectados.</p>
+<div class="tsd-comment tsd-typography"><p>Crea una instancia de CheckoutService con el repositorio de órdenes inyectado.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">orders</span>: <a href="repositories_order.repository.OrderRepository.html" class="tsd-signature-type tsd-kind-class">OrderRepository</a><span class="tsd-signature-symbol"> = orderRepository</span></span>
 <div class="tsd-comment tsd-typography"><p>Repositorio de órdenes.</p>
-</div></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">users</span>: <a href="repositories_user.repository.UserRepository.html" class="tsd-signature-type tsd-kind-class">UserRepository</a><span class="tsd-signature-symbol"> = userRepository</span></span>
-<div class="tsd-comment tsd-typography"><p>Repositorio de usuarios (guest).</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">CheckoutService</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/services/checkout.service.ts#L63">src/services/checkout.service.ts:63</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/services/checkout.service.ts#L75">src/services/checkout.service.ts:75</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -66,14 +62,7 @@
 <div class="tsd-comment tsd-typography"><p>Repositorio de órdenes.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/services/checkout.service.ts#L64">src/services/checkout.service.ts:64</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-is-private">
-<h3 class="tsd-anchor-link" id="users"><code class="tsd-tag">Private</code><span>users</span><a href="#users" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">users</span><span class="tsd-signature-symbol">:</span> <a href="repositories_user.repository.UserRepository.html" class="tsd-signature-type tsd-kind-class">UserRepository</a><span class="tsd-signature-symbol"> = userRepository</span></div>
-<div class="tsd-comment tsd-typography"><p>Repositorio de usuarios (guest).</p>
-</div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/services/checkout.service.ts#L65">src/services/checkout.service.ts:65</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/services/checkout.service.ts#L75">src/services/checkout.service.ts:75</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -81,7 +70,7 @@
 <h3 class="tsd-anchor-link" id="createorder"><span>create<wbr/>Order</span><a href="#createorder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="createorder-1"><span class="tsd-kind-call-signature">createOrder</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">lines</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/repositories_order.repository.OrderLineInput.html" class="tsd-signature-type tsd-kind-interface">OrderLineInput</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">dto</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/dtos_checkout.dto.CheckoutRequestDto.html" class="tsd-signature-type tsd-kind-interface">CheckoutRequestDto</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/dtos_checkout.dto.CheckoutResultDto.html" class="tsd-signature-type tsd-kind-type-alias">CheckoutResultDto</a><a href="#createorder-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="createorder-1"><span class="tsd-kind-call-signature">createOrder</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">lines</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/repositories_order.repository.OrderLineInput.html" class="tsd-signature-type tsd-kind-interface">OrderLineInput</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">dto</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/dtos_checkout.dto.CheckoutRequestDto.html" class="tsd-signature-type tsd-kind-interface">CheckoutRequestDto</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">userId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/dtos_checkout.dto.CheckoutResultDto.html" class="tsd-signature-type tsd-kind-type-alias">CheckoutResultDto</a><a href="#createorder-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Crea la orden de checkout de forma atómica e idempotente.</p>
 <p>Flujo (spec §19 / D1-D9): valida el formulario → idempotencia por token
@@ -105,6 +94,9 @@ existente. Cualquier otro error se re-lanza para el middleware de errores
 </div></li>
 <li><span><span class="tsd-kind-parameter">dto</span>: <a href="../interfaces/dtos_checkout.dto.CheckoutRequestDto.html" class="tsd-signature-type tsd-kind-interface">CheckoutRequestDto</a></span>
 <div class="tsd-comment tsd-typography"><p>Datos de envío/pago validados.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">userId</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>Usuario autenticado dueño de la orden (spec §23).</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../types/dtos_checkout.dto.CheckoutResultDto.html" class="tsd-signature-type tsd-kind-type-alias">CheckoutResultDto</a></h4><p><code>{ ok: true, ... }</code> con la orden, o <code>{ ok: false, errors }</code>.</p>
 
@@ -113,7 +105,7 @@ existente. Cualquier otro error se re-lanza para el middleware de errores
 <h4 class="tsd-anchor-link" id="throws">Throws<a href="#throws" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Re-lanza errores no esperados (DB, etc.) para el middleware.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/services/checkout.service.ts#L152">src/services/checkout.service.ts:152</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/services/checkout.service.ts#L169">src/services/checkout.service.ts:169</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="generatecheckouttoken"><span>generate<wbr/>Checkout<wbr/>Token</span><a href="#generatecheckouttoken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -127,7 +119,7 @@ que exige la validación y el índice UNIQUE de <code>orders.checkout_token</cod
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><p>Token hexadecimal de 32 caracteres.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/services/checkout.service.ts#L244">src/services/checkout.service.ts:244</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/services/checkout.service.ts#L267">src/services/checkout.service.ts:267</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getorderforconfirmation"><span>get<wbr/>Order<wbr/>For<wbr/>Confirmation</span><a href="#getorderforconfirmation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -148,7 +140,7 @@ valida el formato ANTES de llamar acá. Se devuelve la orden con sus items
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">items</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/repositories_order.repository.OrderItemWithProduct.html" class="tsd-signature-type tsd-kind-interface">OrderItemWithProduct</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">order</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/models_order.model.Order.html" class="tsd-signature-type tsd-kind-interface">Order</a> <span class="tsd-signature-symbol">}</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></h4><p>Orden con items, o <code>undefined</code> si no existe.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/services/checkout.service.ts#L225">src/services/checkout.service.ts:225</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/services/checkout.service.ts#L248">src/services/checkout.service.ts:248</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="validatecheckoutinput"><span>validate<wbr/>Checkout<wbr/>Input</span><a href="#validatecheckoutinput" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -170,7 +162,7 @@ idempotencia con formato de 32 hex (D6).</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4><p>Lista de mensajes de error; vacía si todo es válido.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/services/checkout.service.ts#L79">src/services/checkout.service.ts:79</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/services/checkout.service.ts#L88">src/services/checkout.service.ts:88</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -190,7 +182,7 @@ idempotencia con formato de 32 hex (D6).</p>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
 <div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
-<div><a href="#orders" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>orders</span></a><a href="#users" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>users</span></a></div></details>
+<div><a href="#orders" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>orders</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
 <div><a href="#createorder"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Order</span></a><a href="#generatecheckouttoken"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>generate<wbr/>Checkout<wbr/>Token</span></a><a href="#getorderforconfirmation"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Order<wbr/>For<wbr/>Confirmation</span></a><a href="#validatecheckoutinput"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>validate<wbr/>Checkout<wbr/>Input</span></a></div></details></div></details></div>
 <div class="site-menu">

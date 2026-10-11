@@ -11,11 +11,7 @@
 <li><a href="../modules/controllers_api_cart.controller.html">controllers/api/cart.controller</a></li>
 <li><a href="" aria-current="page">cartController</a></li></ul>
 <h1>Variable cartController<code class="tsd-tag">Const</code></h1></div>
-<div class="tsd-signature"><span class="tsd-kind-variable">cartController</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-call-signature">addItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">clearCart</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">decreaseItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">increaseItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">removeItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> = ...</span></div>
-<div class="tsd-comment tsd-typography"><p>Controller de API del carrito (spec §6.4): handlers finos que llaman al
-cartService y responden JSON con el carrito ya recalculado
-({ items, total, count }) para que el frontend no pida nada aparte.</p>
-</div>
+<div class="tsd-signature"><span class="tsd-kind-variable">cartController</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-call-signature">addItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">clearCart</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">decreaseItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">getCart</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">increaseItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">removeItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-type-declaration">
 <h4>Type Declaration</h4>
 <ul class="tsd-parameters">
@@ -23,217 +19,255 @@ cartService y responden JSON con el carrito ya recalculado
 <h5 id="additem"><span class="tsd-kind-method">addItem</span><span class="tsd-signature-symbol">:</span> function</h5>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="additem-1"><span class="tsd-kind-call-signature">addItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#additem-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="additem-1"><span class="tsd-kind-call-signature">addItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#additem-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Agrega un producto al carrito de compras de la sesión actual.</p>
+<div class="tsd-comment tsd-typography"><p>Agrega un producto al carrito.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">req</span>: <span class="tsd-signature-type">Request</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de solicitud de Express (requiere <code>req.params.productId</code> y <code>req.session</code>).</p>
+<div class="tsd-comment tsd-typography"><p>Petición Express.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">res</span>: <span class="tsd-signature-type">Response</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de respuesta de Express para enviar el estado del carrito o mensaje de error.</p>
+<div class="tsd-comment tsd-typography"><p>Respuesta Express.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-swagger">
 <h4 class="tsd-anchor-link" id="swagger">Swagger<a href="#swagger" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>/api/cart/add/{productId}:
 post:
 summary: Agregar item al carrito
-description: Incrementa la cantidad de un producto en la sesión del carrito.
 tags: [Carrito]
+security:
+- bearerAuth: []
 parameters:
 - in: path
 name: productId
 required: true
 schema:
 type: integer
-description: ID numérico del producto.
 responses:
 200:
-description: Carrito actualizado con el item agregado.
+description: Carrito actualizado.
 content:
 application/json:
 schema:
 $ref: '#/components/schemas/Cart'
 400:
 description: ID inválido o producto sin stock.
+401:
+description: Token requerido o inválido.
 404:
 description: Producto no encontrado.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/controllers/api/cart.controller.ts#L60">src/controllers/api/cart.controller.ts:60</a></li></ul></aside></div></li></ul></li>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/controllers/api/cart.controller.ts#L92">src/controllers/api/cart.controller.ts:92</a></li></ul></aside></div></li></ul></li>
 <li class="tsd-parameter">
 <h5 id="clearcart"><span class="tsd-kind-method">clearCart</span><span class="tsd-signature-symbol">:</span> function</h5>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="clearcart-1"><span class="tsd-kind-call-signature">clearCart</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#clearcart-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="clearcart-1"><span class="tsd-kind-call-signature">clearCart</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#clearcart-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Vacía totalmente todos los items contenidos en el carrito de la sesión.</p>
+<div class="tsd-comment tsd-typography"><p>Vacía el carrito del usuario.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">req</span>: <span class="tsd-signature-type">Request</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de solicitud de Express (requiere <code>req.session</code>).</p>
+<div class="tsd-comment tsd-typography"><p>Petición Express.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">res</span>: <span class="tsd-signature-type">Response</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de respuesta de Express.</p>
+<div class="tsd-comment tsd-typography"><p>Respuesta Express.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-swagger">
 <h4 class="tsd-anchor-link" id="swagger-1">Swagger<a href="#swagger-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>/api/cart/clear:
 delete:
 summary: Vaciar carrito
-description: Elimina todos los items del carrito de la sesión actual.
 tags: [Carrito]
+security:
+- bearerAuth: []
 responses:
 200:
 description: Carrito vacío.
 content:
 application/json:
 schema:
-$ref: '#/components/schemas/Cart'</p>
+$ref: '#/components/schemas/Cart'
+401:
+description: Token requerido o inválido.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/controllers/api/cart.controller.ts#L222">src/controllers/api/cart.controller.ts:222</a></li></ul></aside></div></li></ul></li>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/controllers/api/cart.controller.ts#L269">src/controllers/api/cart.controller.ts:269</a></li></ul></aside></div></li></ul></li>
 <li class="tsd-parameter">
 <h5 id="decreaseitem"><span class="tsd-kind-method">decreaseItem</span><span class="tsd-signature-symbol">:</span> function</h5>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="decreaseitem-1"><span class="tsd-kind-call-signature">decreaseItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#decreaseitem-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="decreaseitem-1"><span class="tsd-kind-call-signature">decreaseItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#decreaseitem-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Decrementa en una unidad la cantidad de un producto en el carrito.</p>
+<div class="tsd-comment tsd-typography"><p>Decrementa en una unidad la cantidad de un producto.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">req</span>: <span class="tsd-signature-type">Request</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de solicitud de Express (requiere <code>req.params.productId</code> y <code>req.session</code>).</p>
+<div class="tsd-comment tsd-typography"><p>Petición Express.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">res</span>: <span class="tsd-signature-type">Response</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de respuesta de Express.</p>
+<div class="tsd-comment tsd-typography"><p>Respuesta Express.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-swagger">
 <h4 class="tsd-anchor-link" id="swagger-2">Swagger<a href="#swagger-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>/api/cart/decrease/{productId}:
 patch:
 summary: Decrementar cantidad de item
-description: Resta una unidad del producto en el carrito. Si llega a 0, lo elimina.
 tags: [Carrito]
+security:
+- bearerAuth: []
 parameters:
 - in: path
 name: productId
 required: true
 schema:
 type: integer
-description: ID numérico del producto.
 responses:
 200:
-description: Carrito actualizado con la cantidad decrementada.
+description: Carrito actualizado.
+400:
+description: ID inválido.
+401:
+description: Token requerido o inválido.</p>
+</div></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/controllers/api/cart.controller.ts#L187">src/controllers/api/cart.controller.ts:187</a></li></ul></aside></div></li></ul></li>
+<li class="tsd-parameter">
+<h5 id="getcart"><span class="tsd-kind-method">getCart</span><span class="tsd-signature-symbol">:</span> function</h5>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getcart-1"><span class="tsd-kind-call-signature">getCart</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#getcart-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Devuelve el carrito del usuario (carga inicial + contador del header).</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">req</span>: <span class="tsd-signature-type">Request</span></span>
+<div class="tsd-comment tsd-typography"><p>Petición Express (requiere <code>req.user</code>).</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">res</span>: <span class="tsd-signature-type">Response</span></span>
+<div class="tsd-comment tsd-typography"><p>Respuesta Express.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-swagger">
+<h4 class="tsd-anchor-link" id="swagger-3">Swagger<a href="#swagger-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>/api/cart:
+get:
+summary: Carrito del usuario
+description: Devuelve el carrito del usuario autenticado con precios recalculados.
+tags: [Carrito]
+security:
+- bearerAuth: []
+responses:
+200:
+description: Carrito actual.
 content:
 application/json:
 schema:
 $ref: '#/components/schemas/Cart'
-400:
-description: ID inválido.</p>
+401:
+description: Token requerido o inválido.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/controllers/api/cart.controller.ts#L151">src/controllers/api/cart.controller.ts:151</a></li></ul></aside></div></li></ul></li>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/controllers/api/cart.controller.ts#L49">src/controllers/api/cart.controller.ts:49</a></li></ul></aside></div></li></ul></li>
 <li class="tsd-parameter">
 <h5 id="increaseitem"><span class="tsd-kind-method">increaseItem</span><span class="tsd-signature-symbol">:</span> function</h5>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="increaseitem-1"><span class="tsd-kind-call-signature">increaseItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#increaseitem-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="increaseitem-1"><span class="tsd-kind-call-signature">increaseItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#increaseitem-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Incrementa en una unidad la cantidad de un producto en el carrito.</p>
+<div class="tsd-comment tsd-typography"><p>Incrementa en una unidad la cantidad de un producto.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">req</span>: <span class="tsd-signature-type">Request</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de solicitud de Express (requiere <code>req.params.productId</code> y <code>req.session</code>).</p>
+<div class="tsd-comment tsd-typography"><p>Petición Express.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">res</span>: <span class="tsd-signature-type">Response</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de respuesta de Express.</p>
+<div class="tsd-comment tsd-typography"><p>Respuesta Express.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-swagger">
-<h4 class="tsd-anchor-link" id="swagger-3">Swagger<a href="#swagger-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>/api/cart/increase/{productId}:
+<h4 class="tsd-anchor-link" id="swagger-4">Swagger<a href="#swagger-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>/api/cart/increase/{productId}:
 patch:
 summary: Incrementar cantidad de item
-description: Suma una unidad al producto en el carrito de la sesión.
 tags: [Carrito]
+security:
+- bearerAuth: []
 parameters:
 - in: path
 name: productId
 required: true
 schema:
 type: integer
-description: ID numérico del producto.
 responses:
 200:
-description: Carrito actualizado con la cantidad incrementada.
-content:
-application/json:
-schema:
-$ref: '#/components/schemas/Cart'
+description: Carrito actualizado.
 400:
-description: ID inválido.</p>
+description: ID inválido.
+401:
+description: Token requerido o inválido.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/controllers/api/cart.controller.ts#L111">src/controllers/api/cart.controller.ts:111</a></li></ul></aside></div></li></ul></li>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/controllers/api/cart.controller.ts#L144">src/controllers/api/cart.controller.ts:144</a></li></ul></aside></div></li></ul></li>
 <li class="tsd-parameter">
 <h5 id="removeitem"><span class="tsd-kind-method">removeItem</span><span class="tsd-signature-symbol">:</span> function</h5>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="removeitem-1"><span class="tsd-kind-call-signature">removeItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#removeitem-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="removeitem-1"><span class="tsd-kind-call-signature">removeItem</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#removeitem-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Remueve por completo un producto del carrito sin importar su cantidad.</p>
+<div class="tsd-comment tsd-typography"><p>Remueve un producto del carrito.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">req</span>: <span class="tsd-signature-type">Request</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de solicitud de Express (requiere <code>req.params.productId</code> y <code>req.session</code>).</p>
+<div class="tsd-comment tsd-typography"><p>Petición Express.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">res</span>: <span class="tsd-signature-type">Response</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de respuesta de Express.</p>
+<div class="tsd-comment tsd-typography"><p>Respuesta Express.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-swagger">
-<h4 class="tsd-anchor-link" id="swagger-4">Swagger<a href="#swagger-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>/api/cart/remove/{productId}:
+<h4 class="tsd-anchor-link" id="swagger-5">Swagger<a href="#swagger-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>/api/cart/remove/{productId}:
 delete:
 summary: Eliminar item del carrito
-description: Remueve completamente un producto del carrito de la sesión.
 tags: [Carrito]
+security:
+- bearerAuth: []
 parameters:
 - in: path
 name: productId
 required: true
 schema:
 type: integer
-description: ID numérico del producto.
 responses:
 200:
-description: Carrito actualizado sin el producto eliminado.
-content:
-application/json:
-schema:
-$ref: '#/components/schemas/Cart'
+description: Carrito actualizado.
 400:
-description: ID inválido.</p>
+description: ID inválido.
+401:
+description: Token requerido o inválido.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/controllers/api/cart.controller.ts#L191">src/controllers/api/cart.controller.ts:191</a></li></ul></aside></div></li></ul></li></ul></div><aside class="tsd-sources">
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/controllers/api/cart.controller.ts#L230">src/controllers/api/cart.controller.ts:230</a></li></ul></aside></div></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/controllers/api/cart.controller.ts#L27">src/controllers/api/cart.controller.ts:27</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/controllers/api/cart.controller.ts#L23">src/controllers/api/cart.controller.ts:23</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

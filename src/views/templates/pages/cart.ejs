@@ -19,12 +19,16 @@
   <ul
     id="cart-items"
     aria-label="Productos en el carrito"
-    class="mt-6 flex flex-col gap-4 <%= isCartEmpty ? "hidden" : "" %>"
-  >
-    <% cart.items.forEach((item) => { %>
-      <%- include("../organisms/cart-item", { item }) %>
-    <% }) %>
-  </ul>
+    class="mt-6 flex flex-col gap-4 hidden"
+  ></ul>
+
+  <%# Plantilla de fila (spec §24): cart.js la clona y la rellena con la
+      respuesta de GET /api/cart, conservando los data-* del §5. %>
+  <template id="cart-item-template">
+    <%- include("../organisms/cart-item", {
+      item: { productId: 0, quantity: 0, name: "", imageUrl: "", subtotal: 0 },
+    }) %>
+  </template>
 
   <section
     data-cart-summary

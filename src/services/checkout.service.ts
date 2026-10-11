@@ -1,9 +1,18 @@
 import { randomBytes } from "node:crypto";
-import type { CheckoutRequestDto, CheckoutResultDto, PaymentMethod } from "../dtos/checkout.dto.js";
+import type {
+  CheckoutRequestDto,
+  CheckoutResultDto,
+  PaymentMethod,
+} from "../dtos/checkout.dto.js";
 import type { Order } from "../models/order.model.js";
-import { OrderRepository, orderRepository } from "../repositories/order.repository.js";
-import type { OrderItemWithProduct, OrderLineInput } from "../repositories/order.repository.js";
-import { UserRepository, userRepository } from "../repositories/user.repository.js";
+import {
+  OrderRepository,
+  orderRepository,
+} from "../repositories/order.repository.js";
+import type {
+  OrderItemWithProduct,
+  OrderLineInput,
+} from "../repositories/order.repository.js";
 import { OutOfStockError, ProductNotFoundError } from "../utils/errors.js";
 
 // Servicio PURO del checkout (spec §19): valida el formulario, delega la
@@ -12,7 +21,11 @@ import { OutOfStockError, ProductNotFoundError } from "../utils/errors.js";
 // sesión (carrito) lo maneja el controller — el service solo recibe líneas.
 //
 // Métodos de pago aceptados (D9: solo preferencia, no se procesa ningún pago).
-const PAYMENT_METHODS: PaymentMethod[] = ["transfer", "cash_on_delivery", "card"];
+const PAYMENT_METHODS: PaymentMethod[] = [
+  "transfer",
+  "cash_on_delivery",
+  "card",
+];
 
 // Email pragmático: algo@algo.algo (spec §19; el registro usa el mismo criterio).
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,15 +68,11 @@ function isUniqueConstraintError(error: unknown): boolean {
 
 export class CheckoutService {
   /**
-   * Crea una instancia de CheckoutService con los repositorios inyectados.
+   * Crea una instancia de CheckoutService con el repositorio de órdenes inyectado.
    *
    * @param {OrderRepository} [orders=orderRepository] - Repositorio de órdenes.
-   * @param {UserRepository} [users=userRepository] - Repositorio de usuarios (guest).
    */
-  constructor(
-    private orders: OrderRepository = orderRepository,
-    private users: UserRepository = userRepository,
-  ) {}
+  constructor(private orders: OrderRepository = orderRepository) {}
 
   /**
    * Valida el formulario de checkout y devuelve los errores en español.
@@ -88,14 +97,18 @@ export class CheckoutService {
     const country = toTrimmed(dto.country);
 
     if (!firstName) errors.push("El nombre es obligatorio");
-    else if (firstName.length > 100) errors.push("El nombre no puede superar los 100 caracteres");
+    else if (firstName.length > 100)
+      errors.push("El nombre no puede superar los 100 caracteres");
 
     if (!lastName) errors.push("El apellido es obligatorio");
-    else if (lastName.length > 100) errors.push("El apellido no puede superar los 100 caracteres");
+    else if (lastName.length > 100)
+      errors.push("El apellido no puede superar los 100 caracteres");
 
     if (!email) errors.push("El email es obligatorio");
-    else if (email.length > 254) errors.push("El email no puede superar los 254 caracteres");
-    else if (!EMAIL_PATTERN.test(email)) errors.push("El email no tiene un formato válido");
+    else if (email.length > 254)
+      errors.push("El email no puede superar los 254 caracteres");
+    else if (!EMAIL_PATTERN.test(email))
+      errors.push("El email no tiene un formato válido");
 
     // Dígitos del teléfono ignorando espacios, +, - y paréntesis.
     const phoneDigits = phone.replace(/[\s+\-()]/g, "");
@@ -105,10 +118,12 @@ export class CheckoutService {
     }
 
     if (!address) errors.push("La dirección es obligatoria");
-    else if (address.length > 200) errors.push("La dirección no puede superar los 200 caracteres");
+    else if (address.length > 200)
+      errors.push("La dirección no puede superar los 200 caracteres");
 
     if (!city) errors.push("La ciudad es obligatoria");
-    else if (city.length > 200) errors.push("La ciudad no puede superar los 200 caracteres");
+    else if (city.length > 200)
+      errors.push("La ciudad no puede superar los 200 caracteres");
 
     if (!postalCode) errors.push("El código postal es obligatorio");
     else if (postalCode.length > 20) {
@@ -116,7 +131,8 @@ export class CheckoutService {
     }
 
     if (!country) errors.push("El país es obligatorio");
-    else if (country.length > 200) errors.push("El país no puede superar los 200 caracteres");
+    else if (country.length > 200)
+      errors.push("El país no puede superar los 200 caracteres");
 
     if (!PAYMENT_METHODS.includes(dto.paymentMethod)) {
       errors.push("El método de pago no es válido");
@@ -146,10 +162,15 @@ export class CheckoutService {
    *
    * @param {OrderLineInput[]} lines - Líneas del carrito (solo productId/quantity).
    * @param {CheckoutRequestDto} dto - Datos de envío/pago validados.
+   * @param {number} userId - Usuario autenticado dueño de la orden (spec §23).
    * @returns {CheckoutResultDto} `{ ok: true, ... }` con la orden, o `{ ok: false, errors }`.
    * @throws {Error} Re-lanza errores no esperados (DB, etc.) para el middleware.
    */
-  createOrder(lines: OrderLineInput[], dto: CheckoutRequestDto): CheckoutResultDto {
+  createOrder(
+    lines: OrderLineInput[],
+    dto: CheckoutRequestDto,
+    userId: number,
+  ): CheckoutResultDto {
     const errors = this.validateCheckoutInput(dto);
     if (errors.length > 0) {
       return { ok: false, errors };
@@ -171,7 +192,6 @@ export class CheckoutService {
       return { ok: false, errors: ["El carrito está vacío"] };
     }
 
-    const userId = this.users.ensureGuestUser();
     try {
       const placed = this.orders.placeOrder({
         userId,
@@ -193,7 +213,10 @@ export class CheckoutService {
         total: placed.total,
       };
     } catch (error) {
-      if (error instanceof OutOfStockError || error instanceof ProductNotFoundError) {
+      if (
+        error instanceof OutOfStockError ||
+        error instanceof ProductNotFoundError
+      ) {
         return { ok: false, errors: [error.message] };
       }
       if (isUniqueConstraintError(error)) {

@@ -57,6 +57,15 @@ Este proyecto usa <code>better-sqlite3</code>, un módulo que en algunos sistema
 <li>Durante la instalación, seleccioná el workload <strong>&quot;Desktop development with C++&quot;</strong></li>
 </ul>
 </li>
+<li>
+<p><strong>Redis</strong> (carrito, spec §24). En desarrollo podés levantarlo con Docker:</p>
+<pre><code class="bash"><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-2">-d</span><span class="hl-1"> </span><span class="hl-2">--name</span><span class="hl-1"> </span><span class="hl-3">redis-dev</span><span class="hl-1"> </span><span class="hl-2">-p</span><span class="hl-1"> </span><span class="hl-3">6379:6379</span><span class="hl-1"> </span><span class="hl-3">redis:7-alpine</span>
+</code><button type="button">Copy</button></pre>
+
+<p>La URL se configura con <code>REDIS_URL</code> (default <code>redis://localhost:6379</code>). Si Redis
+no está disponible, el carrito y el checkout fallan; el catálogo y el login
+siguen funcionando.</p>
+</li>
 </ul>
 <h2 id="instalación" class="tsd-anchor-link">Instalación<a href="#instalación" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ol>
@@ -86,7 +95,7 @@ Este proyecto usa <code>better-sqlite3</code>, un módulo que en algunos sistema
 </ol>
 <p><code>npm run init</code> te deja el archivo <code>.env</code> creado en la raíz, listo para editar.</p>
 <blockquote>
-<p>Ya no hay claves externas que pedir: <code>SESSION_SECRET</code> generala con un valor aleatorio largo (por ejemplo, la salida de <code>node -e &quot;console.log(require('crypto').randomBytes(32).toString('hex'))&quot;</code>) y no la compartas públicamente. <code>FALLBACK_IMAGE_URL</code> puede dejarse con el valor por defecto.</p>
+<p>Variables principales: <code>JWT_SECRET</code> generala con un valor aleatorio largo (por ejemplo, la salida de <code>openssl rand -hex 48</code>) y no la compartas públicamente; <code>REDIS_URL</code> apunta a tu Redis local; <code>FALLBACK_IMAGE_URL</code> puede dejarse con el valor por defecto. No hay cookies de sesión: la autenticación es JWT.</p>
 </blockquote>
 <ol start="5">
 <li>Inicia el servidor de desarrollo</li>
@@ -137,11 +146,15 @@ Este proyecto usa <code>better-sqlite3</code>, un módulo que en algunos sistema
 </tr>
 <tr>
 <td><code>npm run test:middlewares</code></td>
-<td>Tests de caracterización de middlewares M1–M18 (DB temporal)</td>
+<td>Tests de caracterización de middlewares M1–M22 (DB temporal)</td>
 </tr>
 <tr>
 <td><code>npm run test:auth</code></td>
-<td>Tests de autenticación JWT A1–A6 (DB temporal)</td>
+<td>Tests de autenticación/autorización A1–A8 (DB temporal)</td>
+</tr>
+<tr>
+<td><code>npm run test:cart</code></td>
+<td>Tests del carrito en Redis C1–C6 (DB temporal + Redis <code>/15</code>)</td>
 </tr>
 <tr>
 <td><code>npm run build:docs</code></td>
@@ -150,19 +163,26 @@ Este proyecto usa <code>better-sqlite3</code>, un módulo que en algunos sistema
 </tbody>
 </table>
 <h2 id="tests" class="tsd-anchor-link">Tests<a href="#tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:checkout</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:middlewares</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:auth</span>
+<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:checkout</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:middlewares</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:auth</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:cart</span>
 </code><button type="button">Copy</button></pre>
 
 <p><code>npm run test:checkout</code> corre los tests del checkout (<code>scripts/test-checkout.ts</code>,
 casos T1–T7: stock, rollback, idempotencia por token, precio congelado, carrera
 multi-proceso y validación).</p>
 <p><code>npm run test:middlewares</code> levanta la app como proceso hijo y verifica el
-comportamiento de los middlewares (<code>scripts/test-middlewares.ts</code>, casos M1–M18:
-contador del carrito, cookies de sesión, 404, validación de ids, estáticos,
-Swagger, body parsers y el error handler). Requiere <code>npm run build</code> previo.</p>
-<p><code>npm run test:auth</code> verifica la autenticación JWT (<code>scripts/test-auth.ts</code>, casos
-A1–A6: registro, email repetido y su carrera, validación, login, credenciales
-inválidas y <code>/api/auth/me</code> con tokens válidos/ausentes/expirados/manipulados).</p>
+comportamiento de los middlewares (<code>scripts/test-middlewares.ts</code>, casos M1–M22:
+contador del carrito, stateless sin cookies, helmet/CSP, 404, validación de ids,
+estáticos, Swagger, body parsers, autenticación y el error handler). Requiere
+<code>npm run build</code> previo.</p>
+<p><code>npm run test:auth</code> verifica la autenticación/autorización JWT
+(<code>scripts/test-auth.ts</code>, casos A1–A8: registro, email repetido y su carrera,
+validación, login, credenciales inválidas, <code>/api/auth/me</code> con tokens
+válidos/ausentes/expirados/manipulados, <code>authorize</code> por rol y ownership de
+órdenes).</p>
+<p><code>npm run test:cart</code> verifica el carrito en Redis (<code>scripts/test-cart.ts</code>, casos
+C1–C6: aislamiento entre usuarios, <code>HINCRBY</code> concurrente, eliminación al llegar
+a 0, persistencia, precios recalculados desde SQLite y vaciado tras el checkout).
+Necesita Redis y usa la base <code>/15</code>; solo hace <code>FLUSHDB</code> si la URL apunta ahí.</p>
 <p>Ambos usan una <strong>DB temporal</strong> — nunca tocan <code>dev.db</code> — y su exit code es ≠ 0
 si algo falla.</p>
 <h2 id="documentación" class="tsd-anchor-link">Documentación<a href="#documentación" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
@@ -173,7 +193,7 @@ si algo falla.</p>
 <h2 id="despliegue-docker-cicd" class="tsd-anchor-link">Despliegue (Docker + CI/CD)<a href="#despliegue-docker-cicd" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>El proyecto está dockerizado y se publica automáticamente en <strong>GitHub Container Registry (<a href="http://ghcr.io">ghcr.io</a>)</strong> al mergear un Pull Request a <code>main</code>. Más detalles en <a href="media/SPEC.md#21-cicd-y-despliegue"><code>spectsEccomerce/SPEC.md §21</code></a>.</p>
 <h3 id="primer-arranque-en-el-servidor" class="tsd-anchor-link">Primer arranque en el servidor<a href="#primer-arranque-en-el-servidor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<pre><code class="bash"><span class="hl-5"># 1. Crear .env con SESSION_SECRET y TUNNEL_TOKEN (ver .env.prod.example)</span><br/><span class="hl-5"># 2. Iniciar servicios</span><br/><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-3">compose</span><span class="hl-1"> </span><span class="hl-2">-f</span><span class="hl-1"> </span><span class="hl-3">docker-compose.prod.yml</span><span class="hl-1"> </span><span class="hl-3">up</span><span class="hl-1"> </span><span class="hl-2">-d</span><br/><br/><span class="hl-5"># 3. Cargar datos de ejemplo (solo la primera vez)</span><br/><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-3">compose</span><span class="hl-1"> </span><span class="hl-2">-f</span><span class="hl-1"> </span><span class="hl-3">docker-compose.prod.yml</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-2">--rm</span><span class="hl-1"> </span><span class="hl-3">tienda</span><span class="hl-1"> </span><span class="hl-3">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">seed</span>
+<pre><code class="bash"><span class="hl-5"># 1. Crear .env con JWT_SECRET, REDIS_PASSWORD y TUNNEL_TOKEN (ver .env.prod.example)</span><br/><span class="hl-5"># 2. Iniciar servicios</span><br/><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-3">compose</span><span class="hl-1"> </span><span class="hl-2">-f</span><span class="hl-1"> </span><span class="hl-3">docker-compose.prod.yml</span><span class="hl-1"> </span><span class="hl-3">up</span><span class="hl-1"> </span><span class="hl-2">-d</span><br/><br/><span class="hl-5"># 3. Cargar datos de ejemplo (solo la primera vez)</span><br/><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-3">compose</span><span class="hl-1"> </span><span class="hl-2">-f</span><span class="hl-1"> </span><span class="hl-3">docker-compose.prod.yml</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-2">--rm</span><span class="hl-1"> </span><span class="hl-3">tienda</span><span class="hl-1"> </span><span class="hl-3">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">seed</span>
 </code><button type="button">Copy</button></pre>
 
 <h3 id="actualizar-después-de-cambios" class="tsd-anchor-link">Actualizar después de cambios<a href="#actualizar-después-de-cambios" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
@@ -183,7 +203,7 @@ si algo falla.</p>
 <blockquote>
 <p><strong>Nota:</strong> el servidor está detrás de un Cloudflare Tunnel; no expone puertos.
 La base de datos SQLite persiste en un volumen Docker nombrado (<code>tienda-data</code>).
-Las variables de entorno (<code>SESSION_SECRET</code>, <code>PORT</code>, <code>DB_PATH</code>, <code>FALLBACK_IMAGE_URL</code>)
+Las variables de entorno (<code>JWT_SECRET</code>, <code>JWT_EXPIRES_IN</code>, <code>REDIS_PASSWORD</code>, <code>PORT</code>, <code>DB_PATH</code>, <code>FALLBACK_IMAGE_URL</code>)
 se configuran en <code>.env</code>, nunca en la imagen.</p>
 </blockquote>
 </div></div>

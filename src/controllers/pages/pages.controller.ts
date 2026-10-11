@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 import { categoryService } from "../../services/category.service.js";
 import { productService } from "../../services/product.service.js";
 import { promoService } from "../../services/promo.service.js";
-import { cartService } from "../../services/cart.service.js";
 import { normalizeId } from "../../utils/normalizeId.js";
 
 // Controller de páginas: consolida los handlers de vistas que antes vivían
@@ -39,26 +38,20 @@ export const pagesController = {
   },
 
   /**
-   * Renderiza la vista inicial del carrito de compras cargando sus detalles desde la sesión.
+   * Renderiza el cascarón de la vista del carrito (spec §24).
    *
-   * @swagger
-   * /cart:
-   *   get:
-   *     summary: Vista del carrito
-   *     description: Renderiza la página del carrito con los ítems de la sesión.
-   *     tags: [Páginas]
-   *     responses:
-   *       200:
-   *         description: Página HTML del carrito.
+   * Sin cookies el servidor no conoce al usuario, así que no puede renderizar
+   * los ítems: `cart.js` pide `GET /api/cart` y arma las filas. El estado vacío
+   * se usa como base hasta que el fetch responde.
    *
-   * @param {Request} req - Objeto de solicitud de Express (requiere `req.session`).
+   * @param {Request} _req - Objeto de solicitud de Express.
    * @param {Response} res - Objeto de respuesta de Express para renderizar la vista 'cart'.
    * @returns {void}
    */
-  getCart(req: Request, res: Response): void {
+  getCart(_req: Request, res: Response): void {
     res.render("templates/pages/cart", {
       title: "Carrito de Compras",
-      cart: cartService.getCartWithDetails(req.session),
+      cart: { items: [], total: 0, count: 0 },
     });
   },
 
@@ -104,7 +97,9 @@ export const pagesController = {
 
     const product = productService.findById(id);
     if (!product) {
-      res.status(404).render("templates/pages/404", { title: "Página no encontrada" });
+      res
+        .status(404)
+        .render("templates/pages/404", { title: "Página no encontrada" });
       return;
     }
 
@@ -158,7 +153,9 @@ export const pagesController = {
 
     const category = categoryService.findById(categoryId);
     if (!category) {
-      res.status(404).render("templates/pages/404", { title: "Página no encontrada" });
+      res
+        .status(404)
+        .render("templates/pages/404", { title: "Página no encontrada" });
       return;
     }
 
@@ -201,7 +198,11 @@ export const pagesController = {
     const sort = req.query.sort === "desc" ? "desc" : "asc";
     const products = productService.findAllWithSort(sort);
 
-    res.render("templates/pages/products", { title: "Productos", products, sort });
+    res.render("templates/pages/products", {
+      title: "Productos",
+      products,
+      sort,
+    });
   },
 
   /**

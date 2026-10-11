@@ -4,9 +4,8 @@ import type { User } from "../models/user.model.js";
 
 /**
  * @fileoverview Repositorio de usuarios (spec §0/§23): único lugar que consulta
- * la tabla `users`. Métodos reales de auth (buscar, crear) más el
- * `ensureGuestUser` temporal que el checkout todavía usa hasta el PR de Redis
- * (se elimina al migrar el checkout a usuario autenticado, spec §19/D5).
+ * la tabla `users`. El checkout ya usa el usuario autenticado, así que D5 (guest)
+ * quedó eliminado.
  */
 
 /**
@@ -66,29 +65,6 @@ export class UserRepository {
     const created = this.findById(Number(info.lastInsertRowid));
     // El SELECT inmediato siempre encuentra la fila recién insertada.
     return created as User;
-  }
-
-  /**
-   * Garantiza la existencia del usuario invitado (Guest) y devuelve su id.
-   *
-   * @deprecated Temporal: se elimina al migrar el checkout a auth real (spec
-   * §19/D5). Hasta entonces satisface la FK `orders.user_id`.
-   *
-   * @returns {number} El id del usuario invitado en la tabla users.
-   */
-  ensureGuestUser(): number {
-    const existing = this.database
-      .prepare("SELECT id FROM users WHERE email = ?")
-      .get("guest@local") as { id: number } | undefined;
-    if (existing) {
-      return existing.id;
-    }
-    const info = this.database
-      .prepare(
-        "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
-      )
-      .run("Guest", "guest@local", "!");
-    return Number(info.lastInsertRowid);
   }
 }
 

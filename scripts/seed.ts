@@ -1,11 +1,15 @@
 // Seed idempotente (task 2.5): INSERT OR IGNORE sobre SQLite — re-ejecutable sin duplicar.
 // Crea el esquema (bootstrap en database.ts) y puebla 4 productos + 3 categorías + joins N:M
 // según el spec §1.4 (Teclado, Mouse, Monitor, Headset × Periféricos, Monitores, Audio).
+import bcrypt from "bcryptjs";
 import db from "../src/config/database.js";
 import { productRepository } from "../src/repositories/product.repository.js";
 
 const categories: Array<{ name: string; description: string | null }> = [
-  { name: "Periféricos", description: "Dispositivos de entrada y sonido para tu setup" },
+  {
+    name: "Periféricos",
+    description: "Dispositivos de entrada y sonido para tu setup",
+  },
   { name: "Monitores", description: "Pantallas para trabajo y gaming" },
   { name: "Audio", description: "Auriculares y sonido inmersivo" },
 ];
@@ -63,7 +67,9 @@ function seed(): void {
   const insertJoin = db.prepare(
     "INSERT OR IGNORE INTO product_categories (product_id, category_id) VALUES (?, ?)",
   );
-  const selectCategoryId = db.prepare("SELECT id FROM categories WHERE name = ?");
+  const selectCategoryId = db.prepare(
+    "SELECT id FROM categories WHERE name = ?",
+  );
   const selectProductId = db.prepare("SELECT id FROM products WHERE name = ?");
 
   db.transaction(() => {
@@ -73,21 +79,48 @@ function seed(): void {
       const product = selectProductId.get(p.name) as { id: number } | undefined;
       if (!product) continue;
       for (const catName of p.categories) {
-        const category = selectCategoryId.get(catName) as { id: number } | undefined;
+        const category = selectCategoryId.get(catName) as
+          { id: number } | undefined;
         if (category) insertJoin.run(product.id, category.id);
       }
     }
   })();
 
+  // Admin por entorno (spec §23.6): nunca se commitea una contraseña por
+  // defecto (el repo es público, §21.4). Si faltan las variables, se omite.
+  const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (adminEmail && adminPassword) {
+    const hash = bcrypt.hashSync(adminPassword, 12);
+    db.prepare(
+      "INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'admin')",
+    ).run("Admin", adminEmail, hash);
+    console.log(`Admin seedeado: ${adminEmail}`);
+  } else {
+    console.warn(
+      "[seed] SEED_ADMIN_EMAIL/SEED_ADMIN_PASSWORD no definidos: se omite el admin (spec §23.6)",
+    );
+  }
+
   const counts = {
-    products: (db.prepare("SELECT COUNT(*) AS n FROM products").get() as { n: number }).n,
-    categories: (db.prepare("SELECT COUNT(*) AS n FROM categories").get() as { n: number }).n,
-    joins: (db.prepare("SELECT COUNT(*) AS n FROM product_categories").get() as { n: number }).n,
+    products: (
+      db.prepare("SELECT COUNT(*) AS n FROM products").get() as { n: number }
+    ).n,
+    categories: (
+      db.prepare("SELECT COUNT(*) AS n FROM categories").get() as { n: number }
+    ).n,
+    joins: (
+      db.prepare("SELECT COUNT(*) AS n FROM product_categories").get() as {
+        n: number;
+      }
+    ).n,
   };
   console.log(
     `Seed OK: ${counts.products} productos, ${counts.categories} categorías, ${counts.joins} joins N:M`,
   );
-  console.log(`Verificación servicio: ${productRepository.list().length} productos accesibles`);
+  console.log(
+    `Verificación servicio: ${productRepository.list().length} productos accesibles`,
+  );
 }
 
 seed();
