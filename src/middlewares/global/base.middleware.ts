@@ -2,16 +2,19 @@ import express from "express";
 import type { RequestHandler } from "express";
 import expressLayouts from "express-ejs-layouts";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import path from "path";
 
 /**
  * @fileoverview Middlewares de librería de configuración simple, agrupados en
  * un único array para que `app.ts` solo los monte (spec §22).
  *
- * Orden interno (contrato): `helmet` primero (cabeceras de seguridad en toda
- * respuesta), `express.static` para que los assets no pasen por la sesión,
- * los body parsers (`json` → `urlencoded`) y por último
- * `express-ejs-layouts`, que envuelve `res.render` antes de los routers.
+ * Orden interno (contrato §22.4, enmienda cookie httpOnly): `helmet` primero
+ * (cabeceras de seguridad en toda respuesta), `express.static` para que los
+ * assets no pasen por la cookie ni por los parsers (M14: estáticos sin
+ * `Set-Cookie`), `cookieParser` (los assets no lo necesitan), los body
+ * parsers (`json` → `urlencoded`) y por último `express-ejs-layouts`, que
+ * envuelve `res.render` antes de los routers.
  */
 
 // En desarrollo `upgrade-insecure-requests` rompe http://localhost; en
@@ -37,8 +40,12 @@ const securityMiddleware = helmet({
  */
 export const baseMiddlewares: RequestHandler[] = [
   securityMiddleware,
-  // static (spec §14): sirve dist/public; antes de la sesión (ya no hay sesión)
+  // static (spec §14): sirve dist/public; antes de la cookie y los parsers
   express.static(path.join(process.cwd(), "dist/public")),
+  // Cookie parser (spec §22.4, enmienda cookie httpOnly): parsea las cookies
+  // para `extractToken`/`attachUser`. Va después de static y antes de los
+  // body parsers.
+  cookieParser(),
   // Body parsers: JSON (fetch del carrito/auth/checkout) y urlencoded
   express.json(),
   express.urlencoded({ extended: true }),
