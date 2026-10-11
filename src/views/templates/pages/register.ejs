@@ -12,8 +12,9 @@
   //   same normalization as login (spec "botón primario", Paso 6 precedent).
   // - novalidate disables native browser bubbles so §6.3 per-field specific
   //   messages (rendered into the atoms' data-error-for slots) always run.
-  // - Auth backend does NOT exist yet — placeholder action="/register" POST
-  //   per §6.3 ("un POST normal con redirect"); endpoint lands in a later paso.
+  // - Auth real (spec §23): el form se envía por fetch JSON a
+  //   POST /api/auth/register (auth.js) tras la validación de §6.3; el
+  //   action/method queda como fallback sin JS.
 %>
 <section class="relative">
   <div class="absolute inset-x-0 top-0 h-64 bg-brand md:h-72" aria-hidden="true"></div>
@@ -22,7 +23,20 @@
     <div class="rounded-2xl bg-white p-6 shadow-md md:p-8">
       <h1 class="text-h3 text-ink">¡Registrate!</h1>
 
-      <form id="register-form" action="/register" method="POST" novalidate class="mt-6 flex flex-col gap-4">
+      <form
+        id="register-form"
+        action="/register"
+        method="POST"
+        novalidate
+        data-auth-form
+        data-auth-endpoint="/api/auth/register"
+        class="mt-6 flex flex-col gap-4"
+      >
+        <div
+          data-auth-error
+          class="hidden rounded-lg bg-alert/10 px-3 py-2 text-sm text-alert"
+          role="alert"
+          ></div>
         <%- include("../atoms/input", {
           name: "name",
           label: "Nombre",

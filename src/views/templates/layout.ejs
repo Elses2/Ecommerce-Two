@@ -13,11 +13,11 @@
 <body class="flex min-h-screen flex-col bg-white font-sans text-ink antialiased">
   <%
     // Shell defaults: cartCount comes from injectCartCount (res.locals);
-    // userName stays a mockup placeholder until the session step lands.
-    // Desktop and mobile variants are both rendered here; Tailwind
-    // visibility classes (hidden md:block / md:hidden) pick the active one.
+    // userName arranca como "Invitado" y auth.js lo hidrata desde localStorage
+    // / GET /api/auth/me (spec §23). Desktop and mobile variants are both
+    // rendered here; Tailwind visibility classes pick the active one.
     const shellCartCount = typeof locals.cartCount === "number" ? locals.cartCount : 0;
-    const shellUserName = typeof locals.userName === "string" ? locals.userName : "Olivia";
+    const shellUserName = typeof locals.userName === "string" ? locals.userName : "Invitado";
   %>
   <%- include("organisms/header", { cartCount: shellCartCount, userName: shellUserName }) %>
   <%- include("organisms/header-mobile", { cartCount: shellCartCount, userName: shellUserName }) %>
@@ -28,6 +28,11 @@
 
   <%- include("organisms/footer") %>
   <%- include("organisms/footer-mobile") %>
+
+  <!-- Auth client (spec §23): token en localStorage + formularios de auth por
+       fetch + render del header. Va ANTES de cart.js porque el carrito usa
+       `window.Auth`. -->
+  <script src="/js/auth.js" defer></script>
 
   <!-- Cart AJAX (spec §5/§6.4): loaded ONCE per page from the layout — every
        view rendered through express-ejs-layouts gets the script exactly once;

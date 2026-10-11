@@ -48,15 +48,43 @@ function parseImageUrl(rawValue: string | undefined): string {
 }
 
 /**
+ * Valida y devuelve el secreto de firma de JWT (spec §23.1).
+ *
+ * En producción un secreto ausente o corto permitiría a cualquiera firmar
+ * tokens válidos, así que se falla al arrancar en vez de degradar en silencio.
+ * En desarrollo se acepta vacío para no bloquear el arranque.
+ *
+ * @param {string | undefined} rawValue - Valor de `JWT_SECRET`.
+ * @param {boolean} isProduction - `true` si `NODE_ENV === "production"`.
+ * @returns {string} Secreto de firma ya validado.
+ * @throws {Error} Si en producción falta o tiene menos de 32 caracteres.
+ */
+function parseJwtSecret(
+  rawValue: string | undefined,
+  isProduction: boolean,
+): string {
+  const value = rawValue?.trim() ?? "";
+  if (isProduction && value.length < 32) {
+    throw new Error(
+      "[env] JWT_SECRET es obligatorio en producción y debe tener al menos 32 caracteres",
+    );
+  }
+  return value;
+}
+
+/**
  * Construye el objeto de configuración tipado a partir del entorno global.
  *
  * @param {NodeJS.ProcessEnv} envVars - Objeto global de variables de entorno (`process.env`).
  * @returns {Object} Objeto de configuración global inmutable.
  */
 function createEnvConfig(envVars: NodeJS.ProcessEnv) {
+  const isProduction = envVars.NODE_ENV === "production";
   return {
     port: parsePort(envVars.PORT, 3000),
     sessionSecret: getEnvString(envVars.SESSION_SECRET),
+    jwtSecret: parseJwtSecret(envVars.JWT_SECRET, isProduction),
+    jwtExpiresIn: envVars.JWT_EXPIRES_IN?.trim() || "2h",
     images: {
       fallbackUrl: parseImageUrl(envVars.FALLBACK_IMAGE_URL),
     },

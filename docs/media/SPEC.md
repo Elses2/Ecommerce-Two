@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-11** (arquitectura de middlewares §22)
+> - Última actualización: **2026-10-11** (autenticación JWT §23)
 > - Rama base de referencia: `dev`
 
 ---
@@ -68,6 +68,7 @@
 | [§20](#20-favicon--logo-de-la-pestaña) | Favicon / logo de la pestaña | Nuevo |
 | [§21](#21-cicd-y-despliegue) | CI/CD y despliegue | Nuevo |
 | [§22](#22-arquitectura-de-middlewares) | Arquitectura de middlewares | Nuevo |
+| [§23](#23-autenticación-y-autorización-jwt) | Autenticación y autorización (JWT) | Nuevo |
 
 ---
 
@@ -124,9 +125,12 @@ Reglas ya acordadas que **deben respetarse** en todo lo que sigue:
 - **DTO** → forma de los datos que entra/sale por un endpoint específico.
 - **Atom/Molecule** → sin datos reales, reciben todo por props/variables EJS.
 - **Organism** → puede tener datos reales inyectados por el controller.
-- `routes/api/*` **solo** existe para funcionalidades que necesitan
-  actualizar la pantalla sin recargar (AJAX real: carrito). Todo lo demás
-  usa `res.render` / `res.redirect` desde `controllers/pages`.
+- `routes/api/*` existe para toda funcionalidad que el cliente consume con
+  `fetch` + token (hoy: auth, §23; el carrito y el checkout se suman en las
+  siguientes partes). Sin cookies, el servidor no conoce al usuario en una
+  navegación normal, así que no puede renderizar páginas por usuario; las
+  páginas protegidas serán cascarones y su JS pedirá los datos por `fetch`.
+  Todo lo demás usa `res.render` / `res.redirect` desde `controllers/pages`.
 - La API se documenta con Swagger en `/api-docs` (ver §10).
 
 ---
@@ -407,12 +411,21 @@ El input de usuario es `type="email" name="email"` por dentro (la tabla
 `users` solo tiene `email`, no `username`); el texto visible puede decir
 "usuario", es cosmético.
 
+**Envío (spec §23.4):** `data-auth-form` + `data-auth-endpoint="/api/auth/login"`;
+`public/js/auth.js` intercepta el submit, envía JSON por `fetch`, guarda el
+token en `localStorage` y redirige a `?next` (validado). El `action`/`method`
+quedan como fallback sin JS.
+
 ### §4.5 Register
 
 Mismo lenguaje visual que Login (banda teal + tarjeta centrada). Los
 `name`/`id` de los inputs son exactamente `name`, `lastname`, `email`,
 `password` (sin confirmación) porque `register-validation.js` (§6.3) los
 referencia por esos nombres.
+
+**Envío (spec §23.4):** `data-auth-form` + `data-auth-endpoint="/api/auth/register"`.
+La validación cliente de §6.3 corre primero (marca `defaultPrevented`); si pasa,
+`auth.js` manda JSON a la API. El server sigue siendo la autoridad.
 
 ### §4.6 Páginas sin mockup todavía
 
@@ -450,6 +463,10 @@ generan **junto con** el HTML del componente:
 | Mensaje de carrito vacío | `data-cart-empty` (con clase `hidden` por defecto) | `pages/cart.ejs` | `cart.js` |
 | Formulario de checkout | `data-checkout-form` | `<form>` en `pages/checkout.ejs` | `checkout-validation.js` (§19) |
 | Botón de confirmar compra | `data-checkout-submit` | `<button type="submit">` en `pages/checkout.ejs` | `checkout-validation.js` (§19) |
+| Formulario de login/registro | `data-auth-form` `data-auth-endpoint` | `<form>` en `pages/login.ejs` / `pages/register.ejs` | `auth.js` (§23.4) |
+| Caja de errores de auth | `data-auth-error` | `<div role="alert">` en los forms de auth | `auth.js` (400/409/401 del server) |
+| Botón de logout | `data-auth-logout` | `<button>` (header, oculto por defecto) | `auth.js` |
+| Botón de perfil | `data-auth-profile` `data-auth-name` | `molecules/profile-btn.ejs` (span del nombre) | `auth.js` (hidrata invitado/usuario) |
 
 > **Nota — link extendido (2026-10-07):** la card de producto
 > (`molecules/product.ejs`) contiene un `<a href="/products/<id>">` en el
@@ -734,7 +751,12 @@ Requisitos de alto nivel (para cuando se aborde):
   `src/controllers/pages/checkout.controller.ts`.
 - `src/routes/docs.routes.ts` — router que sirve Swagger UI en `/api-docs`.
 - `src/app.ts` monta `docsRouter` en `/api-docs` antes del catch-all 404.
+- `securitySchemes.bearerAuth` (`type: http, scheme: bearer, bearerFormat: JWT`)
+  y schemas `User`, `AuthResponse`, `RegisterRequest`, `LoginRequest` (spec §23).
+- Rutas de auth: `POST /api/auth/register`, `POST /api/auth/login`,
+  `GET /api/auth/me` (protegida con bearer).
 - Bloques `@swagger` con annotations en los handlers:
+  - `src/controllers/api/auth.controller.ts` — 3 endpoints (`register`, `login`, `me`).
   - `src/controllers/api/cart.controller.ts` — 5 endpoints (`addItem`,
     `increaseItem`, `decreaseItem`, `removeItem`, `clearCart`).
   - `src/controllers/pages/pages.controller.ts` — 6 endpoints (`getHome`,
@@ -830,6 +852,7 @@ src/
 │   └── swagger.ts                  ← especificación OpenAPI (ver §10)
 ├── controllers/
 │   ├── api/
+│   │   ├── auth.controller.ts      ← register/login/me (§23)
 │   │   └── cart.controller.ts      ← endpoints AJAX del carrito
 │   └── pages/
 │       ├── checkout.controller.ts  ← checkout real: form, POST, confirmación (§19)
@@ -840,6 +863,7 @@ src/
 │   │   ├── session.middleware.ts        ← express-session + SqliteStore
 │   │   └── inject-cart-count.middleware.ts ← res.locals.cartCount (§6.11)
 │   ├── route/
+│   │   ├── authenticate.middleware.ts   ← exige JWT, deja req.user (§23.3)
 │   │   └── validate-id.middleware.ts    ← validación de ids de la API (§6.9)
 │   └── error/
 │       ├── not-found.middleware.ts      ← 404 catch-all (§6.1)
@@ -850,6 +874,7 @@ src/
 │   ├── order.repository.ts         ← placeOrder atómico + consultas de órdenes (§19)
 │   └── user.repository.ts          ← ensureGuestUser temporal (D5, @deprecated)
 ├── services/
+│   ├── auth.service.ts             ← register/login + firma/verificación JWT (§23.2)
 │   ├── product.service.ts
 │   ├── category.service.ts
 │   ├── cart.service.ts
@@ -860,29 +885,30 @@ src/
 │   ├── pages.routes.ts             ← router de páginas SSR
 │   ├── docs.routes.ts              ← Swagger UI (/api-docs)
 │   └── api/
-│       ├── auth.routes.ts          ← definido, sin backend real
+│       ├── auth.routes.ts          ← register/login/me (§23)
 │       ├── cart.routes.ts
 │       ├── categories.routes.ts
 │       ├── orders.routes.ts        ← definido, sin backend real
 │       └── products.routes.ts
 ├── models/                         ← interfaces de datos (user, product, category, cart, order, orderItem, productCategory)
-├── dtos/                           ← Data Transfer Objects (product.dto, cart.dto)
+├── dtos/                           ← Data Transfer Objects (product.dto, cart.dto, auth.dto, checkout.dto)
 ├── utils/
 │   ├── category-icons.ts           ← mapeo categoría → ícono Lucide
 │   ├── normalizeId.ts              ← helper puro de validación de IDs
 │   └── errors.ts                   ← OutOfStockError, ProductNotFoundError (§19)
 ├── types/
-│   └── better-sqlite3-session-store.d.ts  ← declaración de tipos
+│   ├── better-sqlite3-session-store.d.ts  ← declaración de tipos
+│   └── express.d.ts                ← aumento de `req.user` (§23.3)
 └── views/templates/                ← árbol atómico (ver §15)
 ```
 
 Notas:
-- `auth.routes.ts` y `orders.routes.ts` existen como scaffolds pero **no
-  tienen backend real** (sin login; el checkout vive en rutas de páginas, §19).
+- `orders.routes.ts` sigue como scaffold sin backend real (hasta el PR de
+  autorización, §23); `auth.routes.ts` ya tiene register/login/me (§23).
 - Services con contenido real: `cart.service.ts`, `product.service.ts`,
   `category.service.ts`, `promo.service.ts` y `checkout.service.ts`.
 - `public/` (raíz del proyecto, fuera de `src/`): estáticos del
-  cliente — `js/cart.js`, `js/register-validation.js` y los favicons
+  cliente — `js/auth.js` (§23.4), `js/cart.js`, `js/register-validation.js` y los favicons
   `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` (§20). El
   build (`npm run build`) copia `public/**/*` a `dist/public`, que es
   lo que sirve `express.static` (`src/app.ts`).
@@ -947,6 +973,8 @@ fueron eliminadas en el PR #51.
 |---|---|---|---|
 | `PORT` | Puerto del servidor Express | `3000` | numérico; si falta/inválido usa default |
 | `SESSION_SECRET` | Secreto de `express-session` | `""` | texto; usar un valor aleatorio largo en producción |
+| `JWT_SECRET` | Secreto de firma de los JWT (`§23.1`) | `""` | texto; **en producción** falta o <32 chars → falla al arrancar |
+| `JWT_EXPIRES_IN` | Vida del access token JWT | `"2h"` | formato de `jsonwebtoken` (`2h`, `30m`, `7d`) |
 | `FALLBACK_IMAGE_URL` | Imagen fallback de productos | `https://placehold.co/600x600?text=Sin+imagen` | URL `http(s)://...` o ruta que empiece con `/`; si falta/inválida → warning + default |
 | `DB_PATH` | Ruta del archivo SQLite | `dev.db` en la raíz del proyecto | si falta o está vacía → default; los tests de checkout usan una DB temporal (§19.6) |
 
@@ -955,6 +983,11 @@ fueron eliminadas en el PR #51.
 ```bash
 PORT=3000
 SESSION_SECRET=cambiar_por_un_secreto_largo_y_aleatorio
+# Secreto de firma de los JWT (spec §23.1). Obligatorio y >= 32 caracteres en producción.
+# Generar con: openssl rand -hex 48
+JWT_SECRET=cambiar_por_un_secreto_largo_y_aleatorio_de_al_menos_32_chars
+# Vida del access token JWT (formato de jsonwebtoken: "2h", "30m", "7d").
+JWT_EXPIRES_IN=2h
 # URL de la imagen que se muestra cuando un producto no tiene image_url.
 # Acepta http(s)://... o una ruta que empiece con "/". Si falta o es inválida, se usa el default.
 FALLBACK_IMAGE_URL=https://placehold.co/600x600?text=Sin+imagen
@@ -1424,6 +1457,76 @@ como deuda para otro PR y cambiaría el baseline M8/M9 de
 
 ---
 
+## §23. Autenticación y autorización (JWT)
+
+> **Sección nueva** (issue #93, parte 1 de 3). Autenticación JWT **stateless**:
+> sin cookies ni sesiones. La autorización por rol/propiedad llega en la parte 2.
+
+### §23.1 Configuración y claims
+
+- `env.jwtSecret` (de `JWT_SECRET`) y `env.jwtExpiresIn` (de `JWT_EXPIRES_IN`,
+  default `2h`). En producción `JWT_SECRET` es obligatorio y **≥ 32 caracteres**;
+  si falta o es corto, la app **falla al arrancar** (un secreto vacío permitiría
+  firmar tokens válidos).
+- Firma **HS256**; al verificar se fija `algorithms: ["HS256"]` para evitar
+  ataques de cambio de algoritmo.
+- El payload solo lleva `sub` (id) y `role`; el token es legible, nunca datos
+  sensibles. El `role` viaja en el token (ver limitaciones §23.5).
+- Contraseñas con `bcrypt` (cost 12). Se valida máximo **72** caracteres porque
+  bcrypt trunca silenciosamente a 72 bytes.
+
+### §23.2 Endpoints y service
+
+| Endpoint | Protegido | Respuestas |
+|---|---|---|
+| `POST /api/auth/register` | No | `201 { user, token }` · `400 { errors }` · `409 { errors }` |
+| `POST /api/auth/login` | No | `200 { user, token }` · `401 { errors }` |
+| `GET /api/auth/me` | Sí | `200 { user }` · `401 { error }` |
+
+- `src/services/auth.service.ts` (`authService`): no conoce Express ni SQL (regla
+  §0). Los errores de negocio **se devuelven** como resultado tipado
+  (`{ ok: false, reason, errors }`), igual que el checkout (§19.5);
+  `validation` → 400, `email_taken` → 409, `invalid_credentials` → 401.
+- `register` une `name` + `lastname` en `users.name`; el rol siempre nace
+  `customer` (el admin se crea por seed, nunca por `/register`).
+- Login usa un hash falso cuando el email no existe para tardar lo mismo en
+  ambos casos (no enumera usuarios) y devuelve el mismo mensaje.
+- `PublicUser` nunca incluye `password_hash`.
+- `src/repositories/user.repository.ts`: `findByEmail`, `findById`, `create`;
+  `ensureGuestUser` sigue vivo hasta migrar el checkout (§19/D5).
+
+### §23.3 Middleware `authenticate`
+
+`src/middlewares/route/authenticate.middleware.ts` (spec §22.3: exigir auth es
+middleware **de ruta**). Verifica `Authorization: Bearer <jwt>` y deja
+`req.user = { id, role }` (tipado en `src/types/express.d.ts`). Responde 401 con
+`{ error }` si falta el header, el token es inválido/expiró o el usuario ya no
+existe (`GET /me`).
+
+### §23.4 Frontend
+
+- `public/js/auth.js` (cargado en `layout.ejs` **antes** de `cart.js`): guarda el
+  token en `localStorage`, expone `window.Auth` (con `Auth.fetch`, que adjunta el
+  bearer y en 401 limpia y redirige a `/login?next=`), hidrata el header y maneja
+  los formularios `[data-auth-form]` y el logout `[data-auth-logout]`.
+- El `next` se valida (solo rutas internas que empiezan con `/` y no con `//`)
+  para evitar open redirect.
+- Los formularios de §4.4/§4.5 mandan JSON a la API; `register-validation.js`
+  (§6.3) corre antes y el server sigue siendo la autoridad.
+- Nuevos `data-*` documentados en §5.
+
+### §23.5 Limitaciones (documentadas)
+
+- **Sin revocación:** con JWT puro el logout solo borra el token del cliente; un
+  token robado vale hasta su `exp`. Por eso la vida es corta.
+- **XSS es el riesgo principal:** el token vive en `localStorage`, legible por JS.
+  Mitigaciones: escapar siempre con `<%= %>`, vida corta y `helmet`/CSP (parte 3).
+- **CSRF desaparece:** sin cookies no hay credencial automática que falsificar.
+- El rol viaja en el token; quitárselo a alguien conserva el permiso hasta que
+  expire.
+
+---
+
 ## Tabla de equivalencias — `§` original → `SPEC.md`
 
 | `§` original (spec sprint 1) | `§` en `SPEC.md` | Estado |
@@ -1460,6 +1563,7 @@ como deuda para otro PR y cambiaría el baseline M8/M9 de
 | — (nuevo) | §20 Favicon / logo de pestaña | Nuevo |
 | — (nuevo) | §21 CI/CD y despliegue | Nuevo |
 | — (nuevo) | §22 Arquitectura de middlewares | Nuevo |
+| — (nuevo) | §23 Autenticación y autorización (JWT) | Nuevo |
 
 ---
 
@@ -1483,6 +1587,7 @@ como deuda para otro PR y cambiaría el baseline M8/M9 de
 | 2026-10-08 | Este PR / issue #80 | Favicon / logo de la pestaña (§20): tres archivos en `public/` + `<link>` en el `<head>` del layout; `GET /favicon.ico` deja de caer en el 404 | — |
 | 2026-10-08 | PR #? / issue #? | Dockerización y CI/CD (§21): Dockerfile multi-stage, .dockerignore, workflow CI/CD, docker-compose.prod.yml, .env.prod.example, AGENTS.md | — |
 | 2026-10-11 | Este PR / issue #91 | Arquitectura de middlewares (§22): reorganización en `global/route/error`, base y sesión extraídos de `app.ts`, tests M1–M18 en CI y bug de validación de colecciones documentado como deuda | — |
+| 2026-10-11 | Este PR / issue #93 | Autenticación JWT stateless (§23, parte 1/3): `authService` (register/login/me), middleware `authenticate`, API `/api/auth/*`, `role` en `users`, frontend de login/registro con token y tests A1–A6 en CI | — |
 
 ---
 
