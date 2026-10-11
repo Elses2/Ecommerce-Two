@@ -7,4 +7,11 @@
 <div class="flex shrink-0 items-center gap-2">
   <%- include("./cart-icon", { count: rightCartCount }) %>
   <%- include("./profile-btn", { name: rightUserName }) %>
+  <button
+    type="button"
+    data-auth-logout
+    class="hidden rounded-full px-2 text-sm text-graphite underline-offset-2 hover:underline"
+  >
+    Salir
+  </button>
 </div>
