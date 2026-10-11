@@ -21,7 +21,45 @@ const spec = swaggerJSDoc({
       },
     ],
     components: {
+      securitySchemes: {
+        // Autenticación por JWT en el header Authorization (spec §23.2/§10).
+        bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+      },
       schemas: {
+        User: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            name: { type: "string" },
+            email: { type: "string" },
+            role: { type: "string", enum: ["customer", "admin"] },
+          },
+        },
+        AuthResponse: {
+          type: "object",
+          properties: {
+            user: { $ref: "#/components/schemas/User" },
+            token: { type: "string" },
+          },
+        },
+        RegisterRequest: {
+          type: "object",
+          required: ["name", "lastname", "email", "password"],
+          properties: {
+            name: { type: "string" },
+            lastname: { type: "string" },
+            email: { type: "string", format: "email" },
+            password: { type: "string", minLength: 8, maxLength: 72 },
+          },
+        },
+        LoginRequest: {
+          type: "object",
+          required: ["email", "password"],
+          properties: {
+            email: { type: "string", format: "email" },
+            password: { type: "string" },
+          },
+        },
         Cart: {
           type: "object",
           properties: {
