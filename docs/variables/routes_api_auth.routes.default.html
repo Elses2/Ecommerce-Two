@@ -14,12 +14,14 @@
 <div class="tsd-signature"><span class="tsd-kind-variable">default</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Router</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-fileoverview">
-<h4 class="tsd-anchor-link" id="fileoverview">Fileoverview<a href="#fileoverview" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Router de la API de autenticación (spec §23.2). Se monta bajo
-<code>/api/auth</code> desde <code>routes/index.routes.ts</code>. <code>GET /me</code> va protegido por el
-middleware de ruta <code>authenticate</code> (spec §22.3/§23.3).</p>
+<h4 class="tsd-anchor-link" id="fileoverview">Fileoverview<a href="#fileoverview" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Router de la API de autenticación (spec §23.2, enmienda cookie
+httpOnly). Se monta bajo <code>/api/auth</code> desde <code>routes/index.routes.ts</code>.
+<code>GET /me</code> va protegido por el middleware de ruta <code>authenticate</code> (spec
+§22.3/§23.3); <code>logout</code> no: borrar una cookie ajena o inexistente es inocuo
+(C9).</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/routes/api/auth.routes.ts#L10">src/routes/api/auth.routes.ts:10</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/72a5cfe861cfd2b88ac44507d3aaf8be3a3548bb/src/routes/api/auth.routes.ts#L12">src/routes/api/auth.routes.ts:12</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
