@@ -346,22 +346,32 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
     equal(res.setCookies.length, 0, "sin Set-Cookie");
   });
 
-  // M4: helmet agrega cabeceras de seguridad (spec §24).
-  await check("M4: helmet agrega CSP y nosniff", async () => {
-    const res = await request("GET", `${baseUrl}/`);
-    const csp = res.headers.get("content-security-policy") ?? "";
-    observations.m4 = {
-      xContentTypeOptions: res.headers.get("x-content-type-options"),
-      hasCsp: csp.length > 0,
-      cspHasUpgrade: /upgrade-insecure-requests/i.test(csp),
-    };
-    equal(res.headers.get("x-content-type-options"), "nosniff", "nosniff");
-    assert(csp.includes("default-src 'self'"), "CSP con default-src 'self'");
-    assert(
-      !/upgrade-insecure-requests/i.test(csp),
-      "sin upgrade-insecure-requests fuera de prod",
-    );
-  });
+  // M4: helmet agrega cabeceras de seguridad (spec §22.2/§24). Con
+  // CSP_UPGRADE_INSECURE=false (default) NO debe forzar HTTPS en subrecursos.
+  await check(
+    "M4: helmet agrega CSP y nosniff sin upgrade-insecure-requests",
+    async () => {
+      const res = await request("GET", `${baseUrl}/`);
+      const csp = res.headers.get("content-security-policy") ?? "";
+      observations.m4 = {
+        xContentTypeOptions: res.headers.get("x-content-type-options"),
+        hasCsp: csp.length > 0,
+        cspHasUpgrade: /upgrade-insecure-requests/i.test(csp),
+        cspAllowsInlineAttr: /script-src-attr 'unsafe-inline'/.test(csp),
+      };
+      equal(res.headers.get("x-content-type-options"), "nosniff", "nosniff");
+      assert(csp.includes("default-src 'self'"), "CSP con default-src 'self'");
+      assert(
+        !/upgrade-insecure-requests/i.test(csp),
+        "CSP_UPGRADE_INSECURE=false omite upgrade-insecure-requests",
+      );
+      // Los <img> usan `onerror` inline: el CSP debe permitirlo (script-src-attr).
+      assert(
+        /script-src-attr 'unsafe-inline'/.test(csp),
+        "permite onerror inline",
+      );
+    },
+  );
 
   // M5: 404 HTML de páginas para rutas inexistentes.
   await check(
@@ -624,6 +634,50 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
   );
 }
 
+// Levanta una SEGUNDA instancia con CSP_UPGRADE_INSECURE=true y verifica que el
+// CSP sí incluya upgrade-insecure-requests (spec §22.2).
+async function runCspUpgradeCheck(): Promise<void> {
+  const port = await getFreePort();
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const child = spawn(
+    process.execPath,
+    ["--import", "tsx", path.join(ROOT, "src", "app.ts")],
+    {
+      cwd: ROOT,
+      env: {
+        ...process.env,
+        DB_PATH: TEST_DB_PATH,
+        PORT: String(port),
+        JWT_SECRET,
+        CSP_UPGRADE_INSECURE: "true",
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+  child.stdout.on("data", () => {});
+  child.stderr.on("data", () => {});
+  try {
+    await waitForServer(baseUrl);
+    await check(
+      "M23: CSP_UPGRADE_INSECURE=true agrega upgrade-insecure-requests",
+      async () => {
+        const res = await request("GET", `${baseUrl}/`);
+        const csp = res.headers.get("content-security-policy") ?? "";
+        observations.m23 = {
+          cspHasUpgrade: /upgrade-insecure-requests/i.test(csp),
+        };
+        assert(
+          /upgrade-insecure-requests/i.test(csp),
+          "upgrade-insecure-requests presente",
+        );
+      },
+    );
+  } finally {
+    child.kill("SIGKILL");
+    await new Promise((r) => setTimeout(r, 300));
+  }
+}
+
 // ── Runner ──────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
   console.log("Test de caracterización de middlewares (spec §22)\n");
@@ -654,6 +708,7 @@ async function main(): Promise<void> {
         DB_PATH: TEST_DB_PATH,
         PORT: String(port),
         JWT_SECRET,
+        CSP_UPGRADE_INSECURE: "false",
       },
       stdio: ["ignore", "pipe", "pipe"],
     },
@@ -668,8 +723,11 @@ async function main(): Promise<void> {
     console.log("\nM15/M16 — errorHandler como unidad:");
     await runErrorHandlerUnit();
 
-    console.log("\nM1–M18 — comportamiento HTTP real:");
+    console.log("\nM1–M22 — comportamiento HTTP real:");
     await runHttpSuite(baseUrl);
+
+    console.log("\nM23 — CSP con CSP_UPGRADE_INSECURE=true:");
+    await runCspUpgradeCheck();
   } finally {
     server.kill("SIGKILL");
     await new Promise((r) => setTimeout(r, 300));

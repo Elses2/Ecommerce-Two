@@ -83,6 +83,27 @@ function parseRedisUrl(
 }
 
 /**
+ * Parsea un booleano de entorno (spec §22.2).
+ *
+ * Acepta `true/1/yes/on` y `false/0/no/off` (case-insensitive). Un valor
+ * ausente o vacío usa el fallback; un valor inválido avisa y usa el fallback.
+ *
+ * @param {string | undefined} rawValue - Valor crudo de la variable.
+ * @param {boolean} [fallback=false] - Valor por defecto.
+ * @returns {boolean} Booleano resuelto.
+ */
+function parseBoolean(rawValue: string | undefined, fallback = false): boolean {
+  const value = rawValue?.trim().toLowerCase();
+  if (value === undefined || value === "") return fallback;
+  if (["true", "1", "yes", "on"].includes(value)) return true;
+  if (["false", "0", "no", "off"].includes(value)) return false;
+  console.warn(
+    `[env] valor booleano inválido "${rawValue}", usando ${fallback}`,
+  );
+  return fallback;
+}
+
+/**
  * Construye el objeto de configuración tipado a partir del entorno global.
  *
  * @param {NodeJS.ProcessEnv} envVars - Objeto global de variables de entorno (`process.env`).
@@ -95,6 +116,10 @@ function createEnvConfig(envVars: NodeJS.ProcessEnv) {
     jwtSecret: parseJwtSecret(envVars.JWT_SECRET, isProduction),
     jwtExpiresIn: envVars.JWT_EXPIRES_IN?.trim() || "2h",
     redisUrl: parseRedisUrl(envVars.REDIS_URL, isProduction),
+    // CSP (spec §22.2): por defecto NO forzar HTTPS en subrecursos. Un deploy
+    // por http://IP:PUERTO necesita false, o el navegador sube los assets a
+    // https y la página queda sin estilos.
+    cspUpgradeInsecure: parseBoolean(envVars.CSP_UPGRADE_INSECURE, false),
     images: {
       fallbackUrl: parseImageUrl(envVars.FALLBACK_IMAGE_URL),
     },
