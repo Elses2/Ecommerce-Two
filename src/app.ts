@@ -1,66 +1,52 @@
 import express from "express";
-import type { Request, Response } from "express";
 import path from "path";
 import pagesRoutes from "./routes/pages.routes.js";
 import apiRoutes from "./routes/index.routes.js";
 import docsRouter from "./routes/docs.routes.js";
 import { fileURLToPath } from "url";
-import expressLayouts from "express-ejs-layouts";
-import session from "express-session";
 import { env } from "./config/env.js";
-import { injectCartCount } from "./middlewares/injectCartCount.middleware.js";
-import { normalizeId } from "./middlewares/normalizeId.middleware.js";
-import { errorHandler } from "./middlewares/error-handler.middleware.js";
+import { baseMiddlewares } from "./middlewares/global/base.middleware.js";
+import { sessionMiddleware } from "./middlewares/global/session.middleware.js";
+import { injectCartCount } from "./middlewares/global/inject-cart-count.middleware.js";
+import { notFound } from "./middlewares/error/not-found.middleware.js";
+import { errorHandler } from "./middlewares/error/error-handler.middleware.js";
 import { productService } from "./services/product.service.js";
 import { getCategoryIconSvg } from "./utils/category-icons.js";
-///database
-import SqliteStoreFactory from "better-sqlite3-session-store";
-import db from "./config/database.js";
 
 /**
- * @fileoverview Configuración e inicialización del servidor Express, middlewares y rutas de la aplicación.
+ * @fileoverview Configuración e inicialización del servidor Express,
+ * middlewares y rutas de la aplicación.
+ *
+ * Contrato de orden de montaje (spec §22): cada paso depende de los anteriores.
+ * 1. `baseMiddlewares` (static → body parsers → layouts): los assets no deben
+ *    pasar por la sesión.
+ * 2. `sessionMiddleware`: `injectCartCount` necesita `req.session`.
+ * 3. Globals propios (`injectCartCount`).
+ * 4. Configuración de vistas y `app.locals`.
+ * 5. `docsRouter` (Swagger, spec §10) antes del catch-all.
+ * 6. Routers (páginas y API).
+ * 7. `notFound` (spec §6.1), después de TODAS las rutas.
+ * 8. `errorHandler` (spec §6.2), último de todos.
  */
 
 // Truquito con url para que funcionen bien los path: re molesto, hay una forma mas moderna y corta de hacerlo pero lo dejo asi para mas claridad
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SqliteStore = SqliteStoreFactory(session);
 const app = express();
 
-// --- Configuración de vistas ---
+// --- 1. Middlewares globales de librería (ver base.middleware.ts) ---
+app.use(baseMiddlewares);
+
+// --- 2. Sesión (spec §6.4 / §11): debe correr antes de injectCartCount ---
+app.use(sessionMiddleware);
+
+// --- 3. Middlewares globales propios ---
+app.use(injectCartCount); // expone cartCount a las vistas (suma de cantidades en req.session.cart, §6.11)
+
+// --- 4. Configuración de vistas y locals ---
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-//  --- Aca tuve problemas para que me leyera el css de tailwinds no es lo ideal pero esto hace que dev debemos ejecutar desde el package.json ---
-app.use(express.static(path.join(process.cwd(), "dist/public")));
-
-// --- Middlewares globales ---
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// express-session (spec §6.4): se usa SOLO para el carrito, no para auth.
-// MemoryStore OK en desarrollo; cookie de sesión sin maxAge → el carrito se
-// pierde al cerrar el navegador. Debe correr antes de injectCartCount (lee
-// req.session.cart). saveUninitialized: false → la cookie solo se emite en
-// la primera mutación del carrito; los GET puros no crean sesión.
-app.use(
-  session({
-    secret: env.sessionSecret,
-    resave: false,
-    saveUninitialized: false,
-    store: new SqliteStore({
-      client: db,
-      expired: {
-        clear: true,
-        intervalMs: 900000, // limpia sesiones vencidas cada 15 min
-      },
-    }),
-    cookie: { httpOnly: true, sameSite: "lax" },
-  }),
-);
-
-// Activamos el sistema de layouts
-app.use(expressLayouts);
 app.set("layout", "templates/layout"); // layout atómico: header + slot + footer
 
 // Helper de vista (spec §6.6b): nombre de categoría → SVG de Lucide, disponible
@@ -75,37 +61,17 @@ app.set("views", [
   path.join(__dirname, "views"),
 ]);
 
-// --- Middlewares cross-cutting (orden: ver design D6) ---
-app.use(injectCartCount); // expone cartCount a las vistas (suma de cantidades en req.session.cart, §6.11)
-app.use(normalizeId); // valida :id numérico, 400 si no
+// --- 5. Swagger UI interactiva (spec §10), antes del 404 ---
+app.use("/api-docs", docsRouter);
 
-// --- Routers (acá usamos imports relativos, sin `path`) ---
+// --- 6. Routers (acá usamos imports relativos, sin `path`) ---
 app.use("/", pagesRoutes); // Frontend: /, /products, /cart, /login, etc.
 app.use("/api", apiRoutes); // Backend: /api/products, /api/categories, etc.
-app.use("/api-docs", docsRouter); // Swagger UI interactiva
 
-/**
- * Middleware catch-all de recurso no encontrado (spec §6.1):
- * Se ejecuta después de evaluar todas las rutas registradas.
- * Responde con un objeto JSON para `/api/*` y renderiza la vista 404 para el resto.
- *
- * @param {Request} req - Objeto de solicitud HTTP de Express.
- * @param {Response} res - Objeto de respuesta HTTP de Express.
- * @returns {void}
- */
-function handleNotFound(req: Request, res: Response): void {
-  if (req.path.startsWith("/api")) {
-    res.status(404).json({ error: "Not found" });
-    return;
-  }
-  res
-    .status(404)
-    .render("templates/pages/404", { title: "Página no encontrada" });
-}
+// --- 7. 404 catch-all (spec §6.1), después de TODAS las rutas ---
+app.use(notFound);
 
-app.use(handleNotFound);
-
-// --- Error handler: SIEMPRE al final ---
+// --- 8. Error handler (spec §6.2): SIEMPRE al final ---
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;

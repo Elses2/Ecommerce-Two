@@ -8,7 +8,7 @@
 > pasó y cuándo, pero no se actualizan ni deben usarse como referencia de
 > implementación.
 >
-> - Última actualización: **2026-10-08** (favicon / logo de la pestaña §20, CI/CD y despliegue §21)
+> - Última actualización: **2026-10-11** (arquitectura de middlewares §22)
 > - Rama base de referencia: `dev`
 
 ---
@@ -67,6 +67,7 @@
 | [§19](#19-checkout) | Checkout | Nuevo |
 | [§20](#20-favicon--logo-de-la-pestaña) | Favicon / logo de la pestaña | Nuevo |
 | [§21](#21-cicd-y-despliegue) | CI/CD y despliegue | Nuevo |
+| [§22](#22-arquitectura-de-middlewares) | Arquitectura de middlewares | Nuevo |
 
 ---
 
@@ -91,6 +92,9 @@ src/
 ├── models/
 ├── dtos/
 ├── middlewares/
+│   ├── global/                  ← base, sesión y cross-cutting (§22)
+│   ├── route/                   ← validación de ids encadenada
+│   └── error/                   ← notFound + errorHandler (terminales)
 ├── routes/
 │   ├── pages.routes.ts
 │   ├── docs.routes.ts
@@ -463,15 +467,16 @@ aditivos.
 
 ### §6.1 Página 404
 
-**No es AJAX.** Middleware catch-all en `app.ts` (`handleNotFound`),
-después de montar todas las rutas. Para `/api/*` responde JSON
+**No es AJAX.** Middleware terminal `notFound` en
+`src/middlewares/error/not-found.middleware.ts`, montado con `app.use(notFound)`
+después de TODAS las rutas (spec §22). Para `/api/*` responde JSON
 `{ error: "Not found" }`; para el resto, renderiza
 `templates/pages/404` con status 404.
 
 ### §6.2 Página 500
 
-**No es AJAX.** `middlewares/error-handler.middleware.ts`, montado al final
-de `app.ts` después del 404. Loguea server-side con prefijo; el template
+**No es AJAX.** `middlewares/error/error-handler.middleware.ts`, montado al
+final de `app.ts` después de `notFound` (ver §22). Loguea server-side con prefijo; el template
 jamás recibe `err.message`/stack. Si el propio render del 500 falla, hay
 fallback en texto plano (anti-bucle). Trade-off documentado: los errores
 JSON de `/api/*` mantienen `err.message` (contrato preexistente).
@@ -575,8 +580,8 @@ renderiza `pages/product-detail` con `product` y `related`.
 
 ### §6.9 Normalización de IDs
 
-**No es AJAX**, helper puro `src/utils/normalizeId.ts` y middleware
-`src/middlewares/normalizeId.middleware.ts`:
+**No es AJAX.** Helper puro `src/utils/normalizeId.ts` + middlewares de ruta
+en `src/middlewares/route/validate-id.middleware.ts` (spec §22):
 
 ```typescript
 export function normalizeId(raw: string): number | null {
@@ -586,13 +591,22 @@ export function normalizeId(raw: string): number | null {
 }
 ```
 
-- ID no numérico → 400 (middleware para `/api/*` con regex; helper para
-  controllers de páginas).
+- ID no numérico → 400. En las rutas del carrito
+  (`/api/cart/{add,increase,decrease,remove}/:productId`) lo hace la factory
+  `validateId("productId")` encadenada antes del controller (mismo predicado y
+  mismo cuerpo que la validación previa del controller, que se conserva como
+  defensa en profundidad). En las páginas lo aplica el controller con el helper
+  (`getProductDetail`, `getCategory`).
 - ID numérico pero inexistente en DB → 404 (resuelto en el controller,
   nunca en el validador).
-- El fallback del middleware se limita a colecciones con id
-  (`products|categories|orders`) — no parsea `DELETE /api/cart/clear`
-  como `:id`.
+- Colecciones `/api/{products|categories|orders}/:segmento`: las rutas están
+  vacías (no hay controller) y el guard `validateCollectionId` preserva el
+  comportamiento heredado del antiguo middleware global. **Deuda documentada
+  (§22.5):** ese middleware tenía un bug (capturaba el grupo 1 de la regex, la
+  colección, en vez del id) y respondía 400 a *todo* id, incluidos los
+  numéricos. Este refactor conserva el 400 y no lo "arregla".
+- `DELETE /api/cart/clear` no se interpreta como `:id` (el segmento `clear` es
+  estático y no lleva `validateId`).
 
 ### §6.10 Indicador "Sin stock"
 
@@ -605,9 +619,11 @@ export function normalizeId(raw: string): number | null {
 ### §6.11 Total del carrito en el header
 
 **Mixto:** en la mayoría de las páginas el contador se recalcula
-server-side vía middleware `injectCartCount` (`res.locals.cartCount = sum(quantity)`),
-montado en `app.ts` antes de las rutas. En `/cart`, el contador se
-actualiza en el mismo `fetch` de §6.4 (el JSON incluye `count`).
+server-side vía middleware `injectCartCount`
+(`src/middlewares/global/inject-cart-count.middleware.ts`,
+`res.locals.cartCount = sum(quantity)`), montado en `app.ts` después de la
+sesión y antes de las rutas (spec §22). En `/cart`, el contador se actualiza en
+el mismo `fetch` de §6.4 (el JSON incluye `count`).
 
 ### §6.12 Ordenar productos por precio
 
@@ -738,7 +754,8 @@ swagger-jsdoc. No mezclar ambos en el mismo bloque.
 > **Sección nueva** (no existía en el spec original; PR #47).
 
 - Dependencia: `better-sqlite3-session-store` (`^0.1.0`).
-- En `src/app.ts` se configura `SqliteStore` con el cliente `db`:
+- En `src/middlewares/global/session.middleware.ts` (spec §22) se configura
+  `SqliteStore` con el cliente `db` y se exporta `sessionMiddleware`:
 
 ```typescript
 const SqliteStore = SqliteStoreFactory(session);
@@ -818,9 +835,15 @@ src/
 │       ├── checkout.controller.ts  ← checkout real: form, POST, confirmación (§19)
 │       └── pages.controller.ts     ← handlers de páginas SSR
 ├── middlewares/
-│   ├── error-handler.middleware.ts
-│   ├── injectCartCount.middleware.ts
-│   └── normalizeId.middleware.ts
+│   ├── global/
+│   │   ├── base.middleware.ts           ← static + body parsers + layouts (§22)
+│   │   ├── session.middleware.ts        ← express-session + SqliteStore
+│   │   └── inject-cart-count.middleware.ts ← res.locals.cartCount (§6.11)
+│   ├── route/
+│   │   └── validate-id.middleware.ts    ← validación de ids de la API (§6.9)
+│   └── error/
+│       ├── not-found.middleware.ts      ← 404 catch-all (§6.1)
+│       └── error-handler.middleware.ts  ← 500 / JSON de API (§6.2)
 ├── repositories/
 │   ├── product.repository.ts
 │   ├── category.repository.ts
@@ -1183,7 +1206,7 @@ merge del PR a main ─────► CI ──► si pasa ──► build de i
 |---|---|
 | `Dockerfile` | Imagen multi-stage: build tools solo en stage 1, runtime sin herramientas de compilación |
 | `.dockerignore` | Excluye secretos, DBs locales, node_modules, git, etc. de la imagen |
-| `.github/workflows/ci-cd.yml` | Pipeline: `ci` (build + test:checkout) y `publish` (build + push a ghcr.io) |
+| `.github/workflows/ci-cd.yml` | Pipeline: `ci` (build + test:checkout + test:middlewares) y `publish` (build + push a ghcr.io) |
 | `docker-compose.prod.yml` | Plantilla de despliegue para el servidor (app + cloudflared) |
 | `.env.prod.example` | Placeholder de variables de producción (SESSION_SECRET, TUNNEL_TOKEN) |
 | `AGENTS.md` | Marco de trabajo para agentes: regla de actualización del CI al crear tests |
@@ -1223,6 +1246,8 @@ Archivo: `.github/workflows/ci-cd.yml`.
   3. `npm ci`
   4. `npm run build`
   5. `npm run test:checkout` (tests T1–T7 del checkout, spec §19.6)
+  6. `npm run test:middlewares` (caracterización M1–M18, spec §22; requiere el
+     build del paso 4)
 - **Permisos:** `contents: read` (mínimos).
 
 **Job `publish` (Build & push Docker image):**
@@ -1288,6 +1313,117 @@ docker compose pull && docker compose up -d
 
 ---
 
+## §22. Arquitectura de middlewares
+
+> **Sección nueva** (issue #91). Refactor puro: reorganiza los middlewares en
+tres grupos y saca de `app.ts` la configuración de librerías y el 404 inline,
+sin cambiar el comportamiento (verificado con `npm run test:middlewares`).
+
+### §22.1 Los tres tipos
+
+| Tipo | Qué es | Dónde se define | Dónde se monta |
+|---|---|---|---|
+| **Global** | Corre en (casi) todas las peticiones | `src/middlewares/global/` | `app.ts` con `app.use(...)` |
+| **Route** | Solo en rutas concretas, encadenado antes del controller | `src/middlewares/route/` | `src/routes/**/*.ts` |
+| **Error / terminal** | Cierra la cadena: 404 y manejo de errores | `src/middlewares/error/` | `app.ts`, al final, en orden fijo |
+
+### §22.2 Estructura
+
+```
+src/middlewares/
+├── global/
+│   ├── base.middleware.ts                   ← static + body parsers + layouts (librería)
+│   ├── session.middleware.ts                ← express-session + SqliteStore
+│   └── inject-cart-count.middleware.ts      ← res.locals.cartCount
+├── route/
+│   └── validate-id.middleware.ts            ← validateId(param) + validateCollectionId
+└── error/
+    ├── not-found.middleware.ts              ← 404 catch-all
+    └── error-handler.middleware.ts          ← 500 / JSON de API
+```
+
+- Archivos en **kebab-case** + sufijo `.middleware.ts`; exports en **camelCase**
+  (`injectCartCount`, `validateId`, `notFound`, `errorHandler`).
+- El helper puro `src/utils/normalizeId.ts` se queda en `utils/` (lo usan los
+  controllers de páginas y la factory `validateId`).
+- **Sin barrel files** (`index.ts`): cada consumidor importa el archivo directo.
+
+### §22.3 Regla de clasificación
+
+```
+¿Corre DESPUÉS de las rutas para cerrar la petición (404 / error)?
+   └─ Sí → error/
+¿Aplica a todas (o casi todas) las rutas, sin depender del endpoint?
+   └─ Sí → global/   (se monta con app.use en app.ts)
+¿Solo tiene sentido en rutas específicas (validar un param, exigir auth)?
+   └─ Sí → route/    (se encadena en routes/*.ts antes del controller)
+```
+
+**Principio: en `app.ts` no se define nada, solo se monta.** Los middlewares de
+librería también: los de configuración simple van al array `baseMiddlewares`
+(`global/base.middleware.ts`); `express-session` + `SqliteStore`, que tiene
+configuración propia no trivial, vive en `global/session.middleware.ts`.
+
+### §22.4 Contrato de orden de montaje
+
+Este orden es un contrato: cada paso depende de los anteriores.
+
+```
+1. baseMiddlewares      (static primero → los assets no pasan por la sesión)
+2. sessionMiddleware    (injectCartCount necesita req.session)
+3. globales propios      (injectCartCount)
+4. vistas / app.locals   (view engine, view root, layout, fallbackImageUrl)
+5. docsRouter            (/api-docs antes del 404, §10)
+6. routers               (páginas y API)
+7. notFound              (después de TODAS las rutas, §6.1)
+8. errorHandler          (último de todos, §6.2)
+```
+
+Dentro de `baseMiddlewares` el orden interno también es contrato:
+`static → json → urlencoded → expressLayouts` (el orden que tenía `app.ts`).
+
+### §22.5 Middlewares e inventario
+
+| Middleware | Origen | Definición | Montaje | Alcance real | Grupo | ¿SPEC previa? |
+|---|---|---|---|---|---|---|
+| `express.static`, `express.json`, `express.urlencoded`, `expressLayouts` | librería | `global/base.middleware.ts` | `app.ts` (`baseMiddlewares`) | global | global | parcial (§14/§15/§6.14) |
+| `sessionMiddleware` (express-session + SqliteStore) | librería | `global/session.middleware.ts` | `app.ts` | global | global | §6.4/§11 |
+| `injectCartCount` | propio | `global/inject-cart-count.middleware.ts` | `app.ts` | global | global | §6.11 |
+| `validateId("productId")` | propio | `route/validate-id.middleware.ts` | `routes/api/cart.routes.ts` | `/api/cart/*/:productId` | route | §6.9 |
+| `validateCollectionId` | propio | `route/validate-id.middleware.ts` | `routes/api/{products,categories,orders}.routes.ts` | `/api/{colecciones}/:segmento` | route | §6.9 (implícito) |
+| `notFound` | propio | `error/not-found.middleware.ts` | `app.ts` | terminal | error | §6.1 |
+| `errorHandler` | propio | `error/error-handler.middleware.ts` | `app.ts` | terminal último | error | §6.2 |
+| `swaggerUi.serve` / `swaggerUi.setup` | librería | `routes/docs.routes.ts` | router `/api-docs` | `/api-docs` | (router) | §10 |
+
+No se encontraron más middlewares. Quedan fuera de este inventario (no son
+middlewares): los handlers de páginas `renderRegisterPage`/`renderLoginPage`
+(`routes/pages.routes.ts`) y `parseProductId`, que es validación dentro del
+controller del carrito.
+
+**Deuda documentada (bug de la validación de colecciones).** El antiguo
+middleware global de ids capturaba con su regex el **grupo 1** (el nombre de la
+colección `products|categories|orders`) en vez del grupo 2 (el id), así que
+respondía 400 a *toda* ruta de un segmento bajo esas colecciones, incluidos ids
+numéricos (`/api/products/5`, `/api/products/999999`). Como las rutas
+`routes/api/{products,categories,orders}.routes.ts` están vacías, no hay
+controller que resuelva un 404. El refactor de este PR es **puro** y conserva
+esa respuesta 400 en `validateCollectionId`; corregirla (numérico → 404) queda
+como deuda para otro PR y cambiaría el baseline M8/M9 de
+`scripts/test-middlewares.ts`.
+
+### §22.6 Cómo agregar un middleware nuevo
+
+1. Elegí el grupo con la regla de §22.3.
+2. Creá `src/middlewares/<grupo>/<nombre-kebab>.middleware.ts` con JSDoc
+   (`@fileoverview`, `@param`, `@returns`) y referencia `(spec §X.Y)`.
+3. Montalo: global/error → `app.ts` en el paso que corresponda del contrato
+   §22.4; route → encadenado en el `routes/**` correspondiente antes del
+   controller.
+4. Agregá el caso al test de caracterización (`scripts/test-middlewares.ts`) y
+   corré `npm run build && npm run test:middlewares && npm run test:checkout`.
+
+---
+
 ## Tabla de equivalencias — `§` original → `SPEC.md`
 
 | `§` original (spec sprint 1) | `§` en `SPEC.md` | Estado |
@@ -1323,6 +1459,7 @@ docker compose pull && docker compose up -d
 | — (nuevo) | §19 Checkout | Nuevo |
 | — (nuevo) | §20 Favicon / logo de pestaña | Nuevo |
 | — (nuevo) | §21 CI/CD y despliegue | Nuevo |
+| — (nuevo) | §22 Arquitectura de middlewares | Nuevo |
 
 ---
 
@@ -1345,6 +1482,7 @@ docker compose pull && docker compose up -d
 | 2026-10-07 | Este PR / issue #68 | Checkout real (§19): formulario, orden atómica con descuento de stock, idempotencia por token, confirmación y tests T1–T7 | — |
 | 2026-10-08 | Este PR / issue #80 | Favicon / logo de la pestaña (§20): tres archivos en `public/` + `<link>` en el `<head>` del layout; `GET /favicon.ico` deja de caer en el 404 | — |
 | 2026-10-08 | PR #? / issue #? | Dockerización y CI/CD (§21): Dockerfile multi-stage, .dockerignore, workflow CI/CD, docker-compose.prod.yml, .env.prod.example, AGENTS.md | — |
+| 2026-10-11 | Este PR / issue #91 | Arquitectura de middlewares (§22): reorganización en `global/route/error`, base y sesión extraídos de `app.ts`, tests M1–M18 en CI y bug de validación de colecciones documentado como deuda | — |
 
 ---
 
