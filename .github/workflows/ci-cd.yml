@@ -54,6 +54,9 @@ jobs:
       - name: Run middleware characterization tests (M1–M18, spec §22)
         run: npm run test:middlewares
 
+      - name: Run auth tests (A1–A6, spec §23)
+        run: npm run test:auth
+
   # ── Job 2: Publish a ghcr.io (solo en push a main) ──────────────────────
   publish:
     name: Build & push Docker image
