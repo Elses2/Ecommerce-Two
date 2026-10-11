@@ -95,6 +95,31 @@ const spec = swaggerJSDoc({
             },
           },
         },
+        Order: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            user_id: { type: "integer" },
+            created_at: { type: "string", nullable: true },
+            status: {
+              type: "string",
+              enum: ["pending", "paid", "failed", "cancelled"],
+            },
+            total: { type: "number" },
+            payment_method: { type: "string", nullable: true },
+          },
+        },
+        OrderItem: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            order_id: { type: "integer" },
+            product_id: { type: "integer" },
+            quantity: { type: "integer" },
+            unit_price: { type: "number" },
+            product_name: { type: "string" },
+          },
+        },
       },
     },
   },

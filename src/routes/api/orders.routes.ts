@@ -1,15 +1,20 @@
 import { Router } from "express";
-import { validateCollectionId } from "../../middlewares/route/validate-id.middleware.js";
+import { orderController } from "../../controllers/api/order.controller.js";
+import { authenticate } from "../../middlewares/route/authenticate.middleware.js";
+import { validateId } from "../../middlewares/route/validate-id.middleware.js";
 
 /**
- * @fileoverview Router de la API de órdenes. Sin endpoints reales todavía
- * (scaffold del spec §14); mantiene el guard de ids (spec §6.9) que antes era
- * global en `app.ts`.
+ * @fileoverview Router de la API de órdenes (spec §23.6). A diferencia de
+ * products/categories (sin rutas), órdenes ya tiene endpoints reales, así que
+ * valida su `:id` por ruta con `validateId` en lugar del guard de colecciones.
+ *
+ * `validateId` va antes de `authenticate` para conservar el comportamiento
+ * heredado: un id malformado responde 400 aunque falte el token (el antiguo
+ * guard de `/api/orders/:segmento` hacía lo mismo).
  */
 const router = Router();
 
-// Guard de ids (spec §6.9): preserva el comportamiento del antiguo middleware
-// global sobre /api/orders/:segmento (ver validate-id.middleware.ts, #91).
-router.use(validateCollectionId);
+router.get("/", authenticate, orderController.list);
+router.get("/:id", validateId("id"), authenticate, orderController.getById);
 
 export default router;

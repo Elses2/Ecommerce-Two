@@ -14,12 +14,15 @@
 <div class="tsd-signature"><span class="tsd-kind-variable">default</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Router</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-fileoverview">
-<h4 class="tsd-anchor-link" id="fileoverview">Fileoverview<a href="#fileoverview" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Router de la API de órdenes. Sin endpoints reales todavía
-(scaffold del spec §14); mantiene el guard de ids (spec §6.9) que antes era
-global en <code>app.ts</code>.</p>
+<h4 class="tsd-anchor-link" id="fileoverview">Fileoverview<a href="#fileoverview" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Router de la API de órdenes (spec §23.6). A diferencia de
+products/categories (sin rutas), órdenes ya tiene endpoints reales, así que
+valida su <code>:id</code> por ruta con <code>validateId</code> en lugar del guard de colecciones.</p>
+<p><code>validateId</code> va antes de <code>authenticate</code> para conservar el comportamiento
+heredado: un id malformado responde 400 aunque falte el token (el antiguo
+guard de <code>/api/orders/:segmento</code> hacía lo mismo).</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/bbf52bb2e930973601869381ba1c57437b8fa304/src/routes/api/orders.routes.ts#L9">src/routes/api/orders.routes.ts:9</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/routes/api/orders.routes.ts#L15">src/routes/api/orders.routes.ts:15</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

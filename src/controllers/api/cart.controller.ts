@@ -3,68 +3,103 @@ import { cartService } from "../../services/cart.service.js";
 import { productService } from "../../services/product.service.js";
 
 /**
- * Parsea y valida el parámetro de ID del producto enviado en las peticiones HTTP.
+ * @fileoverview Controller de la API del carrito (spec §6.4/§24): handlers
+ * finos que llaman a `cartService` (Redis) y responden JSON con el carrito ya
+ * recalculado (`{ items, total, count }`). Todas las rutas exigen JWT
+ * (`authenticate`): la clave del carrito es el `userId` del token.
+ */
+
+/**
+ * Parsea y valida el parámetro de ID del producto.
  *
- * // §6.9: id no numérico → 400. El guard de colecciones
- * // (`middlewares/route/validate-id.middleware.ts`) cubre /api/{recurso}/:id —
- * // las de carrito son /api/cart/{verbo}/:productId y además de la factory
- * // `validateId` encadenada en su router, se validan acá (el segmento "clear"
- * // es estático, no un id).
- *
- * @param {string | string[] | undefined} raw - Valor obtenido de `req.params.productId`.
- * @returns {number | null} Retorna el ID numérico entero positivo o `null` si no es válido.
+ * @param {string | string[] | undefined} raw - Valor de `req.params.productId`.
+ * @returns {number | null} Id entero positivo, o `null` si no es válido.
  */
 function parseProductId(raw: string | string[] | undefined): number | null {
   const id = Number(raw);
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-/**
- * Controller de API del carrito (spec §6.4): handlers finos que llaman al
- * cartService y responden JSON con el carrito ya recalculado
- * ({ items, total, count }) para que el frontend no pida nada aparte.
- */
 export const cartController = {
   /**
-   * Agrega un producto al carrito de compras de la sesión actual.
+   * Devuelve el carrito del usuario (carga inicial + contador del header).
+   *
+   * @swagger
+   * /api/cart:
+   *   get:
+   *     summary: Carrito del usuario
+   *     description: Devuelve el carrito del usuario autenticado con precios recalculados.
+   *     tags: [Carrito]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Carrito actual.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Cart'
+   *       401:
+   *         description: Token requerido o inválido.
+   *
+   * @param {Request} req - Petición Express (requiere `req.user`).
+   * @param {Response} res - Respuesta Express.
+   * @returns {Promise<void>}
+   */
+  async getCart(req: Request, res: Response): Promise<void> {
+    const userId = req.user?.id;
+    if (userId === undefined) {
+      res.status(401).json({ error: "No autenticado" });
+      return;
+    }
+    res.json(await cartService.getCartWithDetails(userId));
+  },
+
+  /**
+   * Agrega un producto al carrito.
    *
    * @swagger
    * /api/cart/add/{productId}:
    *   post:
    *     summary: Agregar item al carrito
-   *     description: Incrementa la cantidad de un producto en la sesión del carrito.
    *     tags: [Carrito]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - in: path
    *         name: productId
    *         required: true
    *         schema:
    *           type: integer
-   *         description: ID numérico del producto.
    *     responses:
    *       200:
-   *         description: Carrito actualizado con el item agregado.
+   *         description: Carrito actualizado.
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/Cart'
    *       400:
    *         description: ID inválido o producto sin stock.
+   *       401:
+   *         description: Token requerido o inválido.
    *       404:
    *         description: Producto no encontrado.
    *
-   * @param {Request} req - Objeto de solicitud de Express (requiere `req.params.productId` y `req.session`).
-   * @param {Response} res - Objeto de respuesta de Express para enviar el estado del carrito o mensaje de error.
-   * @returns {void}
+   * @param {Request} req - Petición Express.
+   * @param {Response} res - Respuesta Express.
+   * @returns {Promise<void>}
    */
-  addItem(req: Request, res: Response): void {
+  async addItem(req: Request, res: Response): Promise<void> {
+    const userId = req.user?.id;
+    if (userId === undefined) {
+      res.status(401).json({ error: "No autenticado" });
+      return;
+    }
     const productId = parseProductId(req.params.productId);
     if (productId === null) {
       res.status(400).json({ error: "Invalid id" });
       return;
     }
-    // Existencia → 404 (§6.9) y stock → rechazo con mensaje (§6.10), ambos
-    // ANTES de mutar la sesión.
     const product = productService.findById(productId);
     if (!product) {
       res.status(404).json({ error: "Product not found" });
@@ -74,139 +109,149 @@ export const cartController = {
       res.status(400).json({ error: "Product out of stock" });
       return;
     }
-    cartService.addItem(req.session, productId);
-    res.json(cartService.getCartWithDetails(req.session));
+    await cartService.addItem(userId, productId);
+    res.json(await cartService.getCartWithDetails(userId));
   },
 
   /**
-   * Incrementa en una unidad la cantidad de un producto en el carrito.
+   * Incrementa en una unidad la cantidad de un producto.
    *
    * @swagger
    * /api/cart/increase/{productId}:
    *   patch:
    *     summary: Incrementar cantidad de item
-   *     description: Suma una unidad al producto en el carrito de la sesión.
    *     tags: [Carrito]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - in: path
    *         name: productId
    *         required: true
    *         schema:
    *           type: integer
-   *         description: ID numérico del producto.
    *     responses:
    *       200:
-   *         description: Carrito actualizado con la cantidad incrementada.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Cart'
+   *         description: Carrito actualizado.
    *       400:
    *         description: ID inválido.
+   *       401:
+   *         description: Token requerido o inválido.
    *
-   * @param {Request} req - Objeto de solicitud de Express (requiere `req.params.productId` y `req.session`).
-   * @param {Response} res - Objeto de respuesta de Express.
-   * @returns {void}
+   * @param {Request} req - Petición Express.
+   * @param {Response} res - Respuesta Express.
+   * @returns {Promise<void>}
    */
-  increaseItem(req: Request, res: Response): void {
+  async increaseItem(req: Request, res: Response): Promise<void> {
+    const userId = req.user?.id;
+    if (userId === undefined) {
+      res.status(401).json({ error: "No autenticado" });
+      return;
+    }
     const productId = parseProductId(req.params.productId);
     if (productId === null) {
       res.status(400).json({ error: "Invalid id" });
       return;
     }
-    cartService.updateQuantity(req.session, productId, +1);
-    res.json(cartService.getCartWithDetails(req.session));
+    await cartService.updateQuantity(userId, productId, +1);
+    res.json(await cartService.getCartWithDetails(userId));
   },
 
   /**
-   * Decrementa en una unidad la cantidad de un producto en el carrito.
+   * Decrementa en una unidad la cantidad de un producto.
    *
    * @swagger
    * /api/cart/decrease/{productId}:
    *   patch:
    *     summary: Decrementar cantidad de item
-   *     description: Resta una unidad del producto en el carrito. Si llega a 0, lo elimina.
    *     tags: [Carrito]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - in: path
    *         name: productId
    *         required: true
    *         schema:
    *           type: integer
-   *         description: ID numérico del producto.
    *     responses:
    *       200:
-   *         description: Carrito actualizado con la cantidad decrementada.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Cart'
+   *         description: Carrito actualizado.
    *       400:
    *         description: ID inválido.
+   *       401:
+   *         description: Token requerido o inválido.
    *
-   * @param {Request} req - Objeto de solicitud de Express (requiere `req.params.productId` y `req.session`).
-   * @param {Response} res - Objeto de respuesta de Express.
-   * @returns {void}
+   * @param {Request} req - Petición Express.
+   * @param {Response} res - Respuesta Express.
+   * @returns {Promise<void>}
    */
-  decreaseItem(req: Request, res: Response): void {
+  async decreaseItem(req: Request, res: Response): Promise<void> {
+    const userId = req.user?.id;
+    if (userId === undefined) {
+      res.status(401).json({ error: "No autenticado" });
+      return;
+    }
     const productId = parseProductId(req.params.productId);
     if (productId === null) {
       res.status(400).json({ error: "Invalid id" });
       return;
     }
-    cartService.updateQuantity(req.session, productId, -1);
-    res.json(cartService.getCartWithDetails(req.session));
+    await cartService.updateQuantity(userId, productId, -1);
+    res.json(await cartService.getCartWithDetails(userId));
   },
 
   /**
-   * Remueve por completo un producto del carrito sin importar su cantidad.
+   * Remueve un producto del carrito.
    *
    * @swagger
    * /api/cart/remove/{productId}:
    *   delete:
    *     summary: Eliminar item del carrito
-   *     description: Remueve completamente un producto del carrito de la sesión.
    *     tags: [Carrito]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - in: path
    *         name: productId
    *         required: true
    *         schema:
    *           type: integer
-   *         description: ID numérico del producto.
    *     responses:
    *       200:
-   *         description: Carrito actualizado sin el producto eliminado.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Cart'
+   *         description: Carrito actualizado.
    *       400:
    *         description: ID inválido.
+   *       401:
+   *         description: Token requerido o inválido.
    *
-   * @param {Request} req - Objeto de solicitud de Express (requiere `req.params.productId` y `req.session`).
-   * @param {Response} res - Objeto de respuesta de Express.
-   * @returns {void}
+   * @param {Request} req - Petición Express.
+   * @param {Response} res - Respuesta Express.
+   * @returns {Promise<void>}
    */
-  removeItem(req: Request, res: Response): void {
+  async removeItem(req: Request, res: Response): Promise<void> {
+    const userId = req.user?.id;
+    if (userId === undefined) {
+      res.status(401).json({ error: "No autenticado" });
+      return;
+    }
     const productId = parseProductId(req.params.productId);
     if (productId === null) {
       res.status(400).json({ error: "Invalid id" });
       return;
     }
-    cartService.removeItem(req.session, productId);
-    res.json(cartService.getCartWithDetails(req.session));
+    await cartService.removeItem(userId, productId);
+    res.json(await cartService.getCartWithDetails(userId));
   },
 
   /**
-   * Vacía totalmente todos los items contenidos en el carrito de la sesión.
+   * Vacía el carrito del usuario.
    *
    * @swagger
    * /api/cart/clear:
    *   delete:
    *     summary: Vaciar carrito
-   *     description: Elimina todos los items del carrito de la sesión actual.
    *     tags: [Carrito]
+   *     security:
+   *       - bearerAuth: []
    *     responses:
    *       200:
    *         description: Carrito vacío.
@@ -214,13 +259,20 @@ export const cartController = {
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/Cart'
+   *       401:
+   *         description: Token requerido o inválido.
    *
-   * @param {Request} req - Objeto de solicitud de Express (requiere `req.session`).
-   * @param {Response} res - Objeto de respuesta de Express.
-   * @returns {void}
+   * @param {Request} req - Petición Express.
+   * @param {Response} res - Respuesta Express.
+   * @returns {Promise<void>}
    */
-  clearCart(req: Request, res: Response): void {
-    cartService.clear(req.session);
-    res.json(cartService.getCartWithDetails(req.session));
+  async clearCart(req: Request, res: Response): Promise<void> {
+    const userId = req.user?.id;
+    if (userId === undefined) {
+      res.status(401).json({ error: "No autenticado" });
+      return;
+    }
+    await cartService.clear(userId);
+    res.json(await cartService.getCartWithDetails(userId));
   },
 };

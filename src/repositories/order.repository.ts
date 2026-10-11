@@ -121,14 +121,18 @@ export class OrderRepository {
           const product = this.database
             .prepare("SELECT id, name, price FROM products WHERE id = ?")
             .get(line.productId) as
-            | { id: number; name: string; price: number }
-            | undefined;
+            { id: number; name: string; price: number } | undefined;
           if (!product) {
             throw new ProductNotFoundError();
           }
 
           // Decremento atómico reusando el repositorio de productos (D3).
-          if (!productRepository.decrementStockIfAvailable(product.id, line.quantity)) {
+          if (
+            !productRepository.decrementStockIfAvailable(
+              product.id,
+              line.quantity,
+            )
+          ) {
             throw new OutOfStockError(product.name);
           }
 
@@ -168,6 +172,32 @@ export class OrderRepository {
     return this.database
       .prepare("SELECT * FROM orders WHERE checkout_token = ?")
       .get(token) as unknown as Order | undefined;
+  }
+
+  /**
+   * Busca una orden por su id (spec §23.6, ownership de órdenes).
+   *
+   * @param {number} id - Id de la orden.
+   * @returns {Order | undefined} La orden encontrada o `undefined` si no existe.
+   */
+  findById(id: number): Order | undefined {
+    return this.database
+      .prepare("SELECT * FROM orders WHERE id = ?")
+      .get(id) as unknown as Order | undefined;
+  }
+
+  /**
+   * Lista las órdenes de un usuario, más recientes primero (spec §23.6).
+   *
+   * @param {number} userId - Id del usuario dueño.
+   * @returns {Order[]} Órdenes del usuario.
+   */
+  findByUserId(userId: number): Order[] {
+    return this.database
+      .prepare(
+        "SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC, id DESC",
+      )
+      .all(userId) as unknown as Order[];
   }
 
   /**

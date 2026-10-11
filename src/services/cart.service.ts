@@ -1,73 +1,118 @@
-import type { SessionData } from "express-session";
-import type { SessionCartItem } from "../models/cart.model.js";
 import type { CartItemView, CartView } from "../dtos/cart.dto.js";
+import type { OrderLineInput } from "../repositories/order.repository.js";
+import { cartRepository } from "../repositories/cart.repository.js";
 import { productService } from "./product.service.js";
 
-// Servicio PURO del carrito (spec §6.4): muta req.session.cart y lee productos
-// vía productService; sin SQL acá. El repositorio es síncrono (better-sqlite3,
-// D5), así que las firmas son síncronas — sin promesas falsas.
+/**
+ * @fileoverview Servicio PURO del carrito (spec §6.4/§24): manipula el carrito
+ * de un usuario en Redis y resuelve precios/stock vía `productService`. No
+ * conoce Express ni SQL (regla del §0). Ahora es asíncrono porque Redis lo es;
+ * los precios y subtotales SIEMPRE se recalculan desde SQLite (Redis nunca
+ * guarda precios).
+ */
 export class CartService {
-  // Agrega 1 unidad del producto; si ya está en el carrito incrementa.
-  // La validación de existencia/stock vive en el controller (spec §6.10:
-  // "el controller de POST /cart/add/:productId también debe rechazar").
-  addItem(session: SessionData, productId: number): void {
-    const cart: SessionCartItem[] = session.cart ?? [];
-    const existing = cart.find((i) => i.productId === productId);
-    if (existing) existing.quantity += 1;
-    else cart.push({ productId, quantity: 1 });
-    session.cart = cart;
+  /**
+   * Agrega 1 unidad del producto (el controller valida existencia/stock, §6.10).
+   *
+   * @param {number} userId - Id del usuario (del JWT).
+   * @param {number} productId - Id del producto.
+   * @returns {Promise<void>}
+   */
+  async addItem(userId: number, productId: number): Promise<void> {
+    await cartRepository.increment(userId, productId, +1);
   }
 
-  // Delta de cantidad (spec §6.4): +1 / -1; en 0 o menos se elimina el ítem.
-  // Si el producto no está en el carrito, no hace nada (comportamiento del spec).
-  updateQuantity(session: SessionData, productId: number, delta: number): void {
-    const cart: SessionCartItem[] = session.cart ?? [];
-    const item = cart.find((i) => i.productId === productId);
-    if (!item) return;
-    item.quantity += delta;
-    session.cart =
-      item.quantity <= 0 ? cart.filter((i) => i.productId !== productId) : cart;
+  /**
+   * Ajusta la cantidad en `delta` (+1 / -1). Conserva la semántica previa: si
+   * el producto no está en el carrito, no hace nada (spec §6.4).
+   *
+   * @param {number} userId - Id del usuario.
+   * @param {number} productId - Id del producto.
+   * @param {number} delta - +1 o -1.
+   * @returns {Promise<void>}
+   */
+  async updateQuantity(
+    userId: number,
+    productId: number,
+    delta: number,
+  ): Promise<void> {
+    const current = await cartRepository.getAll(userId);
+    if (!(String(productId) in current)) return;
+    await cartRepository.increment(userId, productId, delta);
   }
 
-  removeItem(session: SessionData, productId: number): void {
-    const cart: SessionCartItem[] = session.cart ?? [];
-    session.cart = cart.filter((i) => i.productId !== productId);
+  /**
+   * Elimina un producto del carrito.
+   *
+   * @param {number} userId - Id del usuario.
+   * @param {number} productId - Id del producto.
+   * @returns {Promise<void>}
+   */
+  async removeItem(userId: number, productId: number): Promise<void> {
+    await cartRepository.remove(userId, productId);
   }
 
-  clear(session: SessionData): void {
-    session.cart = [];
+  /**
+   * Vacía el carrito del usuario.
+   *
+   * @param {number} userId - Id del usuario.
+   * @returns {Promise<void>}
+   */
+  async clear(userId: number): Promise<void> {
+    await cartRepository.clear(userId);
   }
 
-  // Combina sesión + datos reales (spec §6.4): el precio SIEMPRE viene de la
-  // DB vía productService (ProductView con imageUrl/inStock resueltos) — la
-  // sesión no guarda precios. total = Σ price × quantity; count = Σ quantity.
-  // productIds huérfanos en sesión (producto borrado de la DB): §6.4 no dice
-  // qué hacer — decisión: se descartan de la respuesta Y de la sesión
-  // (self-healing) en lugar de romper el render con un undefined.
-  getCartWithDetails(session: SessionData): CartView {
-    const cart: SessionCartItem[] = session.cart ?? [];
+  /**
+   * Combina el carrito de Redis con datos reales de la DB (spec §6.4/§24):
+   * `subtotal = price × quantity` con el precio SIEMPRE desde SQLite.
+   * Productos huérfanos (borrados de la DB) se descartan y se limpian de Redis
+   * (self-healing, igual que antes).
+   *
+   * @param {number} userId - Id del usuario.
+   * @returns {Promise<CartView>} `{ items, total, count }`.
+   */
+  async getCartWithDetails(userId: number): Promise<CartView> {
+    const raw = await cartRepository.getAll(userId);
     const items: CartItemView[] = [];
-    const kept: SessionCartItem[] = [];
-    for (const entry of cart) {
-      const product = productService.findById(entry.productId);
-      if (!product) continue;
-      kept.push(entry);
+    for (const [key, quantityRaw] of Object.entries(raw)) {
+      const productId = Number(key);
+      const quantity = Number(quantityRaw);
+      const product = productService.findById(productId);
+      if (!product || !Number.isFinite(quantity) || quantity <= 0) {
+        await cartRepository.remove(userId, productId);
+        continue;
+      }
       items.push({
-        productId: entry.productId,
-        quantity: entry.quantity,
+        productId,
+        quantity,
         name: product.name,
         price: product.price,
         imageUrl: product.imageUrl,
         inStock: product.inStock,
-        subtotal: product.price * entry.quantity,
+        subtotal: product.price * quantity,
       });
     }
-    if (kept.length !== cart.length) session.cart = kept;
 
-    const total = items.reduce((sum, i) => sum + i.subtotal, 0);
-    const count = items.reduce((sum, i) => sum + i.quantity, 0);
+    const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+    const count = items.reduce((sum, item) => sum + item.quantity, 0);
     return { items, total, count };
+  }
+
+  /**
+   * Devuelve las líneas del carrito para el checkout (Redis, fuera de la
+   * transacción SQLite — spec §24/D1).
+   *
+   * @param {number} userId - Id del usuario.
+   * @returns {Promise<OrderLineInput[]>} Líneas `{ productId, quantity }`.
+   */
+  async getLines(userId: number): Promise<OrderLineInput[]> {
+    const cart = await this.getCartWithDetails(userId);
+    return cart.items.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+    }));
   }
 }
 
+/** Instancia singleton de `CartService`. */
 export const cartService = new CartService();

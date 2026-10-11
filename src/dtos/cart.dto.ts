@@ -1,10 +1,12 @@
-import type { SessionCartItem } from "../models/cart.model.js";
+import type { CartEntry } from "../models/cart.model.js";
 
-// CartItemView: entrada de sesión cruzada con datos reales del producto
-// (spec §6.4 — "Ver carrito combina sesión + datos reales del producto").
-// imageUrl/inStock ya vienen resueltos por productService (ProductView),
-// subtotal = price × quantity calculado con el precio de DB.
-export interface CartItemView extends SessionCartItem {
+/**
+ * @fileoverview DTOs del carrito (spec §6.4/§24): forma pública de un ítem y
+ * del carrito completo. `CartItemView` cruza Redis (id + cantidad) con datos
+ * reales del producto resueltos por `productService`; `subtotal` usa el precio
+ * de la DB, nunca uno guardado en el carrito.
+ */
+export interface CartItemView extends CartEntry {
   name: string;
   price: number;
   imageUrl: string;
@@ -12,8 +14,9 @@ export interface CartItemView extends SessionCartItem {
   subtotal: number;
 }
 
-// CartView: lo que devuelven los endpoints /api/cart/* (JSON) y lo que
-// recibe pages/cart.ejs en el render inicial.
+/**
+ * Vista del carrito: lo que devuelven los endpoints `/api/cart/*` (JSON).
+ */
 export interface CartView {
   items: CartItemView[];
   total: number;

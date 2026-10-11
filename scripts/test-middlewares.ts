@@ -31,12 +31,14 @@ const TEST_DB_PATH = path.join(
   os.tmpdir(),
   `middlewares-test-${process.pid}-${Date.now()}.db`,
 );
-const SESSION_SECRET = "test-session-secret-middlewares";
+const JWT_SECRET = "test-session-secret-middlewares";
 
 // Guardia de seguridad: DB_PATH jamás debe resolver a dev.db.
 const DEFAULT_DB = path.resolve(ROOT, "dev.db");
 if (path.resolve(TEST_DB_PATH) === DEFAULT_DB) {
-  console.error("ERROR: DB_PATH resuelve a dev.db — el test exige una DB temporal.");
+  console.error(
+    "ERROR: DB_PATH resuelve a dev.db — el test exige una DB temporal.",
+  );
   process.exit(1);
 }
 
@@ -60,7 +62,10 @@ function equal(actual: unknown, expected: unknown, message: string): void {
   }
 }
 
-async function check(name: string, run: () => Promise<void> | void): Promise<void> {
+async function check(
+  name: string,
+  run: () => Promise<void> | void,
+): Promise<void> {
   try {
     await run();
     passes += 1;
@@ -68,7 +73,9 @@ async function check(name: string, run: () => Promise<void> | void): Promise<voi
   } catch (error) {
     failures += 1;
     console.log(`  ❌ ${name}`);
-    console.log(`     ${error instanceof Error ? error.message : String(error)}`);
+    console.log(
+      `     ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
@@ -90,7 +97,10 @@ function getFreePort(): Promise<number> {
   });
 }
 
-async function waitForServer(baseUrl: string, timeoutMs = 30_000): Promise<void> {
+async function waitForServer(
+  baseUrl: string,
+  timeoutMs = 30_000,
+): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
@@ -105,11 +115,15 @@ async function waitForServer(baseUrl: string, timeoutMs = 30_000): Promise<void>
 }
 
 function runSeed(): void {
-  const result = spawnSync(process.execPath, ["--import", "tsx", path.join(ROOT, "scripts", "seed.ts")], {
-    cwd: ROOT,
-    env: { ...process.env, DB_PATH: TEST_DB_PATH, SESSION_SECRET },
-    encoding: "utf8",
-  });
+  const result = spawnSync(
+    process.execPath,
+    ["--import", "tsx", path.join(ROOT, "scripts", "seed.ts")],
+    {
+      cwd: ROOT,
+      env: { ...process.env, DB_PATH: TEST_DB_PATH, JWT_SECRET },
+      encoding: "utf8",
+    },
+  );
   if (result.status !== 0) {
     console.error("Seed falló:", result.stdout, result.stderr);
     throw new Error(`el seed terminó con código ${result.status}`);
@@ -127,7 +141,11 @@ interface HttpResult {
 async function request(
   method: string,
   url: string,
-  options: { headers?: Record<string, string>; body?: string; redirect?: RequestRedirect } = {},
+  options: {
+    headers?: Record<string, string>;
+    body?: string;
+    redirect?: RequestRedirect;
+  } = {},
 ): Promise<HttpResult> {
   const res = await fetch(url, {
     method,
@@ -137,7 +155,9 @@ async function request(
   });
   const text = await res.text();
   const setCookies =
-    typeof res.headers.getSetCookie === "function" ? res.headers.getSetCookie() : [];
+    typeof res.headers.getSetCookie === "function"
+      ? res.headers.getSetCookie()
+      : [];
   return { status: res.status, headers: res.headers, text, setCookies };
 }
 
@@ -163,7 +183,10 @@ interface MockCalls {
 }
 
 function mockRes(
-  renderImpl: (cb: (err: Error | null, html?: string) => void, calls: MockCalls) => void,
+  renderImpl: (
+    cb: (err: Error | null, html?: string) => void,
+    calls: MockCalls,
+  ) => void,
 ): { res: Record<string, unknown>; calls: MockCalls } {
   const calls: MockCalls = { status: [], json: [], render: [], send: [] };
   const res: Record<string, unknown> = {
@@ -175,7 +198,11 @@ function mockRes(
       calls.json.push(body);
       return res;
     },
-    render(view: string, options: Record<string, unknown>, cb: (err: Error | null, html?: string) => void) {
+    render(
+      view: string,
+      options: Record<string, unknown>,
+      cb: (err: Error | null, html?: string) => void,
+    ) {
       calls.render.push({ view, options });
       if (typeof cb === "function") renderImpl(cb, calls);
       return res;
@@ -189,36 +216,62 @@ function mockRes(
 }
 
 async function runErrorHandlerUnit(): Promise<void> {
-  const { errorHandler } = await import(
-    "../src/middlewares/error/error-handler.middleware.js"
+  const { errorHandler } =
+    await import("../src/middlewares/error/error-handler.middleware.js");
+
+  await check(
+    "M15a: errorHandler renderiza 500 sin filtrar err.message al template",
+    () => {
+      const err = Object.assign(new Error("SECRETO-NO-DEBE-VERSE"), {
+        status: 500,
+      });
+      const { res, calls } = mockRes((cb) => cb(null, "<html>500</html>"));
+      errorHandler(
+        err,
+        { path: "/products/1" } as never,
+        res as never,
+        (() => {}) as never,
+      );
+      observations.m15a = {
+        status: calls.status,
+        renders: calls.render,
+        sent: calls.send,
+      };
+      equal(calls.status[0], 500, "status del render 500");
+      equal(calls.render[0]?.view, "templates/pages/500", "vista 500");
+      assert(
+        !("message" in (calls.render[0]?.options ?? {})),
+        "el template no recibe err.message",
+      );
+      equal(calls.send[0], "<html>500</html>", "envía el HTML renderizado");
+    },
   );
 
-  await check("M15a: errorHandler renderiza 500 sin filtrar err.message al template", () => {
-    const err = Object.assign(new Error("SECRETO-NO-DEBE-VERSE"), { status: 500 });
-    const { res, calls } = mockRes((cb) => cb(null, "<html>500</html>"));
-    errorHandler(err, { path: "/products/1" } as never, res as never, (() => {}) as never);
-    observations.m15a = { status: calls.status, renders: calls.render, sent: calls.send };
-    equal(calls.status[0], 500, "status del render 500");
-    equal(calls.render[0]?.view, "templates/pages/500", "vista 500");
-    assert(
-      !("message" in (calls.render[0]?.options ?? {})),
-      "el template no recibe err.message",
-    );
-    equal(calls.send[0], "<html>500</html>", "envía el HTML renderizado");
-  });
-
-  await check("M15b: fallback en texto plano anti-bucle si falla el render del 500", () => {
-    const err = Object.assign(new Error("boom"), { status: 500 });
-    const { res, calls } = mockRes((cb) => cb(new Error("falló el render")));
-    errorHandler(err, { path: "/" } as never, res as never, (() => {}) as never);
-    observations.m15b = { status: calls.status, sent: calls.send };
-    equal(calls.send[0], "Internal server error", "fallback de texto plano");
-  });
+  await check(
+    "M15b: fallback en texto plano anti-bucle si falla el render del 500",
+    () => {
+      const err = Object.assign(new Error("boom"), { status: 500 });
+      const { res, calls } = mockRes((cb) => cb(new Error("falló el render")));
+      errorHandler(
+        err,
+        { path: "/" } as never,
+        res as never,
+        (() => {}) as never,
+      );
+      observations.m15b = { status: calls.status, sent: calls.send };
+      equal(calls.send[0], "Internal server error", "fallback de texto plano");
+    },
+  );
 
   await check("M15c: /api/* conserva err.message y status en JSON", () => {
     const err = Object.assign(new Error("Invalid id"), { status: 400 });
     const { res, calls } = mockRes(() => {});
-    errorHandler(err, { path: "/api/cart/add/1" } as never, res as never, (() => {}) as never);
+    errorHandler(
+      err,
+      { path: "/api/cart/add/1" } as never,
+      res as never,
+      (() => {}) as never,
+    );
     observations.m15c = { status: calls.status, json: calls.json };
     equal(calls.status[0], 400, "status 400 en API");
     assert(
@@ -227,111 +280,158 @@ async function runErrorHandlerUnit(): Promise<void> {
     );
   });
 
-  await check("M16: errorHandler es de 4 argumentos y es el último handler", () => {
-    observations.m16 = { arity: errorHandler.length };
-    equal(errorHandler.length, 4, "firma (err, req, res, next)");
-  });
+  await check(
+    "M16: errorHandler es de 4 argumentos y es el último handler",
+    () => {
+      observations.m16 = { arity: errorHandler.length };
+      equal(errorHandler.length, 4, "firma (err, req, res, next)");
+    },
+  );
 }
 
 // ── Suite contra la app real ────────────────────────────────────────────────
 async function runHttpSuite(baseUrl: string): Promise<void> {
-  // M1: GET / → 200 con contador 0 en el header (injectCartCount activo).
+  // Usuario real para los casos que necesitan JWT (spec §23).
+  const email = `mw-${Date.now()}-${Math.random().toString(16).slice(2)}@example.com`;
+  const register = await request("POST", `${baseUrl}/api/auth/register`, {
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: "Mw",
+      lastname: "Test",
+      email,
+      password: "Abcdef1!",
+    }),
+  });
+  const token =
+    (jsonOf(register.text) as { token?: string } | undefined)?.token ?? "";
+  const authHeaders = { Authorization: `Bearer ${token}` };
+
+  // M1: GET / → 200 con contador 0 en el header (el valor lo hidrata cart.js).
   await check("M1: GET / responde 200 con data-cart-count=0", async () => {
     const res = await request("GET", `${baseUrl}/`);
-    observations.m1 = { status: res.status, hasZeroCounter: /data-cart-count="0"/.test(res.text) };
+    observations.m1 = {
+      status: res.status,
+      hasZeroCounter: /data-cart-count="0"/.test(res.text),
+    };
     equal(res.status, 200, "status 200");
-    assert(/data-cart-count="0"/.test(res.text), "el header muestra el contador 0");
+    assert(
+      /data-cart-count="0"/.test(res.text),
+      "el header muestra el contador 0",
+    );
     assert(/<html/i.test(res.text), "respuesta HTML");
   });
 
-  // M2: agregar al carrito y ver el contador reflejado con la misma cookie.
-  await check("M2: POST /api/cart/add/1 y GET / con cookie → contador 1", async () => {
-    const add = await request("POST", `${baseUrl}/api/cart/add/1`);
-    const cookie = sessionCookie(add.setCookies);
-    assert(cookie !== undefined, "la mutación emite cookie de sesión");
-    const home = await request("GET", `${baseUrl}/`, { headers: { Cookie: cookie ?? "" } });
-    observations.m2 = { addStatus: add.status, homeStatus: home.status, hasOneCounter: /data-cart-count="1"/.test(home.text) };
-    equal(add.status, 200, "add 200");
-    equal(home.status, 200, "home 200");
-    assert(/data-cart-count="1"/.test(home.text), "el contador refleja la cantidad");
-  });
+  // M2: el carrito exige JWT (spec §24); con token, el validateId responde 400.
+  await check(
+    "M2: /api/cart sin token → 401; con token el id inválido → 400",
+    async () => {
+      const noToken = await request("GET", `${baseUrl}/api/cart`);
+      const invalidId = await request("POST", `${baseUrl}/api/cart/add/abc`, {
+        headers: authHeaders,
+      });
+      observations.m2 = {
+        noToken: noToken.status,
+        invalidIdWithToken: invalidId.status,
+      };
+      equal(noToken.status, 401, "sin token 401");
+      equal(invalidId.status, 400, "con token, id inválido 400 (validateId)");
+    },
+  );
 
-  // M3: GET / sin mutar → no se emite cookie de sesión (saveUninitialized:false).
-  await check("M3: GET / sin mutar el carrito no emite Set-Cookie", async () => {
+  // M3: sin sesión no existe ninguna cookie de sesión.
+  await check("M3: GET / no emite Set-Cookie (stateless)", async () => {
     const res = await request("GET", `${baseUrl}/`);
-    observations.m3 = { status: res.status, setCookies: res.setCookies };
+    observations.m3 = { status: res.status, setCookies: res.setCookies.length };
     equal(res.status, 200, "status 200");
     equal(res.setCookies.length, 0, "sin Set-Cookie");
   });
 
-  // M4: primera mutación → cookie httpOnly, SameSite=Lax, sin Max-Age/Expires.
-  await check("M4: la cookie de sesión es HttpOnly, SameSite=Lax y sin Max-Age/Expires", async () => {
-    const res = await request("POST", `${baseUrl}/api/cart/add/2`);
-    const cookie = res.setCookies.find((c) => c.startsWith("connect.sid=")) ?? "";
-    // El valor de connect.sid es aleatorio: se observan sus atributos, no el
-    // valor crudo, para que el snapshot del baseline sea determinista.
+  // M4: helmet agrega cabeceras de seguridad (spec §24).
+  await check("M4: helmet agrega CSP y nosniff", async () => {
+    const res = await request("GET", `${baseUrl}/`);
+    const csp = res.headers.get("content-security-policy") ?? "";
     observations.m4 = {
-      hasConnectSid: cookie.length > 0,
-      httpOnly: /HttpOnly/i.test(cookie),
-      sameSiteLax: /SameSite=Lax/i.test(cookie),
-      hasMaxAge: /Max-Age/i.test(cookie),
-      hasExpires: /Expires/i.test(cookie),
+      xContentTypeOptions: res.headers.get("x-content-type-options"),
+      hasCsp: csp.length > 0,
+      cspHasUpgrade: /upgrade-insecure-requests/i.test(csp),
     };
-    assert(cookie.length > 0, "emite connect.sid");
-    assert(/HttpOnly/i.test(cookie), "HttpOnly presente");
-    assert(/SameSite=Lax/i.test(cookie), "SameSite=Lax presente");
-    assert(!/Max-Age/i.test(cookie), "sin Max-Age");
-    assert(!/Expires/i.test(cookie), "sin Expires");
+    equal(res.headers.get("x-content-type-options"), "nosniff", "nosniff");
+    assert(csp.includes("default-src 'self'"), "CSP con default-src 'self'");
+    assert(
+      !/upgrade-insecure-requests/i.test(csp),
+      "sin upgrade-insecure-requests fuera de prod",
+    );
   });
 
   // M5: 404 HTML de páginas para rutas inexistentes.
-  await check("M5: GET /ruta-que-no-existe → 404 con la vista 404", async () => {
-    const res = await request("GET", `${baseUrl}/ruta-que-no-existe`);
-    observations.m5 = { status: res.status, contentType: res.headers.get("content-type"), has404: /Página no encontrada/.test(res.text) };
-    equal(res.status, 404, "status 404");
-    assert((res.headers.get("content-type") ?? "").includes("text/html"), "HTML");
-    assert(/Página no encontrada/.test(res.text), "contenido de pages/404");
-  });
+  await check(
+    "M5: GET /ruta-que-no-existe → 404 con la vista 404",
+    async () => {
+      const res = await request("GET", `${baseUrl}/ruta-que-no-existe`);
+      observations.m5 = {
+        status: res.status,
+        has404: /Página no encontrada/.test(res.text),
+      };
+      equal(res.status, 404, "status 404");
+      assert(
+        (res.headers.get("content-type") ?? "").includes("text/html"),
+        "HTML",
+      );
+      assert(/Página no encontrada/.test(res.text), "contenido de pages/404");
+    },
+  );
 
   // M6: 404 JSON para /api/*.
-  await check("M6: GET /api/ruta-que-no-existe → 404 {error:'Not found'}", async () => {
-    const res = await request("GET", `${baseUrl}/api/ruta-que-no-existe`);
-    observations.m6 = { status: res.status, body: res.text };
-    equal(res.status, 404, "status 404");
-    assert(
-      JSON.stringify(jsonOf(res.text)) === JSON.stringify({ error: "Not found" }),
-      "JSON de not found",
-    );
-  });
+  await check(
+    "M6: GET /api/ruta-que-no-existe → 404 {error:'Not found'}",
+    async () => {
+      const res = await request("GET", `${baseUrl}/api/ruta-que-no-existe`);
+      observations.m6 = { status: res.status, body: res.text };
+      equal(res.status, 404, "status 404");
+      assert(
+        JSON.stringify(jsonOf(res.text)) ===
+          JSON.stringify({ error: "Not found" }),
+        "JSON de not found",
+      );
+    },
+  );
 
   // M7: id no numérico en colección → 400.
-  await check("M7: GET /api/products/abc → 400 {error:'Invalid id'}", async () => {
-    const res = await request("GET", `${baseUrl}/api/products/abc`);
-    observations.m7 = { status: res.status, body: res.text };
-    equal(res.status, 400, "status 400");
-    assert(
-      JSON.stringify(jsonOf(res.text)) === JSON.stringify({ error: "Invalid id" }),
-      "JSON de id inválido",
-    );
-  });
-
-  // M8: variantes de id en colecciones. Baseline real: el guard legacy
-  // responde 400 para TODA ruta de un segmento (bug documentado en SPEC §22).
-  await check("M8: ids de colección (0/-1/1.5/5/999999) → 400 según baseline real", async () => {
-    const observed: Record<string, unknown> = {};
-    for (const id of ["0", "-1", "1.5", "5", "999999"]) {
-      const res = await request("GET", `${baseUrl}/api/products/${id}`);
-      observed[id] = { status: res.status, body: res.text };
-      equal(res.status, 400, `/api/products/${id} → 400`);
+  await check(
+    "M7: GET /api/products/abc → 400 {error:'Invalid id'}",
+    async () => {
+      const res = await request("GET", `${baseUrl}/api/products/abc`);
+      observations.m7 = { status: res.status, body: res.text };
+      equal(res.status, 400, "status 400");
       assert(
-        JSON.stringify(jsonOf(res.text)) === JSON.stringify({ error: "Invalid id" }),
-        `/api/products/${id} cuerpo`,
+        JSON.stringify(jsonOf(res.text)) ===
+          JSON.stringify({ error: "Invalid id" }),
+        "JSON de id inválido",
       );
-    }
-    observations.m8 = observed;
-  });
+    },
+  );
 
-  // M8b: categorías y órdenes comparten el mismo guard.
+  // M8: variantes de id en colecciones. Baseline real: el guard legacy de
+  // products/categories responde 400 para TODA ruta de un segmento (§22.5).
+  await check(
+    "M8: ids de colección (0/-1/1.5/5/999999) → 400 (guard legacy)",
+    async () => {
+      const observed: Record<string, unknown> = {};
+      for (const id of ["0", "-1", "1.5", "5", "999999"]) {
+        const res = await request("GET", `${baseUrl}/api/products/${id}`);
+        observed[id] = { status: res.status, body: res.text };
+        equal(res.status, 400, `/api/products/${id} → 400`);
+        assert(
+          JSON.stringify(jsonOf(res.text)) ===
+            JSON.stringify({ error: "Invalid id" }),
+          `/api/products/${id} cuerpo`,
+        );
+      }
+      observations.m8 = observed;
+    },
+  );
+
+  // M8b: categories (guard legacy) y orders (validateId por ruta) → 400.
   await check("M8b: /api/categories/abc y /api/orders/abc → 400", async () => {
     const categories = await request("GET", `${baseUrl}/api/categories/abc`);
     const orders = await request("GET", `${baseUrl}/api/orders/abc`);
@@ -341,120 +441,187 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
   });
 
   // M8c: límites del guard: multi-segmento y sin segmento NO se validan (404).
-  await check("M8c: /api/products/5/extra y /api/products/ → 404 (fuera del guard)", async () => {
-    const extra = await request("GET", `${baseUrl}/api/products/5/extra`);
-    const bare = await request("GET", `${baseUrl}/api/products/`);
-    observations.m8c = { extra: extra.status, bare: bare.status };
-    equal(extra.status, 404, "multi-segmento 404");
-    equal(bare.status, 404, "sin segmento 404");
-  });
+  await check(
+    "M8c: /api/products/5/extra y /api/products/ → 404 (fuera del guard)",
+    async () => {
+      const extra = await request("GET", `${baseUrl}/api/products/5/extra`);
+      const bare = await request("GET", `${baseUrl}/api/products/`);
+      observations.m8c = { extra: extra.status, bare: bare.status };
+      equal(extra.status, 404, "multi-segmento 404");
+      equal(bare.status, 404, "sin segmento 404");
+    },
+  );
 
-  // M9: id numérico inexistente. Baseline real: 400 (no hay controller de API
-  // que resuelva el 404; ver hallazgo en SPEC §22).
-  await check("M9: GET /api/products/999999 → 400 según baseline real", async () => {
+  // M9: id numérico inexistente en products → 400 (guard legacy, §22.5).
+  await check("M9: GET /api/products/999999 → 400 (guard legacy)", async () => {
     const res = await request("GET", `${baseUrl}/api/products/999999`);
     observations.m9 = { status: res.status, body: res.text };
     equal(res.status, 400, "status 400 (guard legacy)");
   });
 
   // M10: páginas /products/:id (validación por helper en el controller).
-  await check("M10: /products/abc → 400 y /products/999999 → 404 (controller)", async () => {
-    const invalid = await request("GET", `${baseUrl}/products/abc`);
-    const missing = await request("GET", `${baseUrl}/products/999999`);
-    const valid = await request("GET", `${baseUrl}/products/1`);
-    observations.m10 = {
-      invalid: { status: invalid.status, body: invalid.text },
-      missing: { status: missing.status, has404: /Página no encontrada/.test(missing.text) },
-      valid: valid.status,
-    };
-    equal(invalid.status, 400, "/products/abc 400");
-    assert(/ID inválido/.test(invalid.text), "texto ID inválido");
-    equal(missing.status, 404, "/products/999999 404");
-    assert(/Página no encontrada/.test(missing.text), "vista 404");
-    equal(valid.status, 200, "/products/1 200");
-  });
+  await check(
+    "M10: /products/abc → 400 y /products/999999 → 404 (controller)",
+    async () => {
+      const invalid = await request("GET", `${baseUrl}/products/abc`);
+      const missing = await request("GET", `${baseUrl}/products/999999`);
+      const valid = await request("GET", `${baseUrl}/products/1`);
+      observations.m10 = {
+        invalid: { status: invalid.status },
+        missing: {
+          status: missing.status,
+          has404: /Página no encontrada/.test(missing.text),
+        },
+        valid: valid.status,
+      };
+      equal(invalid.status, 400, "/products/abc 400");
+      assert(/ID inválido/.test(invalid.text), "texto ID inválido");
+      equal(missing.status, 404, "/products/999999 404");
+      assert(/Página no encontrada/.test(missing.text), "vista 404");
+      equal(valid.status, 200, "/products/1 200");
+    },
+  );
 
-  // M11: rutas del carrito con id inválido (validación en el controller).
-  await check("M11: carrito con id inválido → 400 {error:'Invalid id'}", async () => {
-    const add = await request("POST", `${baseUrl}/api/cart/add/abc`);
-    const inc = await request("PATCH", `${baseUrl}/api/cart/increase/abc`);
-    const rem = await request("DELETE", `${baseUrl}/api/cart/remove/abc`);
-    observations.m11 = { add: add.status, inc: inc.status, rem: rem.status, addBody: add.text };
-    for (const [name, res] of [["add", add], ["increase", inc], ["remove", rem]] as const) {
-      equal(res.status, 400, `${name} 400`);
+  // M11: carrito con token e id inválido → 400; sin token → 401.
+  await check(
+    "M11: carrito: sin token 401, con token id inválido 400",
+    async () => {
+      const noToken = await request("POST", `${baseUrl}/api/cart/add/abc`);
+      const withToken = await request("POST", `${baseUrl}/api/cart/add/abc`, {
+        headers: authHeaders,
+      });
+      observations.m11 = {
+        noToken: noToken.status,
+        withToken: withToken.status,
+        body: withToken.text,
+      };
+      equal(noToken.status, 401, "sin token 401");
+      equal(withToken.status, 400, "con token 400");
       assert(
-        JSON.stringify(jsonOf(res.text)) === JSON.stringify({ error: "Invalid id" }),
-        `${name} cuerpo`,
+        JSON.stringify(jsonOf(withToken.text)) ===
+          JSON.stringify({ error: "Invalid id" }),
+        "cuerpo",
       );
-    }
+    },
+  );
+
+  // M11b: token manipulado → 401.
+  await check("M11b: token manipulado → 401", async () => {
+    const res = await request("GET", `${baseUrl}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}x` },
+    });
+    observations.m11b = { status: res.status, body: res.text };
+    equal(res.status, 401, "401");
   });
 
-  // M11b: el controller acepta ids numéricos "raros" (Number) que el guard de
-  // colecciones rechazaría; se preserva esa diferencia.
-  await check("M11b: POST /api/cart/add/+1 y /add/%201 → 200 (predicado Number)", async () => {
-    const plus = await request("POST", `${baseUrl}/api/cart/add/+1`);
-    const encoded = await request("POST", `${baseUrl}/api/cart/add/%201`);
-    observations.m11b = { plus: plus.status, encoded: encoded.status };
-    equal(plus.status, 200, "+1 → 200");
-    equal(encoded.status, 200, "%201 → 200");
-  });
-
-  // M12: /api/cart/clear no se interpreta como :id.
-  await check("M12: DELETE /api/cart/clear → 200 con carrito vacío", async () => {
+  // M12: DELETE /api/cart/clear sin token → 401 (no se interpreta como :id).
+  await check("M12: DELETE /api/cart/clear sin token → 401", async () => {
     const res = await request("DELETE", `${baseUrl}/api/cart/clear`);
-    const body = jsonOf(res.text) as { items?: unknown[]; total?: number; count?: number } | undefined;
-    observations.m12 = { status: res.status, body: res.text };
-    equal(res.status, 200, "status 200");
-    assert(body !== undefined && Array.isArray(body.items) && body.items.length === 0, "items vacío");
+    observations.m12 = { status: res.status };
+    equal(res.status, 401, "401");
   });
 
   // M13: Swagger ANTES del 404.
-  await check("M13: GET /api-docs/ → 200 (Swagger, antes del 404)", async () => {
-    const res = await request("GET", `${baseUrl}/api-docs/`);
-    observations.m13 = { status: res.status, contentType: res.headers.get("content-type") };
-    equal(res.status, 200, "status 200");
-    assert(/swagger-ui/i.test(res.text) || /html/i.test(res.text), "HTML de Swagger UI");
-  });
+  await check(
+    "M13: GET /api-docs/ → 200 (Swagger, antes del 404)",
+    async () => {
+      const res = await request("GET", `${baseUrl}/api-docs/`);
+      observations.m13 = {
+        status: res.status,
+        contentType: res.headers.get("content-type"),
+      };
+      equal(res.status, 200, "status 200");
+      assert(
+        /swagger-ui/i.test(res.text) || /html/i.test(res.text),
+        "HTML de Swagger UI",
+      );
+    },
+  );
 
-  // M14: estáticos servidos desde dist/public antes de la sesión.
+  // M14: estáticos servidos desde dist/public.
   await check("M14: /favicon.ico y /js/cart.js → 200", async () => {
     const favicon = await request("GET", `${baseUrl}/favicon.ico`);
     const js = await request("GET", `${baseUrl}/js/cart.js`);
-    observations.m14 = {
-      favicon: favicon.status,
-      js: js.status,
-      jsSetCookie: js.setCookies,
-    };
+    observations.m14 = { favicon: favicon.status, js: js.status };
     equal(favicon.status, 200, "favicon 200");
     equal(js.status, 200, "js 200");
-    equal(js.setCookies.length, 0, "estáticos fuera de la sesión (sin Set-Cookie)");
+    equal(js.setCookies.length, 0, "estáticos sin Set-Cookie");
   });
 
-  // M18: body parsers (urlencoded y JSON) siguen montados.
-  await check("M18a: POST /checkout urlencoded incompleto → 400 con valores tipeados", async () => {
-    const res = await request("POST", `${baseUrl}/checkout`, {
+  // M18: body parsers (urlencoded y JSON) siguen montados (vía /api/auth/register).
+  await check("M18a: POST urlencoded a /api/auth/register → 201", async () => {
+    const res = await request("POST", `${baseUrl}/api/auth/register`, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ firstName: "Ana" }).toString(),
+      body: new URLSearchParams({
+        name: "Url",
+        lastname: "Encoded",
+        email: `mw-url-${Date.now()}@example.com`,
+        password: "Abcdef1!",
+      }).toString(),
     });
-    observations.m18a = {
-      status: res.status,
-      hasValue: /value="Ana"/.test(res.text),
-      hasError: /El apellido es obligatorio/.test(res.text),
-    };
-    equal(res.status, 400, "status 400");
-    assert(/value="Ana"/.test(res.text), "re-render con el valor tipeado");
-    assert(/El apellido es obligatorio/.test(res.text), "errores de validación");
+    observations.m18a = { status: res.status };
+    equal(res.status, 201, "201");
   });
 
-  await check("M18b: POST /checkout con body JSON → 400 (express.json montado)", async () => {
-    const res = await request("POST", `${baseUrl}/checkout`, {
+  await check("M18b: POST JSON a /api/auth/register → 201", async () => {
+    const res = await request("POST", `${baseUrl}/api/auth/register`, {
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName: "Ana" }),
+      body: JSON.stringify({
+        name: "Json",
+        lastname: "Body",
+        email: `mw-json-${Date.now()}@example.com`,
+        password: "Abcdef1!",
+      }),
     });
-    observations.m18b = { status: res.status, hasValue: /value="Ana"/.test(res.text) };
-    equal(res.status, 400, "status 400");
-    assert(/value="Ana"/.test(res.text), "el JSON se parseó y el valor se re-renderiza");
+    observations.m18b = { status: res.status };
+    equal(res.status, 201, "201");
   });
+
+  // M19: authenticate con token válido.
+  await check("M19: token válido → /api/auth/me 200", async () => {
+    const res = await request("GET", `${baseUrl}/api/auth/me`, {
+      headers: authHeaders,
+    });
+    observations.m19 = { status: res.status, hasUser: /"user"/.test(res.text) };
+    equal(res.status, 200, "200");
+    assert(/"user"/.test(res.text), "devuelve user");
+  });
+
+  // M20: las rutas del carrito autentican ANTES de validar el id.
+  await check(
+    "M20: /api/cart/* sin token → 401 ANTES de validar el id",
+    async () => {
+      const res = await request("POST", `${baseUrl}/api/cart/add/abc`);
+      observations.m20 = { status: res.status, body: res.text };
+      equal(res.status, 401, "401 (no 400)");
+    },
+  );
+
+  // M21: Swagger relaja su CSP solo en /api-docs.
+  await check("M21: /api-docs/ usa CSP relajado (inline)", async () => {
+    const res = await request("GET", `${baseUrl}/api-docs/`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    observations.m21 = {
+      status: res.status,
+      hasInline: /unsafe-inline/.test(csp),
+    };
+    equal(res.status, 200, "200");
+    assert(/unsafe-inline/.test(csp), "CSP permite inline en Swagger");
+  });
+
+  // M22: helmet también en assets estáticos.
+  await check(
+    "M22: cabeceras de helmet también en assets estáticos",
+    async () => {
+      const res = await request("GET", `${baseUrl}/js/cart.js`);
+      observations.m22 = {
+        status: res.status,
+        nosniff: res.headers.get("x-content-type-options"),
+      };
+      equal(res.status, 200, "200");
+      equal(res.headers.get("x-content-type-options"), "nosniff", "nosniff");
+    },
+  );
 }
 
 // ── Runner ──────────────────────────────────────────────────────────────────
@@ -477,11 +644,20 @@ async function main(): Promise<void> {
   const baseUrl = `http://127.0.0.1:${port}`;
   console.log(`→ Levantando app (puerto ${port}, DB ${TEST_DB_PATH})…`);
 
-  const server = spawn(process.execPath, ["--import", "tsx", path.join(ROOT, "src", "app.ts")], {
-    cwd: ROOT,
-    env: { ...process.env, DB_PATH: TEST_DB_PATH, PORT: String(port), SESSION_SECRET },
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const server = spawn(
+    process.execPath,
+    ["--import", "tsx", path.join(ROOT, "src", "app.ts")],
+    {
+      cwd: ROOT,
+      env: {
+        ...process.env,
+        DB_PATH: TEST_DB_PATH,
+        PORT: String(port),
+        JWT_SECRET,
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
   let serverLog = "";
   server.stdout.on("data", (chunk: Buffer) => (serverLog += chunk.toString()));
   server.stderr.on("data", (chunk: Buffer) => (serverLog += chunk.toString()));
