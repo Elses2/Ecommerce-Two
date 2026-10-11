@@ -1,9 +1,12 @@
-// Cart client (spec §5/§6.4/§24): every click on a [data-cart-action] element
-// hits its /api/cart/* endpoint with the JWT (window.Auth.fetch) and re-renders
-// the cart from the JSON response — no page reloads. The counter and the cart
-// page hydrate on load with GET /api/cart (the server no longer knows the user
-// without the token). The server always answers with { items, total, count }
-// and prices computed from the DB.
+// Cart client (spec §5/§6.4/§24, enmienda cookie httpOnly): every click on a
+// [data-cart-action] element hits its /api/cart/* endpoint and re-renders the
+// cart from the JSON response — no page reloads. The cookie `auth_token`
+// travels by itself (fetch con `credentials: "same-origin"`); "¿hay sesión?"
+// se lee de `document.body.dataset.loggedIn` (data-logged-in lo pinta el
+// servidor, spec §23.3). Sin sesión, "Agregar" guarda la intención en
+// `sessionStorage` (pending_cart_add) y manda a login; al volver con sesión
+// se ejecuta. The server always answers with { items, total, count } and
+// prices computed from the DB.
 (function () {
   "use strict";
 
@@ -15,7 +18,45 @@
     clear: () => ({ method: "DELETE", url: "/api/cart/clear" }),
   };
 
+  const PENDING_KEY = "pending_cart_add";
+
   const format = (n) => Number(n).toLocaleString("es-AR");
+
+  // "¿Hay sesión?" (spec §23.3): lo decide el servidor al renderizar
+  // data-logged-in en <body>; localStorage ya no guarda ningún token.
+  function hasSession() {
+    return document.body.dataset.loggedIn === "true";
+  }
+
+  function savePendingAdd(productId) {
+    try {
+      window.sessionStorage.setItem(
+        PENDING_KEY,
+        JSON.stringify({ productId, at: Date.now() }),
+      );
+    } catch (_err) {
+      /* sin storage: se pierde la intención, queda el redirect */
+    }
+  }
+
+  function takePendingAdd() {
+    try {
+      const raw = window.sessionStorage.getItem(PENDING_KEY);
+      window.sessionStorage.removeItem(PENDING_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed.productId !== "undefined"
+        ? parsed
+        : null;
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function redirectToLogin() {
+    const next = encodeURIComponent(window.location.pathname);
+    window.location.href = `/login?next=${next}`;
+  }
 
   function rowFromTemplate(item) {
     const template = document.getElementById("cart-item-template");
@@ -72,9 +113,24 @@
     });
   }
 
+  async function performAdd(productId) {
+    if (!window.Auth) return;
+    const res = await window.Auth.fetch(`/api/cart/add/${productId}`, {
+      method: "POST",
+    });
+    if (res.ok) renderCart(await res.json());
+  }
+
   async function loadCart() {
-    if (!window.Auth || !window.Auth.getToken()) return;
+    if (!hasSession() || !window.Auth) return;
     try {
+      // Acción pendiente de antes del login: se ejecuta y se borra ANTES del
+      // fetch (si el fetch falla, no se reintenta en loop).
+      const pending = takePendingAdd();
+      if (pending) {
+        await performAdd(pending.productId);
+        return;
+      }
       const res = await window.Auth.fetch("/api/cart");
       if (!res.ok) return;
       renderCart(await res.json());
@@ -92,10 +148,17 @@
     const buildEndpoint = ENDPOINTS[cartAction];
     if (!buildEndpoint) return;
 
-    // Sin token no hay carrito: mandar a login preservando el destino.
-    if (!window.Auth || !window.Auth.getToken()) {
-      const next = encodeURIComponent(window.location.pathname);
-      window.location.href = `/login?next=${next}`;
+    // Sin sesión no hay carrito (spec §24.1: la clave del Hash es el userId
+    // del JWT). "Agregar" preserva la intención; el resto manda a login con
+    // el destino.
+    if (!hasSession()) {
+      if (cartAction === "add" && productId) {
+        savePendingAdd(productId);
+        const next = encodeURIComponent(window.location.pathname);
+        window.location.href = `/login?next=${next}&reason=cart`;
+      } else {
+        redirectToLogin();
+      }
       return;
     }
 

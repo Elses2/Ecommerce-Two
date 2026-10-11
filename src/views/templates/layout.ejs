@@ -31,9 +31,9 @@
   <%- include("organisms/footer") %>
   <%- include("organisms/footer-mobile") %>
 
-  <!-- Auth client (spec §23): token en localStorage + formularios de auth por
-       fetch + render del header. Va ANTES de cart.js porque el carrito usa
-       `window.Auth`. -->
+  <!-- Auth client (spec §23, enmienda cookie httpOnly): Auth.fetch con la
+       cookie de sesión + formularios de auth por fetch. Va ANTES de cart.js
+       porque el carrito usa `window.Auth`. -->
   <script src="/js/auth.js" defer></script>
 
   <!-- Cart AJAX (spec §5/§6.4): loaded ONCE per page from the layout — every
