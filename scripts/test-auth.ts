@@ -1,12 +1,16 @@
-// Test de autenticación JWT (spec §23): casos A1–A6 contra una DB temporal.
+// Test de autenticación JWT con cookie httpOnly (spec §23, enmienda cookie
+// httpOnly): casos A1–A8 adaptados + A9–A11 nuevos contra una DB temporal.
 // Runner: tsx (igual que test-checkout / test-middlewares). La DB NUNCA es
 // dev.db: se genera una ruta temporal en os.tmpdir() y se pasa por DB_PATH al
 // proceso hijo (`node --import tsx src/app.ts`), que arranca en un puerto libre.
 // Salida: exit code 0 si todo pasa, 1 si algo falla.
 //
-// A1 register OK · A2 email repetido (incluida la carrera) · A3 validación ·
-// A4 login OK · A5 credenciales inválidas · A6 /me (válido/ausente/expirado/
-// manipulado/otro algoritmo). A7/A8 (autorización por rol/propiedad) son del PR 2.
+// A1 register OK (cookie, sin token en body) · A2 email repetido · A3
+// validación · A4 login OK (cookie) · A5 credenciales inválidas · A6 /me
+// (header y cookie, ausente/expirado/manipulado/otro algoritmo) · A7 authorize
+// por rol · A8 ownership por cookie · A9 atributos de la cookie (HttpOnly /
+// SameSite=Lax / Path / Secure con COOKIE_SECURE=true) y logout · A10 CSRF
+// por origen · A11 COOKIE_SECURE=true (segunda instancia) agrega `Secure`.
 import { spawn } from "node:child_process";
 import BetterSqlite3 from "better-sqlite3";
 import fs from "node:fs";
@@ -96,17 +100,24 @@ interface HttpResult {
   status: number;
   text: string;
   json: Record<string, unknown>;
+  setCookies: string[];
 }
 
 async function api(
   baseUrl: string,
   method: string,
   pathname: string,
-  options: { body?: unknown; token?: string } = {},
+  options: {
+    body?: unknown;
+    token?: string;
+    cookie?: string;
+    headers?: Record<string, string>;
+  } = {},
 ): Promise<HttpResult> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { ...(options.headers ?? {}) };
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
   if (options.token) headers.Authorization = `Bearer ${options.token}`;
+  if (options.cookie) headers.Cookie = options.cookie;
   const res = await fetch(`${baseUrl}${pathname}`, {
     method,
     headers,
@@ -120,7 +131,32 @@ async function api(
   } catch {
     /* respuesta no JSON */
   }
-  return { status: res.status, text, json };
+  const setCookies =
+    typeof res.headers.getSetCookie === "function"
+      ? res.headers.getSetCookie()
+      : [];
+  return { status: res.status, text, json, setCookies };
+}
+
+/**
+ * Extrae la cookie `auth_token` de los Set-Cookie de una respuesta (C1).
+ *
+ * @param {string[]} setCookies - Cabeceras Set-Cookie recibidas.
+ * @returns {string | undefined} `auth_token=<jwt>` lista para el header Cookie.
+ */
+function authCookie(setCookies: string[]): string | undefined {
+  const cookie = setCookies.find((c) => c.startsWith("auth_token="));
+  return cookie?.split(";")[0];
+}
+
+/**
+ * Extrae el JWT de la cookie `auth_token` (para los casos que lo manipulan).
+ *
+ * @param {string} cookie - Cookie `auth_token=<jwt>`.
+ * @returns {string} El JWT.
+ */
+function jwtFromCookie(cookie: string | undefined): string {
+  return (cookie ?? "").replace(/^auth_token=/, "");
 }
 
 function uniqueEmail(): string {
@@ -130,25 +166,31 @@ function uniqueEmail(): string {
 async function runSuite(baseUrl: string): Promise<void> {
   const email = uniqueEmail();
   const password = "Abcdef1!";
-  let token = "";
+  let cookie = ""; // auth_token=<jwt> (spec §23.1, enmienda cookie httpOnly)
   let userAId = 0;
 
   await check(
-    "A1: register OK devuelve token y no filtra password_hash",
+    "A1: register OK setea cookie httpOnly, sin token en el body y sin password_hash",
     async () => {
       const res = await api(baseUrl, "POST", "/api/auth/register", {
         body: { name: "Ana", lastname: "Pérez", email, password },
       });
       assert(res.status === 201, `status 201 (real ${res.status})`);
       assert(
-        typeof res.json.token === "string" && res.json.token.length > 0,
-        "devuelve token",
+        res.json.token === undefined,
+        "el body NO contiene token (C2)",
       );
       assert(!res.text.includes("password_hash"), "no filtra password_hash");
       const user = res.json.user as Record<string, unknown>;
       assert(user.email === email, "email correcto");
       assert(user.role === "customer", "rol customer");
-      token = res.json.token as string;
+      const set = res.setCookies.find((c) => c.startsWith("auth_token="));
+      assert(set !== undefined, "Set-Cookie auth_token presente");
+      assert(/HttpOnly/i.test(set), "cookie httpOnly");
+      assert(/SameSite=Lax/i.test(set), "cookie SameSite=Lax (C1)");
+      assert(/Path=/i.test(set), "cookie Path=/ (C1)");
+      cookie = authCookie(res.setCookies) ?? "";
+      assert(cookie.length > 0, "cookie extraída");
       userAId = Number(user.id);
     },
   );
@@ -212,16 +254,19 @@ async function runSuite(baseUrl: string): Promise<void> {
     },
   );
 
-  await check("A4: login OK devuelve token", async () => {
-    const res = await api(baseUrl, "POST", "/api/auth/login", {
-      body: { email, password },
-    });
-    assert(res.status === 200, `status 200 (real ${res.status})`);
-    assert(
-      typeof res.json.token === "string" && res.json.token.length > 0,
-      "devuelve token",
-    );
-  });
+  await check(
+    "A4: login OK setea cookie y no devuelve token en el body",
+    async () => {
+      const res = await api(baseUrl, "POST", "/api/auth/login", {
+        body: { email, password },
+      });
+      assert(res.status === 200, `status 200 (real ${res.status})`);
+      assert(res.json.token === undefined, "el body NO contiene token (C2)");
+      const set = res.setCookies.find((c) => c.startsWith("auth_token="));
+      assert(set !== undefined, "Set-Cookie auth_token presente");
+      assert(/HttpOnly/i.test(set), "cookie httpOnly en login");
+    },
+  );
 
   await check(
     "A5: login con clave mala y email inexistente → mismo 401",
@@ -245,10 +290,13 @@ async function runSuite(baseUrl: string): Promise<void> {
   );
 
   await check(
-    "A6: /me válido, ausente, expirado, manipulado y otro algoritmo",
+    "A6: /me con cookie/header: válido, ausente, expirado, manipulado y otro algoritmo",
     async () => {
-      const valid = await api(baseUrl, "GET", "/api/auth/me", { token });
-      assert(valid.status === 200, `válido 200 (real ${valid.status})`);
+      // C3: el header Authorization sigue aceptado.
+      const valid = await api(baseUrl, "GET", "/api/auth/me", {
+        cookie,
+      });
+      assert(valid.status === 200, `cookie válida 200 (real ${valid.status})`);
       assert(
         (valid.json.user as Record<string, unknown>).email === email,
         "usuario correcto",
@@ -257,8 +305,17 @@ async function runSuite(baseUrl: string): Promise<void> {
       const absent = await api(baseUrl, "GET", "/api/auth/me");
       assert(absent.status === 401, `ausente 401 (real ${absent.status})`);
 
+      // La cookie también funciona vía header (C3).
+      const viaHeader = await api(baseUrl, "GET", "/api/auth/me", {
+        token: jwtFromCookie(cookie),
+      });
+      assert(
+        viaHeader.status === 200,
+        `header Bearer 200 (real ${viaHeader.status}) — C3`,
+      );
+
       const manipulated = await api(baseUrl, "GET", "/api/auth/me", {
-        token: `${token}x`,
+        cookie: `auth_token=${jwtFromCookie(cookie)}x`,
       });
       assert(
         manipulated.status === 401,
@@ -271,7 +328,7 @@ async function runSuite(baseUrl: string): Promise<void> {
         algorithm: "HS256",
       });
       const expiredRes = await api(baseUrl, "GET", "/api/auth/me", {
-        token: expired,
+        cookie: `auth_token=${expired}`,
       });
       assert(
         expiredRes.status === 401,
@@ -284,7 +341,7 @@ async function runSuite(baseUrl: string): Promise<void> {
         algorithm: "HS512",
       });
       const algRes = await api(baseUrl, "GET", "/api/auth/me", {
-        token: otherAlg,
+        cookie: `auth_token=${otherAlg}`,
       });
       assert(
         algRes.status === 401,
@@ -359,7 +416,7 @@ async function runSuite(baseUrl: string): Promise<void> {
         registerB.status === 201,
         `registro B 201 (real ${registerB.status})`,
       );
-      const tokenB = registerB.json.token as string;
+      const cookieB = authCookie(registerB.setCookies) ?? "";
 
       // Las órdenes se insertan directo en la DB temporal: el checkout
       // autenticado (que crea órdenes para un usuario) llega en el PR 3.
@@ -376,7 +433,7 @@ async function runSuite(baseUrl: string): Promise<void> {
         db.close();
       }
 
-      const listA = await api(baseUrl, "GET", "/api/orders", { token });
+      const listA = await api(baseUrl, "GET", "/api/orders", { cookie });
       assert(listA.status === 200, `list A 200 (real ${listA.status})`);
       assert(
         Array.isArray(listA.json.orders) &&
@@ -384,7 +441,9 @@ async function runSuite(baseUrl: string): Promise<void> {
         "A ve al menos una orden",
       );
 
-      const listB = await api(baseUrl, "GET", "/api/orders", { token: tokenB });
+      const listB = await api(baseUrl, "GET", "/api/orders", {
+        cookie: cookieB,
+      });
       assert(listB.status === 200, `list B 200 (real ${listB.status})`);
       assert(
         (listB.json.orders as unknown[]).length === 0,
@@ -392,12 +451,12 @@ async function runSuite(baseUrl: string): Promise<void> {
       );
 
       const detailA = await api(baseUrl, "GET", `/api/orders/${orderAId}`, {
-        token,
+        cookie,
       });
       assert(detailA.status === 200, `A detalle 200 (real ${detailA.status})`);
 
       const detailB = await api(baseUrl, "GET", `/api/orders/${orderAId}`, {
-        token: tokenB,
+        cookie: cookieB,
       });
       assert(
         detailB.status === 404,
@@ -405,16 +464,103 @@ async function runSuite(baseUrl: string): Promise<void> {
       );
 
       const noToken = await api(baseUrl, "GET", `/api/orders/${orderAId}`);
-      assert(noToken.status === 401, `sin token 401 (real ${noToken.status})`);
+      assert(noToken.status === 401, `sin sesión 401 (real ${noToken.status})`);
 
-      const badId = await api(baseUrl, "GET", "/api/orders/abc", { token });
+      const badId = await api(
+        baseUrl,
+        "GET",
+        "/api/orders/abc",
+        { cookie },
+      );
       assert(badId.status === 400, `id malformado 400 (real ${badId.status})`);
+    },
+  );
+
+  await check(
+    "A9: logout borra la cookie (Max-Age=0) — sin revocación server-side",
+    async () => {
+      const out = await api(baseUrl, "POST", "/api/auth/logout", {
+        cookie,
+      });
+      assert(out.status === 204, `logout 204 (real ${out.status})`);
+      const cleared = out.setCookies.find((c) => c.startsWith("auth_token="));
+      assert(cleared !== undefined, "Set-Cookie al borrar");
+      assert(
+        /Max-Age=0/i.test(cleared) || /Expires=Thu, 01 Jan 1970/i.test(cleared),
+        "cookie borrada (Max-Age=0 / Expires pasado)",
+      );
+      // Una petición SIN cookie ya no trae sesión (401). Reenviar la cookie
+      // vieja seguiría siendo válida hasta su `exp` (C9, limitación conocida:
+      // el logout solo borra la cookie del navegador).
+      const withoutCookie = await api(baseUrl, "GET", "/api/auth/me");
+      assert(
+        withoutCookie.status === 401,
+        `sin cookie tras logout → 401 (real ${withoutCookie.status})`,
+      );
+    },
+  );
+
+  await check(
+    "A10: CSRF por origen — ajeno 403, mismo host pasa, sin Origin pasa, GET nunca bloquea",
+    async () => {
+      // Cookie fresca para este caso (A9 dejó la anterior sin navegador).
+      const fresh = await api(baseUrl, "POST", "/api/auth/login", {
+        body: { email, password },
+      });
+      const freshCookie = authCookie(fresh.setCookies) ?? "";
+      assert(freshCookie.length > 0, "cookie fresca para CSRF");
+
+      // POST con Origin ajeno → 403 (C4).
+      const evil = await api(baseUrl, "DELETE", "/api/cart/clear", {
+        cookie: freshCookie,
+        headers: { Origin: "https://evil.example" },
+      });
+      assert(evil.status === 403, `Origin ajeno 403 (real ${evil.status})`);
+      assert(
+        (evil.json.error as string) === "Origen no permitido",
+        "mensaje de origen",
+      );
+
+      // POST con Origin del mismo host → pasa el CSRF (y la mutación 200).
+      const same = await api(baseUrl, "DELETE", "/api/cart/clear", {
+        cookie: freshCookie,
+        headers: { Origin: baseUrl },
+      });
+      assert(
+        same.status === 200,
+        `Origin mismo host pasa el CSRF (real ${same.status})`,
+      );
+
+      // Sin Origin (curl) → pasa el CSRF.
+      const noOrigin = await api(baseUrl, "DELETE", "/api/cart/clear", {
+        cookie: freshCookie,
+      });
+      assert(
+        noOrigin.status === 200,
+        `sin Origin pasa el CSRF (real ${noOrigin.status})`,
+      );
+
+      // Sec-Fetch-Site cross-site sin Origin → 403.
+      const cross = await api(baseUrl, "DELETE", "/api/cart/clear", {
+        cookie: freshCookie,
+        headers: { "Sec-Fetch-Site": "cross-site" },
+      });
+      assert(
+        cross.status === 403,
+        `Sec-Fetch-Site cross-site 403 (real ${cross.status})`,
+      );
+
+      // Los GET nunca se bloquean (C4).
+      const getEvil = await api(baseUrl, "GET", "/", {
+        headers: { Origin: "https://evil.example" },
+      });
+      assert(getEvil.status === 200, `GET con Origin ajeno 200 (real ${getEvil.status})`);
     },
   );
 }
 
 async function main(): Promise<void> {
-  console.log("Test de autenticación JWT (spec §23)\n");
+  console.log("Test de autenticación JWT + cookie httpOnly (spec §23)\n");
   const port = await getFreePort();
   const baseUrl = `http://127.0.0.1:${port}`;
   console.log(`→ Levantando app (puerto ${port}, DB ${TEST_DB_PATH})…`);
@@ -439,6 +585,58 @@ async function main(): Promise<void> {
   try {
     await waitForServer(baseUrl);
     await runSuite(baseUrl);
+
+    // A11: COOKIE_SECURE=true → la cookie lleva `Secure` (C1/C5).
+    const securePort = await getFreePort();
+    const secureBaseUrl = `http://127.0.0.1:${securePort}`;
+    console.log(
+      `→ Levantando instancia con COOKIE_SECURE=true (puerto ${securePort})…`,
+    );
+    const secureServer = spawn(
+      process.execPath,
+      ["--import", "tsx", path.join(ROOT, "src", "app.ts")],
+      {
+        cwd: ROOT,
+        env: {
+          ...process.env,
+          DB_PATH: TEST_DB_PATH,
+          PORT: String(securePort),
+          JWT_SECRET,
+          COOKIE_SECURE: "true",
+        },
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
+    secureServer.stdout.on("data", () => {});
+    secureServer.stderr.on("data", () => {});
+    try {
+      await waitForServer(secureBaseUrl);
+      await check(
+        "A11: COOKIE_SECURE=true agrega Secure a la cookie (C1/C5)",
+        async () => {
+          const res = await api(
+            secureBaseUrl,
+            "POST",
+            "/api/auth/register",
+            {
+              body: {
+                name: "Secure",
+                lastname: "User",
+                email: uniqueEmail(),
+                password: "Abcdef1!",
+              },
+            },
+          );
+          assert(res.status === 201, `status 201 (real ${res.status})`);
+          const set = res.setCookies.find((c) => c.startsWith("auth_token="));
+          assert(set !== undefined, "Set-Cookie auth_token presente");
+          assert(/Secure/i.test(set), `cookie con Secure (real: ${set || "sin cookie"})`);
+        },
+      );
+    } finally {
+      secureServer.kill("SIGKILL");
+      await new Promise((r) => setTimeout(r, 300));
+    }
   } finally {
     server.kill("SIGKILL");
     await new Promise((r) => setTimeout(r, 300));
