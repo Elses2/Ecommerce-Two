@@ -2,8 +2,10 @@
   // Organism: mobile header (spectsEccomerce/layouts/HeaderMobile.png, at-rest
   // state: translucent graphite bar). Compact logo, search, cart + bare avatar.
   // Visible below md only; the desktop variant renders instead via CSS.
+  // user viene de attachUser (spec §23.3): null si no hay sesión.
   const mobileCartCount = typeof cartCount === "number" && cartCount >= 0 ? cartCount : 0;
-  const mobileUserName = typeof userName === "string" ? userName : "";
+  const mobileUser = typeof user === "object" && user !== null ? user : null;
+  const mobileUserName = mobileUser && typeof mobileUser.name === "string" ? mobileUser.name : "";
 %>
 <header class="md:hidden">
   <div class="flex items-center gap-3 bg-graphite/50 px-4 py-3 backdrop-blur-sm">

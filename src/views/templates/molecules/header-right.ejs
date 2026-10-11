@@ -1,17 +1,24 @@
 <%
   // Molecule: right cluster of the header (spectsEccomerce/layouts/Header-Right.png)
   // = cart-icon molecule + profile-btn molecule with a small gap.
+  // Auth (spec §23.4, enmienda cookie httpOnly): el usuario viene del servidor
+  // (attachUser, res.locals.user); el botón «Salir» solo se renderiza si hay
+  // sesión — ya no hay hidratación por JS.
   const rightCartCount = typeof cartCount === "number" && cartCount >= 0 ? cartCount : 0;
-  const rightUserName = typeof userName === "string" ? userName : "";
+  const rightUser = typeof user === "object" && user !== null ? user : null;
+  const profileName = rightUser && typeof rightUser.name === "string" ? rightUser.name : "";
+  const profileHref = rightUser ? "#" : "/login";
 %>
 <div class="flex shrink-0 items-center gap-2">
   <%- include("./cart-icon", { count: rightCartCount }) %>
-  <%- include("./profile-btn", { name: rightUserName }) %>
+  <%- include("./profile-btn", { name: profileName, href: profileHref }) %>
+  <% if (rightUser) { %>
   <button
     type="button"
     data-auth-logout
-    class="hidden rounded-full px-2 text-sm text-graphite underline-offset-2 hover:underline"
+    class="rounded-full px-2 text-sm text-graphite underline-offset-2 hover:underline"
   >
     Salir
   </button>
+  <% } %>
 </div>
