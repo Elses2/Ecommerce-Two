@@ -42,18 +42,18 @@ Diseños no propios, dados como recursos en la clase.
 Antes de instalar el proyecto, asegurate de tener instalado en tu sistema:
 
 - **Node.js** versión **22.0 o superior**. Podés verificar tu versión con:
-  
+
   ```bash
   node -v
   ```
-  
+
   Si no la tenés o tenés una versión anterior, descargala desde [nodejs.org](https://nodejs.org).
 
 - **Python 3.x** (necesario únicamente para compilar dependencias nativas).
   Este proyecto usa `better-sqlite3`, un módulo que en algunos sistemas necesita compilarse localmente mediante `node-gyp`, y esa herramienta requiere Python instalado para funcionar. Si al correr `npm install` aparece un error relacionado con `gyp` o `node-gyp`, instalá Python desde [python.org](https://python.org) (marcando la opción **"Add python.exe to PATH"** durante la instalación) y volvé a intentar.
-  
+
   En Windows, además de Python puede ser necesario instalar las **Build Tools de C++**:
-  
+
   - Descargalas desde [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
   - Durante la instalación, seleccioná el workload **"Desktop development with C++"**
 
@@ -111,21 +111,23 @@ npm run build
 
 ## Scripts disponibles
 
-| Comando | Qué hace |
-|---|---|
-| `npm run init` | Prepara el entorno completo (deps + `.env` + build + seed) |
-| `npm run dev` | Servidor de desarrollo (`tsx watch` + Tailwind watch) |
-| `npm run build` | Compilación de producción a `dist/` |
-| `npm run seed` | Carga los datos de ejemplo (idempotente) |
-| `npm run test:checkout` | Tests del checkout T1–T7 (DB temporal) |
+| Comando                    | Qué hace                                                     |
+| -------------------------- | ------------------------------------------------------------ |
+| `npm run init`             | Prepara el entorno completo (deps + `.env` + build + seed)   |
+| `npm run dev`              | Servidor de desarrollo (`tsx watch` + Tailwind watch)        |
+| `npm run build`            | Compilación de producción a `dist/`                          |
+| `npm run seed`             | Carga los datos de ejemplo (idempotente)                     |
+| `npm run test:checkout`    | Tests del checkout T1–T7 (DB temporal)                       |
 | `npm run test:middlewares` | Tests de caracterización de middlewares M1–M18 (DB temporal) |
-| `npm run build:docs` | Regenera `docs/` (TypeDoc + grafo, requiere Graphviz) |
+| `npm run test:auth`        | Tests de autenticación JWT A1–A6 (DB temporal)               |
+| `npm run build:docs`       | Regenera `docs/` (TypeDoc + grafo, requiere Graphviz)        |
 
 ## Tests
 
 ```bash
 npm run test:checkout
 npm run test:middlewares
+npm run test:auth
 ```
 
 `npm run test:checkout` corre los tests del checkout (`scripts/test-checkout.ts`,
@@ -136,6 +138,10 @@ multi-proceso y validación).
 comportamiento de los middlewares (`scripts/test-middlewares.ts`, casos M1–M18:
 contador del carrito, cookies de sesión, 404, validación de ids, estáticos,
 Swagger, body parsers y el error handler). Requiere `npm run build` previo.
+
+`npm run test:auth` verifica la autenticación JWT (`scripts/test-auth.ts`, casos
+A1–A6: registro, email repetido y su carrera, validación, login, credenciales
+inválidas y `/api/auth/me` con tokens válidos/ausentes/expirados/manipulados).
 
 Ambos usan una **DB temporal** — nunca tocan `dev.db` — y su exit code es ≠ 0
 si algo falla.
