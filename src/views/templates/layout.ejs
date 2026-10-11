@@ -10,17 +10,19 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
-<body class="flex min-h-screen flex-col bg-white font-sans text-ink antialiased">
+<body
+  class="flex min-h-screen flex-col bg-white font-sans text-ink antialiased"
+  data-logged-in="<%= locals.user ? "true" : "false" %>"
+>
   <%
-    // Shell defaults: cartCount comes from injectCartCount (res.locals);
-    // userName arranca como "Invitado" y auth.js lo hidrata desde localStorage
-    // / GET /api/auth/me (spec §23). Desktop and mobile variants are both
-    // rendered here; Tailwind visibility classes pick the active one.
+    // Shell defaults: cartCount comes from the controller (res.locals);
+    // user viene de attachUser (spec §23.3): nombre real o null → el header
+    // pinta «Invitado». Ya NO hay hidratación por JS (spec §23.4/§24.3).
     const shellCartCount = typeof locals.cartCount === "number" ? locals.cartCount : 0;
-    const shellUserName = typeof locals.userName === "string" ? locals.userName : "Invitado";
+    const shellUser = typeof locals.user === "object" && locals.user !== null ? locals.user : null;
   %>
-  <%- include("organisms/header", { cartCount: shellCartCount, userName: shellUserName }) %>
-  <%- include("organisms/header-mobile", { cartCount: shellCartCount, userName: shellUserName }) %>
+  <%- include("organisms/header", { cartCount: shellCartCount, user: shellUser }) %>
+  <%- include("organisms/header-mobile", { cartCount: shellCartCount, user: shellUser }) %>
 
   <main class="flex-grow">
     <%- body %>
@@ -29,9 +31,9 @@
   <%- include("organisms/footer") %>
   <%- include("organisms/footer-mobile") %>
 
-  <!-- Auth client (spec §23): token en localStorage + formularios de auth por
-       fetch + render del header. Va ANTES de cart.js porque el carrito usa
-       `window.Auth`. -->
+  <!-- Auth client (spec §23, enmienda cookie httpOnly): Auth.fetch con la
+       cookie de sesión + formularios de auth por fetch. Va ANTES de cart.js
+       porque el carrito usa `window.Auth`. -->
   <script src="/js/auth.js" defer></script>
 
   <!-- Cart AJAX (spec §5/§6.4): loaded ONCE per page from the layout — every

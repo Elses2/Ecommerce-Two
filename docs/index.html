@@ -95,7 +95,7 @@ siguen funcionando.</p>
 </ol>
 <p><code>npm run init</code> te deja el archivo <code>.env</code> creado en la raíz, listo para editar.</p>
 <blockquote>
-<p>Variables principales: <code>JWT_SECRET</code> generala con un valor aleatorio largo (por ejemplo, la salida de <code>openssl rand -hex 48</code>) y no la compartas públicamente; <code>REDIS_URL</code> apunta a tu Redis local; <code>CSP_UPGRADE_INSECURE</code> queda en <code>false</code> por defecto (ponelo en <code>true</code> <strong>solo</strong> detrás de HTTPS, porque si accedés por <code>http://IP:PUERTO</code> el navegador subiría <code>/css</code> y <code>/js</code> a <code>https</code> y la página saldría sin estilos); <code>FALLBACK_IMAGE_URL</code> puede dejarse con el valor por defecto. No hay cookies de sesión: la autenticación es JWT.</p>
+<p>Variables principales: <code>JWT_SECRET</code> generala con un valor aleatorio largo (por ejemplo, la salida de <code>openssl rand -hex 48</code>) y no la compartas públicamente; <code>REDIS_URL</code> apunta a tu Redis local; <code>FALLBACK_IMAGE_URL</code> puede dejarse con el valor por defecto; <code>COOKIE_SECURE</code> queda en <code>false</code> salvo que sirvas detrás de HTTPS (si la activás y entrás por <code>http://</code>, la cookie se descarta y la sesión no se mantiene); <code>CSP_UPGRADE_INSECURE</code> queda en <code>false</code> por defecto (ponelo en <code>true</code> <strong>solo</strong> detrás de HTTPS, porque si accedés por <code>http://IP:PUERTO</code> el navegador subiría <code>/css</code> y <code>/js</code> a <code>https</code> y la página saldría sin estilos). La autenticación es JWT y viaja en una cookie <code>httpOnly</code> (spec §23).</p>
 </blockquote>
 <ol start="5">
 <li>Inicia el servidor de desarrollo</li>
@@ -146,11 +146,11 @@ siguen funcionando.</p>
 </tr>
 <tr>
 <td><code>npm run test:middlewares</code></td>
-<td>Tests de caracterización de middlewares M1–M22 (DB temporal)</td>
+<td>Tests de caracterización de middlewares M1–M26 (DB temporal)</td>
 </tr>
 <tr>
 <td><code>npm run test:auth</code></td>
-<td>Tests de autenticación/autorización A1–A8 (DB temporal)</td>
+<td>Tests de autenticación/autorización A1–A11 (DB temporal)</td>
 </tr>
 <tr>
 <td><code>npm run test:cart</code></td>
@@ -170,15 +170,16 @@ siguen funcionando.</p>
 casos T1–T7: stock, rollback, idempotencia por token, precio congelado, carrera
 multi-proceso y validación).</p>
 <p><code>npm run test:middlewares</code> levanta la app como proceso hijo y verifica el
-comportamiento de los middlewares (<code>scripts/test-middlewares.ts</code>, casos M1–M22:
+comportamiento de los middlewares (<code>scripts/test-middlewares.ts</code>, casos M1–M26:
 contador del carrito, stateless sin cookies, helmet/CSP, 404, validación de ids,
-estáticos, Swagger, body parsers, autenticación y el error handler). Requiere
+estáticos, Swagger, body parsers, autenticación (header o cookie), attachUser,
+páginas protegidas, CSRF por origen, logout y el error handler). Requiere
 <code>npm run build</code> previo.</p>
-<p><code>npm run test:auth</code> verifica la autenticación/autorización JWT
-(<code>scripts/test-auth.ts</code>, casos A1–A8: registro, email repetido y su carrera,
-validación, login, credenciales inválidas, <code>/api/auth/me</code> con tokens
-válidos/ausentes/expirados/manipulados, <code>authorize</code> por rol y ownership de
-órdenes).</p>
+<p><code>npm run test:auth</code> verifica la autenticación/autorización JWT con cookie
+<code>httpOnly</code> (<code>scripts/test-auth.ts</code>, casos A1–A11: registro, email repetido y su
+carrera, validación, login, credenciales inválidas, <code>/api/auth/me</code> con tokens
+válidos/ausentes/expirados/manipulados, <code>authorize</code> por rol, ownership de
+órdenes, atributos de la cookie y logout, CSRF por origen y <code>COOKIE_SECURE</code>).</p>
 <p><code>npm run test:cart</code> verifica el carrito en Redis (<code>scripts/test-cart.ts</code>, casos
 C1–C6: aislamiento entre usuarios, <code>HINCRBY</code> concurrente, eliminación al llegar
 a 0, persistencia, precios recalculados desde SQLite y vaciado tras el checkout).
@@ -203,8 +204,10 @@ si algo falla.</p>
 <blockquote>
 <p><strong>Nota:</strong> el servidor está detrás de un Cloudflare Tunnel; no expone puertos.
 La base de datos SQLite persiste en un volumen Docker nombrado (<code>tienda-data</code>).
-Las variables de entorno (<code>JWT_SECRET</code>, <code>JWT_EXPIRES_IN</code>, <code>REDIS_PASSWORD</code>, <code>CSP_UPGRADE_INSECURE</code>, <code>PORT</code>, <code>DB_PATH</code>, <code>FALLBACK_IMAGE_URL</code>)
-se configuran en <code>.env</code>, nunca en la imagen.</p>
+Las variables de entorno (<code>JWT_SECRET</code>, <code>JWT_EXPIRES_IN</code>, <code>REDIS_PASSWORD</code>, <code>PORT</code>, <code>DB_PATH</code>, <code>FALLBACK_IMAGE_URL</code>, <code>COOKIE_SECURE</code>, <code>CSP_UPGRADE_INSECURE</code>)</p>
+</blockquote>
+<blockquote>
+<p>se configuran en <code>.env</code>, nunca en la imagen.</p>
 </blockquote>
 </div></div>
 <div class="col-sidebar">

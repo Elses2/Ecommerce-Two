@@ -188,14 +188,17 @@ export class AuthService {
   }
 
   /**
-   * Firma un JWT HS256 con `sub` (id) y `role` (spec §23.2). El payload es
-   * legible: no debe llevar datos sensibles.
+   * Firma un JWT HS256 con `sub` (id), `role` y `name` (spec §23.2, enmienda
+   * C6 de la cookie httpOnly). El `name` viaja en el token para que el header
+   * lo pinte sin consultar la base; la cookie no es legible por JS, así que
+   * no expone nada nuevo al cliente. El payload es legible: no lleva datos
+   * sensibles.
    *
-   * @param {{ id: number; role: Role }} user - Usuario a firmar.
+   * @param {{ id: number; role: Role; name: string }} user - Usuario a firmar.
    * @returns {string} Token JWT firmado.
    */
-  signToken(user: { id: number; role: Role }): string {
-    return jwt.sign({ role: user.role }, env.jwtSecret, {
+  signToken(user: { id: number; role: Role; name: string }): string {
+    return jwt.sign({ role: user.role, name: user.name }, env.jwtSecret, {
       subject: String(user.id),
       expiresIn: env.jwtExpiresIn as NonNullable<SignOptions["expiresIn"]>,
       algorithm: "HS256",
@@ -203,13 +206,18 @@ export class AuthService {
   }
 
   /**
-   * Verifica un JWT y devuelve `sub` + `role` (spec §23.2). Fijar
-   * `algorithms: ["HS256"]` evita ataques de cambio de algoritmo.
+   * Verifica un JWT y devuelve `sub` + `role` + `name` (spec §23.2, enmienda
+   * C6). Fijar `algorithms: ["HS256"]` evita ataques de cambio de algoritmo.
+   * El `name` puede faltar en tokens firmados antes de la migración a cookie:
+   * se tolera como `undefined` (el header cae a «Invitado»).
    *
-   * @param {string} token - Token recibido en `Authorization: Bearer`.
-   * @returns {{ sub: number; role: Role } | null} Payload válido, o `null`.
+   * @param {string} token - Token recibido por header `Authorization` o cookie.
+   * @returns {{ sub: number; role: Role; name: string | undefined } | null}
+   * Payload válido, o `null`.
    */
-  verifyToken(token: string): { sub: number; role: Role } | null {
+  verifyToken(
+    token: string,
+  ): { sub: number; role: Role; name: string | undefined } | null {
     try {
       const payload = jwt.verify(token, env.jwtSecret, {
         algorithms: ["HS256"],
@@ -218,7 +226,11 @@ export class AuthService {
       const role: Role = payload.role === "admin" ? "admin" : "customer";
       const sub = Number(payload.sub);
       if (!Number.isInteger(sub) || sub <= 0) return null;
-      return { sub, role };
+      const name =
+        typeof payload.name === "string" && payload.name.trim()
+          ? payload.name
+          : undefined;
+      return { sub, role, name };
     } catch {
       return null; // expirado, manipulado o malformado
     }

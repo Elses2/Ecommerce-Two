@@ -1,6 +1,8 @@
 // Test de caracterización de middlewares (spec §22 — arquitectura de
-// middlewares). Captura el comportamiento REAL de la app antes y después del
-// refactor `global/route/error` para demostrar que es idéntico (refactor puro).
+// middlewares, enmienda cookie httpOnly). Captura el comportamiento REAL de
+// la app antes y después del refactor `global/route/error` para demostrar que
+// es idéntico (refactor puro), y caracteriza los middlewares nuevos
+// (attachUser M24, requirePageAuth M25, csrfOrigin M26) y el logout (M27).
 //
 // Estrategia:
 // - `src/app.ts` hace `listen` al importarse, así que NO se importa: se
@@ -9,7 +11,9 @@
 // - El seed corre contra la MISMA DB temporal para tener productos reales.
 // - Los estáticos se sirven desde `dist/public` (spec §14): el test exige que
 //   el build previo exista (`npm run build`); en CI el job ya lo ejecuta.
-// - La cookie de sesión se maneja a mano con `Set-Cookie` + header `Cookie`.
+// - La cookie de sesión se maneja a mano con `Set-Cookie` + header `Cookie`
+//   (auth_token, enmienda cookie httpOnly; el header Authorization sigue
+//   aceptado, C3).
 //
 // Uso:
 //   npm run test:middlewares
@@ -166,6 +170,17 @@ function sessionCookie(setCookies: string[]): string | undefined {
   return cookie?.split(";")[0];
 }
 
+/**
+ * Extrae la cookie `auth_token` de los Set-Cookie (C1, enmienda httpOnly).
+ *
+ * @param {string[]} setCookies - Cabeceras Set-Cookie recibidas.
+ * @returns {string | undefined} `auth_token=<jwt>` lista para el header Cookie.
+ */
+function authCookie(setCookies: string[]): string | undefined {
+  const cookie = setCookies.find((c) => c.startsWith("auth_token="));
+  return cookie?.split(";")[0];
+}
+
 function jsonOf(text: string): unknown {
   try {
     return JSON.parse(text);
@@ -291,7 +306,10 @@ async function runErrorHandlerUnit(): Promise<void> {
 
 // ── Suite contra la app real ────────────────────────────────────────────────
 async function runHttpSuite(baseUrl: string): Promise<void> {
-  // Usuario real para los casos que necesitan JWT (spec §23).
+  // Usuario real para los casos que necesitan JWT (spec §23, enmienda cookie
+  // httpOnly): register ya no devuelve token en el body; la sesión viaja en la
+  // cookie `auth_token` (C2). El header `Authorization` sigue aceptado (C3),
+  // así que authHeaders lo cubre y authCookie la cookie.
   const email = `mw-${Date.now()}-${Math.random().toString(16).slice(2)}@example.com`;
   const register = await request("POST", `${baseUrl}/api/auth/register`, {
     headers: { "Content-Type": "application/json" },
@@ -302,9 +320,9 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
       password: "Abcdef1!",
     }),
   });
-  const token =
-    (jsonOf(register.text) as { token?: string } | undefined)?.token ?? "";
-  const authHeaders = { Authorization: `Bearer ${token}` };
+  const authCookieValue = authCookie(register.setCookies) ?? "";
+  const authHeaders = { Authorization: `Bearer ${authCookieValue.replace(/^auth_token=/, "")}` };
+  const authCookieHeaders = { Cookie: authCookieValue };
 
   // M1: GET / → 200 con contador 0 en el header (el valor lo hidrata cart.js).
   await check("M1: GET / responde 200 con data-cart-count=0", async () => {
@@ -515,13 +533,21 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
     },
   );
 
-  // M11b: token manipulado → 401.
-  await check("M11b: token manipulado → 401", async () => {
-    const res = await request("GET", `${baseUrl}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${token}x` },
+  // M11b: token manipulado → 401 (por cookie y por header, C3).
+  await check("M11b: token manipulado → 401 (cookie y header)", async () => {
+    const viaCookie = await request("GET", `${baseUrl}/api/auth/me`, {
+      headers: { Cookie: `${authCookieValue}x` },
     });
-    observations.m11b = { status: res.status, body: res.text };
-    equal(res.status, 401, "401");
+    const viaHeader = await request("GET", `${baseUrl}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${authCookieValue.replace(/^auth_token=/, "")}x` },
+    });
+    observations.m11b = {
+      viaCookie: viaCookie.status,
+      viaHeader: viaHeader.status,
+      body: viaCookie.text,
+    };
+    equal(viaCookie.status, 401, "cookie manipulada 401");
+    equal(viaHeader.status, 401, "header manipulado 401");
   });
 
   // M12: DELETE /api/cart/clear sin token → 401 (no se interpreta como :id).
@@ -632,6 +658,144 @@ async function runHttpSuite(baseUrl: string): Promise<void> {
       equal(res.headers.get("x-content-type-options"), "nosniff", "nosniff");
     },
   );
+
+  // M24: attachUser (global, blando) — nunca falla y deja res.locals.user.
+  await check(
+    "M24: attachUser — data-logged-in y nombre según cookie; inválida no 500",
+    async () => {
+      const anon = await request("GET", `${baseUrl}/`);
+      observations.m23Anon = {
+        status: anon.status,
+        loggedIn: /data-logged-in="false"/.test(anon.text),
+        guest: /Invitado/.test(anon.text),
+      };
+      equal(anon.status, 200, "anónimo 200");
+      assert(/data-logged-in="false"/.test(anon.text), 'anónimo data-logged-in="false"');
+      assert(/Invitado/.test(anon.text), "anónimo muestra Invitado");
+
+      const withSession = await request("GET", `${baseUrl}/`, {
+        headers: authCookieHeaders,
+      });
+      observations.m23WithSession = {
+        status: withSession.status,
+        loggedIn: /data-logged-in="true"/.test(withSession.text),
+        name: /Mw Test/.test(withSession.text),
+      };
+      equal(withSession.status, 200, "con cookie 200");
+      assert(/data-logged-in="true"/.test(withSession.text), 'sesión data-logged-in="true"');
+      assert(/Mw Test/.test(withSession.text), "header renderiza el nombre");
+
+      // Cookie inválida: attachUser nunca falla (deja null y sigue).
+      const invalid = await request("GET", `${baseUrl}/`, {
+        headers: { Cookie: "auth_token=no-es-un-jwt" },
+      });
+      observations.m23Invalid = { status: invalid.status };
+      equal(invalid.status, 200, "cookie inválida 200 (no 500)");
+    },
+  );
+
+  // M25: requirePageAuth — 302 del servidor para /cart y /checkout.
+  await check(
+    "M25: /cart y /checkout sin cookie → 302 a /login?next=…; con cookie → 200",
+    async () => {
+      const cartAnon = await request("GET", `${baseUrl}/cart`);
+      observations.m24CartAnon = {
+        status: cartAnon.status,
+        location: cartAnon.headers.get("location"),
+      };
+      equal(cartAnon.status, 302, "/cart sin sesión 302");
+      assert(
+        (cartAnon.headers.get("location") ?? "") === "/login?next=%2Fcart",
+        `location /login?next=%2Fcart (real ${cartAnon.headers.get("location")})`,
+      );
+
+      const checkoutAnon = await request("GET", `${baseUrl}/checkout`);
+      equal(checkoutAnon.status, 302, "/checkout sin sesión 302");
+      assert(
+        (checkoutAnon.headers.get("location") ?? "") === "/login?next=%2Fcheckout",
+        "location /login?next=%2Fcheckout",
+      );
+
+      const cartWith = await request("GET", `${baseUrl}/cart`, {
+        headers: authCookieHeaders,
+      });
+      const checkoutWith = await request("GET", `${baseUrl}/checkout`, {
+        headers: authCookieHeaders,
+      });
+      observations.m24With = {
+        cart: cartWith.status,
+        checkout: checkoutWith.status,
+      };
+      equal(cartWith.status, 200, "/cart con cookie 200");
+      equal(checkoutWith.status, 200, "/checkout con cookie 200");
+
+      // La confirmación sigue pública (sin sesión no redirige; 404 por token).
+      const confirmAnon = await request(
+        "GET",
+        `${baseUrl}/checkout/confirmation/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
+      );
+      equal(confirmAnon.status, 404, "confirmación pública (404 por token inválido, no 302)");
+    },
+  );
+
+  // M26: csrfOrigin — mutaciones con origen ajeno → 403; GET nunca se bloquea.
+  await check(
+    "M26: csrfOrigin — Origin ajeno 403, cross-site 403, sin Origin pasa, GET 200",
+    async () => {
+      const evil = await request("DELETE", `${baseUrl}/api/cart/clear`, {
+        headers: { ...authCookieHeaders, Origin: "https://evil.example" },
+      });
+      observations.m25Evil = { status: evil.status, body: evil.text };
+      equal(evil.status, 403, "Origin ajeno 403");
+      assert(
+        JSON.stringify(jsonOf(evil.text)) ===
+          JSON.stringify({ error: "Origen no permitido" }),
+        "mensaje de origen",
+      );
+
+      const cross = await request("DELETE", `${baseUrl}/api/cart/clear`, {
+        headers: { ...authCookieHeaders, "Sec-Fetch-Site": "cross-site" },
+      });
+      observations.m25Cross = { status: cross.status };
+      equal(cross.status, 403, "Sec-Fetch-Site cross-site 403");
+
+      // Sin Origin ni Sec-Fetch-Site (curl/tests) → pasa a authenticate → 200.
+      const curl = await request("DELETE", `${baseUrl}/api/cart/clear`, {
+        headers: authCookieHeaders,
+      });
+      observations.m25Curl = { status: curl.status };
+      equal(curl.status, 200, "sin Origin 200 (cliente no navegador)");
+
+      const getEvil = await request("GET", `${baseUrl}/`, {
+        headers: { Origin: "https://evil.example" },
+      });
+      observations.m25Get = { status: getEvil.status };
+      equal(getEvil.status, 200, "GET con Origin ajeno 200 (C4)");
+    },
+  );
+
+  // M26: contrato de montaje §22.4 — cookieParser corre antes de json y
+  // attachUser antes de las rutas (verificado por M24); /api-docs antes del
+  // 404 (M13); logout responde 204 y borra la cookie (C9).
+  await check(
+    "M27: logout → 204 y Set-Cookie borra auth_token (C9)",
+    async () => {
+      const out = await request("POST", `${baseUrl}/api/auth/logout`, {
+        headers: authCookieHeaders,
+      });
+      observations.m26 = {
+        status: out.status,
+        setCookies: out.setCookies,
+      };
+      equal(out.status, 204, "logout 204");
+      const cleared = out.setCookies.find((c) => c.startsWith("auth_token="));
+      assert(cleared !== undefined, "Set-Cookie al borrar");
+      assert(
+        /Max-Age=0/i.test(cleared) || /Expires=Thu, 01 Jan 1970/i.test(cleared),
+        "cookie borrada",
+      );
+    },
+  );
 }
 
 // Levanta una SEGUNDA instancia con CSP_UPGRADE_INSECURE=true y verifica que el
@@ -723,7 +887,7 @@ async function main(): Promise<void> {
     console.log("\nM15/M16 — errorHandler como unidad:");
     await runErrorHandlerUnit();
 
-    console.log("\nM1–M22 — comportamiento HTTP real:");
+    console.log("\nM1–M23 (dev) + M24–M27 (cookie httpOnly) — comportamiento HTTP real:");
     await runHttpSuite(baseUrl);
 
     console.log("\nM23 — CSP con CSP_UPGRADE_INSECURE=true:");
