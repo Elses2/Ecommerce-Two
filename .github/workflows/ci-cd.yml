@@ -32,6 +32,22 @@ jobs:
     name: Build & test
     runs-on: ubuntu-latest
 
+    # Redis para el carrito (spec §24): los tests de carrito lo necesitan.
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    env:
+      REDIS_URL: redis://localhost:6379/15
+      JWT_SECRET: secreto-solo-para-ci-0123456789abcdef0123
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -54,8 +70,11 @@ jobs:
       - name: Run middleware characterization tests (M1–M18, spec §22)
         run: npm run test:middlewares
 
-      - name: Run auth tests (A1–A6, spec §23)
+      - name: Run auth tests (A1–A8, spec §23)
         run: npm run test:auth
+
+      - name: Run cart tests (C1–C6, spec §24)
+        run: npm run test:cart
 
   # ── Job 2: Publish a ghcr.io (solo en push a main) ──────────────────────
   publish:
