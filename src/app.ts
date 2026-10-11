@@ -1,5 +1,4 @@
 import express from "express";
-import type { Request, Response } from "express";
 import path from "path";
 import pagesRoutes from "./routes/pages.routes.js";
 import apiRoutes from "./routes/index.routes.js";
@@ -9,7 +8,6 @@ import expressLayouts from "express-ejs-layouts";
 import session from "express-session";
 import { env } from "./config/env.js";
 import { injectCartCount } from "./middlewares/global/inject-cart-count.middleware.js";
-import { validateId } from "./middlewares/route/validate-id.middleware.js";
 import { notFound } from "./middlewares/error/not-found.middleware.js";
 import { errorHandler } from "./middlewares/error/error-handler.middleware.js";
 import { productService } from "./services/product.service.js";
@@ -78,7 +76,6 @@ app.set("views", [
 
 // --- Middlewares cross-cutting (orden: ver design D6) ---
 app.use(injectCartCount); // expone cartCount a las vistas (suma de cantidades en req.session.cart, §6.11)
-app.use(validateId); // valida :id numérico de las colecciones API, 400 si no
 
 // --- Routers (acá usamos imports relativos, sin `path`) ---
 app.use("/", pagesRoutes); // Frontend: /, /products, /cart, /login, etc.
