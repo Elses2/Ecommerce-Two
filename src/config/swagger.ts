@@ -24,6 +24,8 @@ const spec = swaggerJSDoc({
       securitySchemes: {
         // Autenticación por JWT en el header Authorization (spec §23.2/§10).
         bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+        // Cookie httpOnly con el JWT (spec §23.1, enmienda cookie httpOnly).
+        cookieAuth: { type: "apiKey", in: "cookie", name: "auth_token" },
       },
       schemas: {
         User: {
@@ -39,7 +41,6 @@ const spec = swaggerJSDoc({
           type: "object",
           properties: {
             user: { $ref: "#/components/schemas/User" },
-            token: { type: "string" },
           },
         },
         RegisterRequest: {

@@ -1,12 +1,18 @@
 import type { Request, Response } from "express";
 import { authService, type AuthResult } from "../../services/auth.service.js";
 import { userRepository } from "../../repositories/user.repository.js";
+import {
+  clearAuthCookie,
+  setAuthCookie,
+} from "../../utils/auth-cookie.js";
 import type { LoginDto, RegisterDto } from "../../dtos/auth.dto.js";
 
 /**
- * @fileoverview Controller de la API de autenticación (spec §23.2): handlers
- * finos que llaman a `authService` y traducen el resultado a HTTP. No contiene
- * lógica de negocio ni SQL (regla del §0).
+ * @fileoverview Controller de la API de autenticación (spec §23.2, enmienda
+ * cookie httpOnly): handlers finos que llaman a `authService` y traducen el
+ * resultado a HTTP. El token ya NO viaja en el body (C2): `login`/`register`
+ * lo ponen en la cookie `auth_token` y responden `{ user }`; `logout` borra
+ * la cookie (C9). No contiene lógica de negocio ni SQL (regla del §0).
  */
 
 /**
@@ -45,13 +51,13 @@ function sendAuthFailure(
 
 export const authController = {
   /**
-   * Registra un usuario y devuelve su token (spec §23.2).
+   * Registra un usuario, pone la cookie de sesión y devuelve `{ user }` (C2).
    *
    * @swagger
    * /api/auth/register:
    *   post:
    *     summary: Registrar usuario
-   *     description: Crea un usuario con rol customer y devuelve un JWT.
+   *     description: Crea un usuario con rol customer y devuelve su perfil; el JWT viaja en la cookie `auth_token` (httpOnly).
    *     tags: [Auth]
    *     requestBody:
    *       required: true
@@ -61,18 +67,21 @@ export const authController = {
    *             $ref: '#/components/schemas/RegisterRequest'
    *     responses:
    *       201:
-   *         description: Usuario creado; devuelve usuario + token.
+   *         description: Usuario creado; devuelve el perfil y setea la cookie `auth_token`.
    *         content:
    *           application/json:
    *             schema:
-   *               $ref: '#/components/schemas/AuthResponse'
+   *               type: object
+   *               properties:
+   *                 user:
+   *                   $ref: '#/components/schemas/User'
    *       400:
    *         description: Datos inválidos (lista de errores en español).
    *       409:
    *         description: El email ya está registrado.
    *
    * @param {Request} req - Petición Express (lee `req.body`).
-   * @param {Response} res - Respuesta Express.
+   * @param {Response} res - Respuesta Express (setea la cookie).
    * @returns {Promise<void>} Resuelve al enviar la respuesta.
    */
   async register(req: Request, res: Response): Promise<void> {
@@ -87,17 +96,18 @@ export const authController = {
       sendAuthFailure(res, result);
       return;
     }
-    res.status(201).json({ user: result.user, token: result.token });
+    setAuthCookie(res, result.token);
+    res.status(201).json({ user: result.user });
   },
 
   /**
-   * Valida credenciales y devuelve un token (spec §23.2).
+   * Valida credenciales, pone la cookie de sesión y devuelve `{ user }` (C2).
    *
    * @swagger
    * /api/auth/login:
    *   post:
    *     summary: Iniciar sesión
-   *     description: Valida email/contraseña y devuelve un JWT.
+   *     description: Valida email/contraseña y setea la cookie de sesión `auth_token` (httpOnly).
    *     tags: [Auth]
    *     requestBody:
    *       required: true
@@ -107,16 +117,19 @@ export const authController = {
    *             $ref: '#/components/schemas/LoginRequest'
    *     responses:
    *       200:
-   *         description: Credenciales válidas; devuelve usuario + token.
+   *         description: Credenciales válidas; devuelve el perfil y setea la cookie.
    *         content:
    *           application/json:
    *             schema:
-   *               $ref: '#/components/schemas/AuthResponse'
+   *               type: object
+   *               properties:
+   *                 user:
+   *                   $ref: '#/components/schemas/User'
    *       401:
    *         description: Credenciales inválidas.
    *
    * @param {Request} req - Petición Express (lee `req.body`).
-   * @param {Response} res - Respuesta Express.
+   * @param {Response} res - Respuesta Express (setea la cookie).
    * @returns {Promise<void>} Resuelve al enviar la respuesta.
    */
   async login(req: Request, res: Response): Promise<void> {
@@ -129,7 +142,32 @@ export const authController = {
       sendAuthFailure(res, result);
       return;
     }
-    res.json({ user: result.user, token: result.token });
+    setAuthCookie(res, result.token);
+    res.json({ user: result.user });
+  },
+
+  /**
+   * Cierra la sesión borrando la cookie (C9). No necesita `authenticate`:
+   * borrar una cookie ajena o inexistente es inocuo. Sin revocación en el
+   * servidor: el JWT sigue valiendo hasta su `exp` si alguien lo copió.
+   *
+   * @swagger
+   * /api/auth/logout:
+   *   post:
+   *     summary: Cerrar sesión
+   *     description: Borra la cookie `auth_token`.
+   *     tags: [Auth]
+   *     responses:
+   *       204:
+   *         description: Cookie borrada.
+   *
+   * @param {Request} _req - Petición Express (no usada).
+   * @param {Response} res - Respuesta Express (borra la cookie).
+   * @returns {void}
+   */
+  logout(_req: Request, res: Response): void {
+    clearAuthCookie(res);
+    res.status(204).end();
   },
 
   /**

@@ -83,6 +83,35 @@ function parseRedisUrl(
 }
 
 /**
+ * Parsea el flag booleano `COOKIE_SECURE` (spec §16, enmienda §21.5/§21.6).
+ *
+ * El mismo criterio que `CSP_UPGRADE_INSECURE`: NO depende de `NODE_ENV`;
+ * se pone en `true` solo detrás de HTTPS. Acepta `true/1/yes/on` y
+ * `false/0/no/off`; un valor inválido emite un warning y cae a `false` para
+ * no romper el arranque en HTTP.
+ *
+ * @param {string | undefined} rawValue - Valor de `COOKIE_SECURE`.
+ * @param {boolean} isProduction - `true` si `NODE_ENV === "production"`.
+ * @returns {boolean} `true` solo si el valor parseado es verdadero.
+ */
+function parseCookieSecure(
+  rawValue: string | undefined,
+  isProduction: boolean,
+): boolean {
+  const value = rawValue?.trim().toLowerCase() ?? "";
+  if (value === "" ) return false;
+  if (["true", "1", "yes", "on"].includes(value)) return true;
+  if (["false", "0", "no", "off"].includes(value)) return false;
+  console.warn(
+    "[env] COOKIE_SECURE inválida, usando false. " +
+      (isProduction
+        ? "Recordá: detrás de HTTPS activá COOKIE_SECURE=true junto a CSP_UPGRADE_INSECURE=true."
+        : "COOKIE_SECURE=true solo detrás de HTTPS."),
+  );
+  return false;
+}
+
+/**
  * Construye el objeto de configuración tipado a partir del entorno global.
  *
  * @param {NodeJS.ProcessEnv} envVars - Objeto global de variables de entorno (`process.env`).
@@ -95,6 +124,7 @@ function createEnvConfig(envVars: NodeJS.ProcessEnv) {
     jwtSecret: parseJwtSecret(envVars.JWT_SECRET, isProduction),
     jwtExpiresIn: envVars.JWT_EXPIRES_IN?.trim() || "2h",
     redisUrl: parseRedisUrl(envVars.REDIS_URL, isProduction),
+    cookieSecure: parseCookieSecure(envVars.COOKIE_SECURE, isProduction),
     images: {
       fallbackUrl: parseImageUrl(envVars.FALLBACK_IMAGE_URL),
     },
