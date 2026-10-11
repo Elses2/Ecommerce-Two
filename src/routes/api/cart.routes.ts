@@ -1,17 +1,34 @@
 import { Router } from "express";
 import { cartController } from "../../controllers/api/cart.controller.js";
+import { authenticate } from "../../middlewares/route/authenticate.middleware.js";
 import { validateId } from "../../middlewares/route/validate-id.middleware.js";
 
-// Rutas del carrito (spec §6.4): acciones que modifican la sesión van bajo
-// /api/cart/*; el GET /cart (render inicial) sigue en pages.routes.
+/**
+ * @fileoverview Router de la API del carrito (spec §6.4/§24). Todas las rutas
+ * exigen JWT: la clave del carrito en Redis es el `userId` del token, así que
+ * `authenticate` va antes de validar el id (rechazar sin token primero).
+ */
 const router = Router();
 
-// Validación de ids encadenada (spec §6.9): mismo predicado y mismo 400 que la
-// validación del controller, que se mantiene como defensa en profundidad.
+router.use(authenticate);
+
+router.get("/", cartController.getCart);
 router.post("/add/:productId", validateId("productId"), cartController.addItem);
-router.patch("/increase/:productId", validateId("productId"), cartController.increaseItem);
-router.patch("/decrease/:productId", validateId("productId"), cartController.decreaseItem);
-router.delete("/remove/:productId", validateId("productId"), cartController.removeItem);
+router.patch(
+  "/increase/:productId",
+  validateId("productId"),
+  cartController.increaseItem,
+);
+router.patch(
+  "/decrease/:productId",
+  validateId("productId"),
+  cartController.decreaseItem,
+);
+router.delete(
+  "/remove/:productId",
+  validateId("productId"),
+  cartController.removeItem,
+);
 router.delete("/clear", cartController.clearCart);
 
 export default router;

@@ -13,7 +13,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { CheckoutRequestDto, CheckoutResultDto } from "../src/dtos/checkout.dto.js";
+import type {
+  CheckoutRequestDto,
+  CheckoutResultDto,
+} from "../src/dtos/checkout.dto.js";
 
 // ── Configuración de la DB temporal ─────────────────────────────────────────
 const CHILD_MODE = process.env.CHECKOUT_TEST_CHILD === "1";
@@ -28,7 +31,9 @@ if (!CHILD_MODE) {
   // darse cuenta resuelve a la ruta por defecto), fallar antes de tocar nada.
   const defaultDb = path.resolve(path.dirname(SCRIPT_PATH), "../dev.db");
   if (path.resolve(TEST_DB_PATH) === defaultDb) {
-    console.error("ERROR: DB_PATH resuelve a dev.db — el test exige una DB temporal.");
+    console.error(
+      "ERROR: DB_PATH resuelve a dev.db — el test exige una DB temporal.",
+    );
     process.exit(1);
   }
 }
@@ -37,8 +42,10 @@ if (!CHILD_MODE) {
 // módulos (los imports estáticos se evalúan antes que el cuerpo del módulo).
 const { default: db } = await import("../src/config/database.js");
 const { checkoutService } = await import("../src/services/checkout.service.js");
-const { orderRepository } = await import("../src/repositories/order.repository.js");
-const { userRepository } = await import("../src/repositories/user.repository.js");
+const { orderRepository } =
+  await import("../src/repositories/order.repository.js");
+const { userRepository } =
+  await import("../src/repositories/user.repository.js");
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function assert(condition: unknown, message: string): void {
@@ -57,9 +64,9 @@ function insertProduct(name: string, stock: number, price: number): number {
 }
 
 function getStock(productId: number): number {
-  const row = db.prepare("SELECT stock FROM products WHERE id = ?").get(productId) as
-    | { stock: number }
-    | undefined;
+  const row = db
+    .prepare("SELECT stock FROM products WHERE id = ?")
+    .get(productId) as { stock: number } | undefined;
   assert(row !== undefined, `producto ${productId} no encontrado`);
   return row.stock;
 }
@@ -67,6 +74,25 @@ function getStock(productId: number): number {
 function countRows(sql: string, ...params: unknown[]): number {
   const row = db.prepare(sql).get(...params) as { n: number };
   return row.n;
+}
+
+// Usuario real para las órdenes (spec §23): D5 (guest) ya no existe.
+let TEST_USER_ID = Number(process.env.CHECKOUT_TEST_USER_ID ?? "0");
+
+function createTestUser(): number {
+  const user = userRepository.create({
+    name: "Checkout Test",
+    email: `checkout-test-${Date.now()}-${Math.random().toString(16).slice(2)}@example.com`,
+    passwordHash: "!",
+  });
+  return user.id;
+}
+
+function createOrder(
+  lines: Parameters<typeof checkoutService.createOrder>[0],
+  dto: CheckoutRequestDto,
+): CheckoutResultDto {
+  return checkoutService.createOrder(lines, dto, TEST_USER_ID);
 }
 
 function validDto(token: string): CheckoutRequestDto {
@@ -89,10 +115,7 @@ async function runBuyerChild(): Promise<void> {
   const token = process.env.CHECKOUT_TEST_TOKEN ?? "";
   const productId = Number(process.env.CHECKOUT_TEST_PRODUCT_ID ?? "0");
   try {
-    const result = checkoutService.createOrder(
-      [{ productId, quantity: 1 }],
-      validDto(token),
-    );
+    const result = createOrder([{ productId, quantity: 1 }], validDto(token));
     // Una sola línea JSON en stdout — el padre parsea la última.
     console.log(JSON.stringify(result));
   } catch (error) {
@@ -106,7 +129,10 @@ async function runBuyerChild(): Promise<void> {
   }
 }
 
-function spawnBuyer(token: string, productId: number): Promise<{ code: number | null; stdout: string; stderr: string }> {
+function spawnBuyer(
+  token: string,
+  productId: number,
+): Promise<{ code: number | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, ["--import", "tsx", SCRIPT_PATH], {
       env: {
@@ -114,6 +140,7 @@ function spawnBuyer(token: string, productId: number): Promise<{ code: number | 
         CHECKOUT_TEST_CHILD: "1",
         CHECKOUT_TEST_TOKEN: token,
         CHECKOUT_TEST_PRODUCT_ID: String(productId),
+        CHECKOUT_TEST_USER_ID: String(TEST_USER_ID),
       },
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -135,11 +162,15 @@ function parseChildResult(stdout: string): { ok: boolean; message: string } {
   if (parsed.ok) {
     return { ok: true, message: "ok" };
   }
-  return { ok: false, message: parsed.error ?? parsed.errors?.join("; ") ?? "error desconocido" };
+  return {
+    ok: false,
+    message: parsed.error ?? parsed.errors?.join("; ") ?? "error desconocido",
+  };
 }
 
 // ── Suite de casos ──────────────────────────────────────────────────────────
 async function runSuite(): Promise<void> {
+  TEST_USER_ID = createTestUser();
   let failures = 0;
   const cases: Array<{ name: string; run: () => Promise<void> | void }> = [
     {
@@ -150,11 +181,20 @@ async function runSuite(): Promise<void> {
         const tokenA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         const tokenB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
-        const first = checkoutService.createOrder([{ productId, quantity: 1 }], validDto(tokenA));
+        const first = createOrder(
+          [{ productId, quantity: 1 }],
+          validDto(tokenA),
+        );
         assert(first.ok, "la primera compra debería tener éxito");
-        const second = checkoutService.createOrder([{ productId, quantity: 1 }], validDto(tokenB));
+        const second = createOrder(
+          [{ productId, quantity: 1 }],
+          validDto(tokenB),
+        );
         assert(!second.ok, "la segunda compra debería fallar por stock");
-        assert(second.ok === false && second.errors[0]?.includes("stock"), "error de stock esperado");
+        assert(
+          second.ok === false && second.errors[0]?.includes("stock"),
+          "error de stock esperado",
+        );
 
         assert(getStock(productId) === 0, "stock debería quedar en 0");
         const orders = countRows(
@@ -174,7 +214,7 @@ async function runSuite(): Promise<void> {
         const ordersBefore = countRows("SELECT COUNT(*) AS n FROM orders");
         const itemsBefore = countRows("SELECT COUNT(*) AS n FROM order_items");
 
-        const result = checkoutService.createOrder(
+        const result = createOrder(
           [
             { productId: p1, quantity: 1 },
             { productId: p2, quantity: 1 },
@@ -182,7 +222,10 @@ async function runSuite(): Promise<void> {
           validDto("cccccccccccccccccccccccccccccccc"),
         );
         assert(!result.ok, "debería fallar por el producto sin stock");
-        assert(getStock(p1) === 5, "el stock del primer producto no debe tocarse");
+        assert(
+          getStock(p1) === 5,
+          "el stock del primer producto no debe tocarse",
+        );
         assert(
           countRows("SELECT COUNT(*) AS n FROM orders") === ordersBefore,
           "no debe crearse ninguna orden",
@@ -200,18 +243,35 @@ async function runSuite(): Promise<void> {
         const productId = insertProduct("T3-idempotente", 3, 7);
         const token = "dddddddddddddddddddddddddddddddd";
 
-        const first = checkoutService.createOrder([{ productId, quantity: 1 }], validDto(token));
+        const first = createOrder(
+          [{ productId, quantity: 1 }],
+          validDto(token),
+        );
         assert(first.ok, "primer envío debería tener éxito");
-        const second = checkoutService.createOrder([{ productId, quantity: 1 }], validDto(token));
-        assert(second.ok, "reenvío con el mismo token debería tener éxito (D6)");
+        const second = createOrder(
+          [{ productId, quantity: 1 }],
+          validDto(token),
+        );
         assert(
-          second.ok === true && first.ok === true && second.orderId === first.orderId,
+          second.ok,
+          "reenvío con el mismo token debería tener éxito (D6)",
+        );
+        assert(
+          second.ok === true &&
+            first.ok === true &&
+            second.orderId === first.orderId,
           "el reenvío debe devolver la MISMA orden",
         );
 
-        assert(getStock(productId) === 2, "el stock debe descontarse una sola vez");
         assert(
-          countRows("SELECT COUNT(*) AS n FROM orders WHERE checkout_token = ?", token) === 1,
+          getStock(productId) === 2,
+          "el stock debe descontarse una sola vez",
+        );
+        assert(
+          countRows(
+            "SELECT COUNT(*) AS n FROM orders WHERE checkout_token = ?",
+            token,
+          ) === 1,
           "debe existir una sola orden con ese token",
         );
       },
@@ -221,14 +281,24 @@ async function runSuite(): Promise<void> {
       name: "T4: unit_price congelado al momento de la compra",
       run() {
         const productId = insertProduct("T4-precio-congelado", 1, 100);
-        const result = checkoutService.createOrder([{ productId, quantity: 1 }], validDto("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"));
+        const result = createOrder(
+          [{ productId, quantity: 1 }],
+          validDto("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"),
+        );
         assert(result.ok, "la compra debería tener éxito");
         assert(result.ok === true, "resultado ok esperado");
 
-        db.prepare("UPDATE products SET price = 999 WHERE id = ?").run(productId);
-        const items = orderRepository.findItemsByOrderId(result.ok === true ? result.orderId : 0);
+        db.prepare("UPDATE products SET price = 999 WHERE id = ?").run(
+          productId,
+        );
+        const items = orderRepository.findItemsByOrderId(
+          result.ok === true ? result.orderId : 0,
+        );
         assert(items.length === 1, "debe existir un item");
-        assert(items[0]?.unit_price === 100, "unit_price debe seguir en 100 (congelado)");
+        assert(
+          items[0]?.unit_price === 100,
+          "unit_price debe seguir en 100 (congelado)",
+        );
       },
     },
     {
@@ -236,17 +306,17 @@ async function runSuite(): Promise<void> {
       name: "T5: carrera multi-proceso por la última unidad",
       async run() {
         const productId = insertProduct("T5-ultima-unidad", 1, 50);
-        // Pre-siembra del guest: users.email es UNIQUE y ensureGuestUser hace
-        // check-then-insert — si los hijos compitieran por crearlo, el
-        // perdedor rompería con SQLITE_CONSTRAINT_UNIQUE (ruido ajeno a la
-        // carrera de stock que T5 quiere medir).
-        userRepository.ensureGuestUser();
+        // Un único usuario real para todos los hijos (spec §23): se crea acá
+        // y se pasa por env, para que la carrera mida stock y no el INSERT de
+        // usuarios (users.email es UNIQUE).
+        TEST_USER_ID = createTestUser();
 
         const CHILDREN = 8;
         // 32 hex [a-f0-9] únicos por hijo (formato que exige el service).
         // Prefijo "5a" distintivo: ninguna otra caso usa tokens que empiecen así.
-        const tokens = Array.from({ length: CHILDREN }, (_, i) =>
-          `5a${String(i).padStart(2, "0")}${"b".repeat(28)}`,
+        const tokens = Array.from(
+          { length: CHILDREN },
+          (_, i) => `5a${String(i).padStart(2, "0")}${"b".repeat(28)}`,
         );
         const results = await Promise.all(
           tokens.map((token) => spawnBuyer(token, productId)),
@@ -257,7 +327,9 @@ async function runSuite(): Promise<void> {
         results.forEach((result, i) => {
           if (result.code !== 0) {
             busyOrCrashed += 1;
-            console.error(`hijo ${i} crasheó (exit ${result.code}): ${result.stderr.trim()}`);
+            console.error(
+              `hijo ${i} crasheó (exit ${result.code}): ${result.stderr.trim()}`,
+            );
             return;
           }
           const parsed = parseChildResult(result.stdout);
@@ -265,17 +337,32 @@ async function runSuite(): Promise<void> {
             successes += 1;
           } else if (parsed.message.includes("SQLITE_BUSY")) {
             busyOrCrashed += 1;
-            console.error(`hijo ${i} reportó SQLITE_BUSY sin manejar: ${parsed.message}`);
+            console.error(
+              `hijo ${i} reportó SQLITE_BUSY sin manejar: ${parsed.message}`,
+            );
           } else if (!parsed.message.includes("stock")) {
-            console.error(`hijo ${i} falló con error inesperado: ${parsed.message}`);
+            console.error(
+              `hijo ${i} falló con error inesperado: ${parsed.message}`,
+            );
           }
         });
 
-        assert(successes === 1, `exactamente 1 hijo debe comprar la última unidad (hubo ${successes})`);
-        assert(busyOrCrashed === 0, "ningún hijo debe crashear ni reportar SQLITE_BUSY");
-        assert(getStock(productId) === 0, "el stock final debe ser 0 (nunca negativo)");
         assert(
-          countRows("SELECT COUNT(*) AS n FROM orders WHERE checkout_token LIKE '5a%'") === 1,
+          successes === 1,
+          `exactamente 1 hijo debe comprar la última unidad (hubo ${successes})`,
+        );
+        assert(
+          busyOrCrashed === 0,
+          "ningún hijo debe crashear ni reportar SQLITE_BUSY",
+        );
+        assert(
+          getStock(productId) === 0,
+          "el stock final debe ser 0 (nunca negativo)",
+        );
+        assert(
+          countRows(
+            "SELECT COUNT(*) AS n FROM orders WHERE checkout_token LIKE '5a%'",
+          ) === 1,
           "debe existir exactamente 1 orden de la carrera",
         );
       },
@@ -289,27 +376,39 @@ async function runSuite(): Promise<void> {
           ...dto,
           email: "no-es-un-email",
         });
-        assert(badEmail.some((e) => e.includes("email")), "error de email esperado");
+        assert(
+          badEmail.some((e) => e.includes("email")),
+          "error de email esperado",
+        );
 
         const shortPhone = checkoutService.validateCheckoutInput({
           ...dto,
           phone: "1234",
         });
-        assert(shortPhone.some((e) => e.includes("teléfono")), "error de teléfono esperado");
+        assert(
+          shortPhone.some((e) => e.includes("teléfono")),
+          "error de teléfono esperado",
+        );
 
         const badMethod = checkoutService.validateCheckoutInput({
           ...dto,
           paymentMethod: "bitcoin" as CheckoutRequestDto["paymentMethod"],
         });
-        assert(badMethod.some((e) => e.includes("método de pago")), "error de método de pago esperado");
+        assert(
+          badMethod.some((e) => e.includes("método de pago")),
+          "error de método de pago esperado",
+        );
 
         const badToken = checkoutService.validateCheckoutInput({
           ...dto,
           checkoutToken: "corto",
         });
-        assert(badToken.some((e) => e.includes("token de checkout")), "error de token esperado");
+        assert(
+          badToken.some((e) => e.includes("token de checkout")),
+          "error de token esperado",
+        );
 
-        const emptyCart = checkoutService.createOrder([], dto);
+        const emptyCart = createOrder([], dto);
         assert(!emptyCart.ok, "carrito vacío debe fallar");
         assert(
           emptyCart.ok === false && emptyCart.errors[0]?.includes("carrito"),
@@ -324,22 +423,34 @@ async function runSuite(): Promise<void> {
         const productId = insertProduct("T7-reenvio-post-vaciado", 2, 30);
         const token = "77777777777777777777777777777777";
 
-        const first = checkoutService.createOrder([{ productId, quantity: 1 }], validDto(token));
+        const first = createOrder(
+          [{ productId, quantity: 1 }],
+          validDto(token),
+        );
         assert(first.ok, "primer envío debería tener éxito");
         const firstId = first.ok === true ? first.orderId : 0;
 
         // El carrito ya se vació (clear del controller tras el primer POST) —
         // el segundo POST llega con líneas vacías pero el mismo token.
-        const resubmit = checkoutService.createOrder([], validDto(token));
-        assert(resubmit.ok, "el reenvío debe tener éxito aunque el carrito esté vacío (D6)");
+        const resubmit = createOrder([], validDto(token));
+        assert(
+          resubmit.ok,
+          "el reenvío debe tener éxito aunque el carrito esté vacío (D6)",
+        );
         assert(
           resubmit.ok === true && resubmit.orderId === firstId,
           "el reenvío debe devolver la MISMA orden",
         );
 
-        assert(getStock(productId) === 1, "el stock debe descontarse una sola vez");
         assert(
-          countRows("SELECT COUNT(*) AS n FROM orders WHERE checkout_token = ?", token) === 1,
+          getStock(productId) === 1,
+          "el stock debe descontarse una sola vez",
+        );
+        assert(
+          countRows(
+            "SELECT COUNT(*) AS n FROM orders WHERE checkout_token = ?",
+            token,
+          ) === 1,
           "debe existir una sola orden con ese token",
         );
       },
@@ -352,15 +463,21 @@ async function runSuite(): Promise<void> {
       console.log(`[OK] ${c.name}`);
     } catch (error) {
       failures += 1;
-      console.error(`[FAIL] ${c.name}: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `[FAIL] ${c.name}: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
   if (failures > 0) {
-    console.error(`\n${failures} caso(s) fallido(s) — DB temporal: ${TEST_DB_PATH}`);
+    console.error(
+      `\n${failures} caso(s) fallido(s) — DB temporal: ${TEST_DB_PATH}`,
+    );
     process.exitCode = 1;
   } else {
-    console.log(`\nCheckout tests OK (${cases.length} casos) — DB temporal: ${TEST_DB_PATH}`);
+    console.log(
+      `\nCheckout tests OK (${cases.length} casos) — DB temporal: ${TEST_DB_PATH}`,
+    );
   }
 }
 

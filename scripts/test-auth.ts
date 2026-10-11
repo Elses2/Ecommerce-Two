@@ -428,7 +428,6 @@ async function main(): Promise<void> {
         ...process.env,
         DB_PATH: TEST_DB_PATH,
         PORT: String(port),
-        SESSION_SECRET: "test-session-secret",
         JWT_SECRET,
       },
       stdio: ["ignore", "pipe", "pipe"],

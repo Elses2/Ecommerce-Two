@@ -11,8 +11,8 @@
 <li><a href="../modules/controllers_pages_checkout.controller.html">controllers/pages/checkout.controller</a></li>
 <li><a href="" aria-current="page">checkoutController</a></li></ul>
 <h1>Variable checkoutController<code class="tsd-tag">Const</code></h1></div>
-<div class="tsd-signature"><span class="tsd-kind-variable">checkoutController</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-call-signature">showCheckout</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">showConfirmation</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">submitCheckout</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> = ...</span></div>
-<div class="tsd-comment tsd-typography"><p>Controller de páginas del checkout (spec §19).</p>
+<div class="tsd-signature"><span class="tsd-kind-variable">checkoutController</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-call-signature">showCheckout</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">_req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-call-signature">showConfirmation</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> = ...</span></div>
+<div class="tsd-comment tsd-typography"><p>Controller de páginas del checkout (spec §19/§24).</p>
 </div>
 <div class="tsd-type-declaration">
 <h4>Type Declaration</h4>
@@ -21,19 +21,15 @@
 <h5 id="showcheckout"><span class="tsd-kind-method">showCheckout</span><span class="tsd-signature-symbol">:</span> function</h5>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="showcheckout-1"><span class="tsd-kind-call-signature">showCheckout</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#showcheckout-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="showcheckout-1"><span class="tsd-kind-call-signature">showCheckout</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">_req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#showcheckout-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Renderiza el formulario de checkout con el resumen del carrito.</p>
-<p>Genera un <code>checkoutToken</code> nuevo por render (D6): el formulario lo devuelve
-oculto en el POST y, si el envío falla por validación, se re-renderiza con
-el MISMO token para que un reintento exitoso no cree órdenes duplicadas.
-Carrito vacío → redirect a /cart (no hay nada que pagar).</p>
+<div class="tsd-comment tsd-typography"><p>Renderiza el cascarón del formulario de checkout.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">req</span>: <span class="tsd-signature-type">Request</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de solicitud de Express (requiere <code>req.session</code>).</p>
+<li><span><span class="tsd-kind-parameter">_req</span>: <span class="tsd-signature-type">Request</span></span>
+<div class="tsd-comment tsd-typography"><p>Objeto de solicitud de Express.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">res</span>: <span class="tsd-signature-type">Response</span></span>
 <div class="tsd-comment tsd-typography"><p>Objeto de respuesta de Express.</p>
@@ -43,17 +39,15 @@ Carrito vacío → redirect a /cart (no hay nada que pagar).</p>
 <div class="tsd-tag-swagger">
 <h4 class="tsd-anchor-link" id="swagger">Swagger<a href="#swagger" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>/checkout:
 get:
-summary: Formulario de checkout
-description: Renderiza el formulario de envío/pago con el resumen del carrito de la sesión.
+summary: Cascarón del formulario de checkout
+description: Renderiza el formulario; el resumen y el token los carga <code>checkout.js</code> por <code>GET /api/checkout</code>.
 tags: [Páginas]
 responses:
 200:
-description: Página HTML del formulario de checkout.
-302:
-description: Carrito vacío — redirige a /cart.</p>
+description: Página HTML del formulario de checkout.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/c73eb7d0e0f017aef93b2b9be21aed26c3f2a6e4/src/controllers/pages/checkout.controller.ts#L65">src/controllers/pages/checkout.controller.ts:65</a></li></ul></aside></div></li></ul></li>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/controllers/pages/checkout.controller.ts#L40">src/controllers/pages/checkout.controller.ts:40</a></li></ul></aside></div></li></ul></li>
 <li class="tsd-parameter">
 <h5 id="showconfirmation"><span class="tsd-kind-method">showConfirmation</span><span class="tsd-signature-symbol">:</span> function</h5>
 <ul class="tsd-signatures">
@@ -62,8 +56,7 @@ description: Carrito vacío — redirige a /cart.</p>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Renderiza la confirmación de una orden por su token de checkout (D7).</p>
 <p>El token identifica la orden (nunca se expone <code>orders.id</code>): formato
-inválido u orden inexistente → 404. La vista muestra los items con el
-<code>unit_price</code> congelado (spec §1.1) y los datos de envío de la orden.</p>
+inválido u orden inexistente → 404.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -96,78 +89,9 @@ description: Página HTML de confirmación de la orden.
 description: Token malformado u orden inexistente.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/c73eb7d0e0f017aef93b2b9be21aed26c3f2a6e4/src/controllers/pages/checkout.controller.ts#L209">src/controllers/pages/checkout.controller.ts:209</a></li></ul></aside></div></li></ul></li>
-<li class="tsd-parameter">
-<h5 id="submitcheckout"><span class="tsd-kind-method">submitCheckout</span><span class="tsd-signature-symbol">:</span> function</h5>
-<ul class="tsd-signatures">
-<li class="">
-<div class="tsd-signature tsd-anchor-link" id="submitcheckout-1"><span class="tsd-kind-call-signature">submitCheckout</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">req</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">res</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#submitcheckout-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Procesa el formulario de checkout y crea la orden.</p>
-<p>El DTO se arma SOLO con los campos esperados del body (nunca con las
-líneas del carrito: esas salen de la sesión). Si la orden se crea (o es un
-reenvío idempotente del mismo token, D6) se vacía el carrito y se redirige
-a la confirmación; si falla la validación se re-renderiza el formulario
-con status 400, los errores, los valores tipeados y el MISMO token — el
-carrito de la sesión queda intacto.</p>
-</div>
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">req</span>: <span class="tsd-signature-type">Request</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de solicitud de Express (requiere <code>req.body</code> y <code>req.session</code>).</p>
-</div></li>
-<li><span><span class="tsd-kind-parameter">res</span>: <span class="tsd-signature-type">Response</span></span>
-<div class="tsd-comment tsd-typography"><p>Objeto de respuesta de Express.</p>
-</div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-<div class="tsd-comment tsd-typography">
-<div class="tsd-tag-swagger">
-<h4 class="tsd-anchor-link" id="swagger-2">Swagger<a href="#swagger-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>/checkout:
-post:
-summary: Procesar checkout
-description: Crea la orden atómicamente (orden + items + stock) a partir del carrito de la sesión. Idempotente por checkout_token (D6).
-tags: [Páginas]
-requestBody:
-required: true
-content:
-application/x-www-form-urlencoded:
-schema:
-type: object
-properties:
-firstName:
-type: string
-lastName:
-type: string
-email:
-type: string
-format: email
-phone:
-type: string
-address:
-type: string
-city:
-type: string
-postalCode:
-type: string
-country:
-type: string
-paymentMethod:
-type: string
-enum: [transfer, cash_on_delivery, card]
-checkoutToken:
-type: string
-description: Token de idempotencia generado por el GET /checkout.
-responses:
-302:
-description: Orden creada — redirige a /checkout/confirmation/{token}.
-400:
-description: Errores de validación — re-render del formulario con los errores.</p>
-</div></div><aside class="tsd-sources">
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/controllers/pages/checkout.controller.ts#L79">src/controllers/pages/checkout.controller.ts:79</a></li></ul></aside></div></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/c73eb7d0e0f017aef93b2b9be21aed26c3f2a6e4/src/controllers/pages/checkout.controller.ts#L136">src/controllers/pages/checkout.controller.ts:136</a></li></ul></aside></div></li></ul></li></ul></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/c73eb7d0e0f017aef93b2b9be21aed26c3f2a6e4/src/controllers/pages/checkout.controller.ts#L40">src/controllers/pages/checkout.controller.ts:40</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/Elses2/Ecommerce-Two/blob/e97b7bf0ba1278f18903b6ba3be3e5cbe7702549/src/controllers/pages/checkout.controller.ts#L22">src/controllers/pages/checkout.controller.ts:22</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

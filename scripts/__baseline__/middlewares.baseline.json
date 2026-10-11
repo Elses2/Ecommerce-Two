@@ -2,10 +2,7 @@
   "generatedBy": "scripts/test-middlewares.ts",
   "observations": {
     "m15a": {
-      "status": [
-        500,
-        500
-      ],
+      "status": [500, 500],
       "renders": [
         {
           "view": "templates/pages/500",
@@ -14,23 +11,14 @@
           }
         }
       ],
-      "sent": [
-        "<html>500</html>"
-      ]
+      "sent": ["<html>500</html>"]
     },
     "m15b": {
-      "status": [
-        500,
-        500
-      ],
-      "sent": [
-        "Internal server error"
-      ]
+      "status": [500, 500],
+      "sent": ["Internal server error"]
     },
     "m15c": {
-      "status": [
-        400
-      ],
+      "status": [400],
       "json": [
         {
           "error": "Invalid id"
@@ -45,24 +33,20 @@
       "hasZeroCounter": true
     },
     "m2": {
-      "addStatus": 200,
-      "homeStatus": 200,
-      "hasOneCounter": true
+      "noToken": 401,
+      "invalidIdWithToken": 400
     },
     "m3": {
       "status": 200,
-      "setCookies": []
+      "setCookies": 0
     },
     "m4": {
-      "hasConnectSid": true,
-      "httpOnly": true,
-      "sameSiteLax": true,
-      "hasMaxAge": false,
-      "hasExpires": false
+      "xContentTypeOptions": "nosniff",
+      "hasCsp": true,
+      "cspHasUpgrade": false
     },
     "m5": {
       "status": 404,
-      "contentType": "text/html; charset=utf-8",
       "has404": true
     },
     "m6": {
@@ -109,8 +93,7 @@
     },
     "m10": {
       "invalid": {
-        "status": 400,
-        "body": "ID inválido"
+        "status": 400
       },
       "missing": {
         "status": 404,
@@ -119,18 +102,16 @@
       "valid": 200
     },
     "m11": {
-      "add": 400,
-      "inc": 400,
-      "rem": 400,
-      "addBody": "{\"error\":\"Invalid id\"}"
+      "noToken": 401,
+      "withToken": 400,
+      "body": "{\"error\":\"Invalid id\"}"
     },
     "m11b": {
-      "plus": 200,
-      "encoded": 200
+      "status": 401,
+      "body": "{\"error\":\"Token inválido o expirado\"}"
     },
     "m12": {
-      "status": 200,
-      "body": "{\"items\":[],\"total\":0,\"count\":0}"
+      "status": 401
     },
     "m13": {
       "status": 200,
@@ -138,17 +119,29 @@
     },
     "m14": {
       "favicon": 200,
-      "js": 200,
-      "jsSetCookie": []
+      "js": 200
     },
     "m18a": {
-      "status": 400,
-      "hasValue": true,
-      "hasError": true
+      "status": 201
     },
     "m18b": {
-      "status": 400,
-      "hasValue": true
+      "status": 201
+    },
+    "m19": {
+      "status": 200,
+      "hasUser": true
+    },
+    "m20": {
+      "status": 401,
+      "body": "{\"error\":\"Token requerido\"}"
+    },
+    "m21": {
+      "status": 200,
+      "hasInline": true
+    },
+    "m22": {
+      "status": 200,
+      "nosniff": "nosniff"
     }
   }
 }
