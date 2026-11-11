@@ -195,14 +195,9 @@
         if (firstInput) firstInput.focus();
         return;
       }
-
-      // All valid → normal POST (§19), but block double-click / double-order
-      // (D6): the submit button disables and the request proceeds once.
-      var button = form.querySelector("[data-checkout-submit]");
-      if (button) {
-        button.disabled = true;
-        button.textContent = "Procesando…";
-      }
+      // Si todo es válido no hacemos nada: checkout.js se encarga del envío
+      // y del botón (evita pisar su etiqueta original con "Procesando…",
+      // issue #108).
     });
   }
 
