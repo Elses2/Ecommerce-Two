@@ -127,9 +127,7 @@
     loadCheckout(form);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  // Arranque directo en DOMContentLoaded: no depende del estado de carga
+  // (readyState) ni de casualidades de orden de scripts (issue #108).
+  document.addEventListener("DOMContentLoaded", init);
 })();
