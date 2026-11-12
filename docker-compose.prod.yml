@@ -1,35 +1,33 @@
-# =============================================================================
-# docker-compose.prod.yml — Plantilla de despliegue para el servidor (spec §21)
-# =============================================================================
-# Uso en el servidor:
-#   1. Crear .env con las variables (ver .env.prod.example)
-#   2. docker compose -f docker-compose.prod.yml up -d
-#   3. docker compose -f docker-compose.prod.yml run --rm tienda npm run seed
-#   4. Para actualizar: docker compose pull && docker compose up -d
-# =============================================================================
+name: ecommerce-two
+
+# Plantilla de producción (spec §21.5).
+# Los secretos NO van acá: se leen del archivo .env que está junto a este compose.
+#   JWT_SECRET      -> openssl rand -hex 48   (mínimo 32 caracteres)
+#   REDIS_PASSWORD  -> openssl rand -hex 24   (usá hex: otros símbolos rompen REDIS_URL)
 
 services:
   # ── Aplicación ────────────────────────────────────────────────────────────
   tienda:
-    # IMPORTANTE: reemplazar <usuario> y <repo> con los valores reales
-    image: ghcr.io/<usuario>/<repo>:latest
+    image: ghcr.io/elses2/ecommerce-two:latest
     restart: unless-stopped
-    env_file: .env
+    ports:
+      - "18480:3000"
     environment:
-      # Redis del carrito (spec §24); la clave se define una sola vez en .env.
-      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
-      # Cookie de sesión (spec §21.5, enmienda cookie httpOnly): true solo
-      # detrás de HTTPS, junto a CSP_UPGRADE_INSECURE=true.
+      NODE_ENV: production
+      PORT: "3000"
+      DB_PATH: /data/shop.db
+      JWT_SECRET: ${JWT_SECRET:?definí JWT_SECRET en .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-2h}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?definí REDIS_PASSWORD en .env}@redis:6379
+      FALLBACK_IMAGE_URL: ${FALLBACK_IMAGE_URL:-https://placehold.co/600x600?text=Sin+imagen}
+      # true SOLO si servís por HTTPS (ver spec §16 y §22.2)
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
-      # CSP (spec §22.2): default false para deploys por http://IP:PUERTO. Si el
-      # sitio va por HTTPS, poner CSP_UPGRADE_INSECURE=true en .env.
       CSP_UPGRADE_INSECURE: ${CSP_UPGRADE_INSECURE:-false}
+    volumes:
+      - /mnt/nas/EcommerceTwo/data:/data # SQLite (el contenedor corre como usuario `node`, uid 1000)
     depends_on:
       redis:
         condition: service_healthy
-    volumes:
-      - tienda-data:/data
-    # Sin ports: el servidor está detrás de Cloudflare Tunnel, no expone puertos
 
   # ── Redis (carrito, spec §24) ─────────────────────────────────────────────
   redis:
@@ -48,7 +46,7 @@ services:
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
-      - redis-data:/data
+      - /mnt/nas/EcommerceTwo/redis:/data
     healthcheck:
       test:
         [
@@ -58,18 +56,3 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-    # Sin ports: Redis solo es alcanzable desde la red interna de Compose.
-
-  # ── Tunel Cloudflare ──────────────────────────────────────────────────────
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run
-    env_file: .env
-
-volumes:
-  tienda-data:
-    # Volumen nombrado para persistencia de la base de datos SQLite
-    # Los datos sobreviven a docker compose down y up
-  redis-data:
-    # Volumen nombrado para persistencia del carrito (appendonly, spec §24)
