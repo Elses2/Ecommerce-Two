@@ -15,61 +15,61 @@
 
 ## Índice
 
-| § | Sección | Estado |
-|---|---|---|
-| [§0](#0-contexto-del-proyecto) | Contexto del proyecto | Vigente |
-| [§1](#1-base-de-datos--esquema-actual) | Base de datos — esquema actual | Vigente |
-| [§1.1](#11-esquema) | Esquema | Vigente |
-| [§1.2](#12-corrección-de-arquitectura-obligatoria-categorías-es-nm) | Corrección de arquitectura: categorías N:M | Vigente |
-| [§1.3](#13-atributos-derivados) | Atributos derivados | Vigente |
-| [§1.4](#14-migración-de-datos) | Migración de datos | Reemplazado (seed) |
-| [§2](#2-imágenes-de-producto--fallback-configurable) | Imágenes de producto — fallback configurable | Reemplazado (era Cloudinary) |
-| [§2.1](#21-config) | Config | Reemplazado |
-| [§2.2](#22-escenarios-de-uso) | Escenarios de uso | Reemplazado |
-| [§2.3](#23-helper-de-fallback) | Helper de fallback | Reemplazado |
-| [§3](#3-sistema-de-diseño--mapeo-de-componentes) | Sistema de diseño — mapeo de componentes | Vigente |
-| [§4](#4-mapeo-de-páginas) | Mapeo de páginas | Vigente |
-| [§4.1](#41-home) | Home | Vigente |
-| [§4.2](#42-carrito) | Carrito | Vigente |
-| [§4.3](#43-detalle-de-producto) | Detalle de producto | Vigente |
-| [§4.4](#44-login) | Login | Vigente |
-| [§4.5](#45-register) | Register | Vigente |
-| [§4.6](#46-páginas-sin-mockup-todavía) | Páginas sin mockup | Vigente |
-| [§5](#5-contrato-de-atributos-data-) | Contrato de atributos `data-*` | Vigente |
-| [§6](#6-funcionalidades-implementadas) | Funcionalidades implementadas | Vigente |
-| [§6.1](#61-página-404) | Página 404 | Vigente |
-| [§6.2](#62-página-500) | Página 500 | Vigente |
-| [§6.3](#63-validación-de-formulario-de-registro) | Validación de registro (frontend) | Vigente |
-| [§6.4](#64-carrito-en-sesión) | Carrito en sesión | Vigente (con persistencia SQLite, ver §11) |
-| [§6.5](#65-checkout-temporal) | Checkout temporal | Reemplazado (→ §19) |
-| [§6.6](#66-home--te-puede-interesar) | Home — "Te puede interesar" | Vigente |
-| [§6.6b](#66b-home--nav-de-categorías-y-banners-promocionales) | Home — Nav de categorías y banners | Vigente |
-| [§6.7](#67-home--los-más-pedidos) | Home — "Los más pedidos" | Vigente |
-| [§6.8](#68-detalle-de-producto-productsid) | Detalle de producto `/products/:id` | Vigente |
-| [§6.9](#69-normalización-de-ids) | Normalización de IDs | Vigente |
-| [§6.10](#610-indicador-sin-stock) | Indicador "Sin stock" | Vigente |
-| [§6.11](#611-total-del-carrito-en-el-header) | Total del carrito en el header | Vigente |
-| [§6.12](#612-ordenar-productos-por-precio) | Ordenar por precio `/products?sort=` | Vigente |
-| [§6.13](#613-buscador-de-productos) | Buscador `/search?query=` | Vigente |
-| [§6.14](#614-layout-base) | Layout base | Vigente |
-| [§7](#7-checklist-de-pasos--histórico) | Checklist de pasos | Histórico (completado) |
-| [§8](#8-fase-futura-no-implementar-ahora-tiempo-real-con-websockets) | Fase futura: WebSockets | Vigente (futuro, no implementado) |
-| [§9](#9-checklist-de-validación-general) | Checklist de validación general | Vigente |
-| [§10](#10-swagger--openapi-en-apidocs) | Swagger / OpenAPI en `/api-docs` | Nuevo |
-| [§11](#11-persistencia-de-sesión-en-sqlite) | Persistencia de sesión en SQLite | Nuevo |
-| [§12](#12-script-de-seed-idempotente) | Script de seed idempotente | Nuevo |
-| [§13](#13-gitattributes-normalización-eol) | `.gitattributes` normalización EOL | Nuevo |
-| [§14](#14-estructura-de-directorios-actual) | Estructura de directorios actual | Nuevo |
-| [§15](#15-árbol-atómico-de-views-y-view-root-único) | Árbol atómico de views + view root único | Nuevo |
-| [§16](#16-variables-de-entorno) | Variables de entorno | Nuevo |
-| [§17](#17-documentación-generada-docs) | Documentación generada (`docs/`) | Nuevo |
-| [§18](#18-convención-de-comentarios-jsdoc) | Convención de comentarios JSDoc | Nuevo |
-| [§19](#19-checkout) | Checkout | Nuevo |
-| [§20](#20-favicon--logo-de-la-pestaña) | Favicon / logo de la pestaña | Nuevo |
-| [§21](#21-cicd-y-despliegue) | CI/CD y despliegue | Nuevo |
-| [§22](#22-arquitectura-de-middlewares) | Arquitectura de middlewares | Nuevo |
-| [§23](#23-autenticación-y-autorización-jwt) | Autenticación y autorización (JWT) | Nuevo |
-| [§24](#24-carrito-en-redis-y-arquitectura-stateless) | Carrito en Redis y arquitectura stateless | Nuevo |
+| §                                                                    | Sección                                      | Estado                                     |
+| -------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------ |
+| [§0](#0-contexto-del-proyecto)                                       | Contexto del proyecto                        | Vigente                                    |
+| [§1](#1-base-de-datos--esquema-actual)                               | Base de datos — esquema actual               | Vigente                                    |
+| [§1.1](#11-esquema)                                                  | Esquema                                      | Vigente                                    |
+| [§1.2](#12-corrección-de-arquitectura-obligatoria-categorías-es-nm)  | Corrección de arquitectura: categorías N:M   | Vigente                                    |
+| [§1.3](#13-atributos-derivados)                                      | Atributos derivados                          | Vigente                                    |
+| [§1.4](#14-migración-de-datos)                                       | Migración de datos                           | Reemplazado (seed)                         |
+| [§2](#2-imágenes-de-producto--fallback-configurable)                 | Imágenes de producto — fallback configurable | Reemplazado (era Cloudinary)               |
+| [§2.1](#21-config)                                                   | Config                                       | Reemplazado                                |
+| [§2.2](#22-escenarios-de-uso)                                        | Escenarios de uso                            | Reemplazado                                |
+| [§2.3](#23-helper-de-fallback)                                       | Helper de fallback                           | Reemplazado                                |
+| [§3](#3-sistema-de-diseño--mapeo-de-componentes)                     | Sistema de diseño — mapeo de componentes     | Vigente                                    |
+| [§4](#4-mapeo-de-páginas)                                            | Mapeo de páginas                             | Vigente                                    |
+| [§4.1](#41-home)                                                     | Home                                         | Vigente                                    |
+| [§4.2](#42-carrito)                                                  | Carrito                                      | Vigente                                    |
+| [§4.3](#43-detalle-de-producto)                                      | Detalle de producto                          | Vigente                                    |
+| [§4.4](#44-login)                                                    | Login                                        | Vigente                                    |
+| [§4.5](#45-register)                                                 | Register                                     | Vigente                                    |
+| [§4.6](#46-páginas-sin-mockup-todavía)                               | Páginas sin mockup                           | Vigente                                    |
+| [§5](#5-contrato-de-atributos-data-)                                 | Contrato de atributos `data-*`               | Vigente                                    |
+| [§6](#6-funcionalidades-implementadas)                               | Funcionalidades implementadas                | Vigente                                    |
+| [§6.1](#61-página-404)                                               | Página 404                                   | Vigente                                    |
+| [§6.2](#62-página-500)                                               | Página 500                                   | Vigente                                    |
+| [§6.3](#63-validación-de-formulario-de-registro)                     | Validación de registro (frontend)            | Vigente                                    |
+| [§6.4](#64-carrito-en-sesión)                                        | Carrito en sesión                            | Vigente (con persistencia SQLite, ver §11) |
+| [§6.5](#65-checkout-temporal)                                        | Checkout temporal                            | Reemplazado (→ §19)                        |
+| [§6.6](#66-home--te-puede-interesar)                                 | Home — "Te puede interesar"                  | Vigente                                    |
+| [§6.6b](#66b-home--nav-de-categorías-y-banners-promocionales)        | Home — Nav de categorías y banners           | Vigente                                    |
+| [§6.7](#67-home--los-más-pedidos)                                    | Home — "Los más pedidos"                     | Vigente                                    |
+| [§6.8](#68-detalle-de-producto-productsid)                           | Detalle de producto `/products/:id`          | Vigente                                    |
+| [§6.9](#69-normalización-de-ids)                                     | Normalización de IDs                         | Vigente                                    |
+| [§6.10](#610-indicador-sin-stock)                                    | Indicador "Sin stock"                        | Vigente                                    |
+| [§6.11](#611-total-del-carrito-en-el-header)                         | Total del carrito en el header               | Vigente                                    |
+| [§6.12](#612-ordenar-productos-por-precio)                           | Ordenar por precio `/products?sort=`         | Vigente                                    |
+| [§6.13](#613-buscador-de-productos)                                  | Buscador `/search?query=`                    | Vigente                                    |
+| [§6.14](#614-layout-base)                                            | Layout base                                  | Vigente                                    |
+| [§7](#7-checklist-de-pasos--histórico)                               | Checklist de pasos                           | Histórico (completado)                     |
+| [§8](#8-fase-futura-no-implementar-ahora-tiempo-real-con-websockets) | Fase futura: WebSockets                      | Vigente (futuro, no implementado)          |
+| [§9](#9-checklist-de-validación-general)                             | Checklist de validación general              | Vigente                                    |
+| [§10](#10-swagger--openapi-en-apidocs)                               | Swagger / OpenAPI en `/api-docs`             | Nuevo                                      |
+| [§11](#11-persistencia-de-sesión-en-sqlite)                          | Persistencia de sesión en SQLite             | Nuevo                                      |
+| [§12](#12-script-de-seed-idempotente)                                | Script de seed idempotente                   | Nuevo                                      |
+| [§13](#13-gitattributes-normalización-eol)                           | `.gitattributes` normalización EOL           | Nuevo                                      |
+| [§14](#14-estructura-de-directorios-actual)                          | Estructura de directorios actual             | Nuevo                                      |
+| [§15](#15-árbol-atómico-de-views-y-view-root-único)                  | Árbol atómico de views + view root único     | Nuevo                                      |
+| [§16](#16-variables-de-entorno)                                      | Variables de entorno                         | Nuevo                                      |
+| [§17](#17-documentación-generada-docs)                               | Documentación generada (`docs/`)             | Nuevo                                      |
+| [§18](#18-convención-de-comentarios-jsdoc)                           | Convención de comentarios JSDoc              | Nuevo                                      |
+| [§19](#19-checkout)                                                  | Checkout                                     | Nuevo                                      |
+| [§20](#20-favicon--logo-de-la-pestaña)                               | Favicon / logo de la pestaña                 | Nuevo                                      |
+| [§21](#21-cicd-y-despliegue)                                         | CI/CD y despliegue                           | Nuevo                                      |
+| [§22](#22-arquitectura-de-middlewares)                               | Arquitectura de middlewares                  | Nuevo                                      |
+| [§23](#23-autenticación-y-autorización-jwt)                          | Autenticación y autorización (JWT)           | Nuevo                                      |
+| [§24](#24-carrito-en-redis-y-arquitectura-stateless)                 | Carrito en Redis y arquitectura stateless    | Nuevo                                      |
 
 ---
 
@@ -229,14 +229,14 @@ compuesta y FKs. El repository accede a las categorías de un producto con
 
 ### §1.3 Atributos derivados
 
-| Atributo derivado | Origen | Dónde se calcula |
-|---|---|---|
-| `inStock` (boolean) | `stock > 0` | `product.service.ts` |
-| `categories` (array) | JOIN `product_categories` | `product.service.ts` (`findCategoriesByProduct`) |
-| `subtotal` de un ítem de carrito | `quantity * price` real (nunca confiar en el cliente) | `cart.service.ts` |
-| `total` del carrito | suma de subtotales | `cart.service.ts` |
-| `total` de una orden | suma de `order_items.quantity × unit_price` (precios de DB dentro de la transacción, D4) | `orderRepository.placeOrder` (§19) |
-| `imageUrl` con fallback | si `image_url` es null/vacío, usar `env.images.fallbackUrl` | `product.service.ts` (ver §2.3) |
+| Atributo derivado                | Origen                                                                                   | Dónde se calcula                                 |
+| -------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `inStock` (boolean)              | `stock > 0`                                                                              | `product.service.ts`                             |
+| `categories` (array)             | JOIN `product_categories`                                                                | `product.service.ts` (`findCategoriesByProduct`) |
+| `subtotal` de un ítem de carrito | `quantity * price` real (nunca confiar en el cliente)                                    | `cart.service.ts`                                |
+| `total` del carrito              | suma de subtotales                                                                       | `cart.service.ts`                                |
+| `total` de una orden             | suma de `order_items.quantity × unit_price` (precios de DB dentro de la transacción, D4) | `orderRepository.placeOrder` (§19)               |
+| `imageUrl` con fallback          | si `image_url` es null/vacío, usar `env.images.fallbackUrl`                              | `product.service.ts` (ver §2.3)                  |
 
 ### §1.4 Migración de datos
 
@@ -294,10 +294,14 @@ Se expone a las vistas vía `app.locals.fallbackImageUrl` en `src/app.ts`.
 
 ```typescript
 // src/services/product.service.ts
-export function withImageFallback(product: Product): Product & { image_url: string } {
+export function withImageFallback(
+  product: Product,
+): Product & { image_url: string } {
   return {
     ...product,
-    image_url: product.image_url?.trim() ? product.image_url : env.images.fallbackUrl,
+    image_url: product.image_url?.trim()
+      ? product.image_url
+      : env.images.fallbackUrl,
   };
 }
 ```
@@ -329,33 +333,33 @@ Templates con el patrón: `molecules/product.ejs`, `molecules/product-row.ejs`,
 El árbol atómico vive en `src/views/templates/` (ver §15 para el view root
 único). La tabla mapea cada componente a su partial `.ejs` y dónde se usa:
 
-| Partial (`templates/...`) | Qué es | Tipo | Usado en |
-|---|---|---|---|
-| `atoms/profile-pic.ejs` | Círculo de foto de usuario, sin nombre | atom | dentro de `profile-btn.ejs`, `menu-desktop.ejs`, `menu-mobile.ejs` |
-| `atoms/badge-counter.ejs` | Círculo rojo numérico | atom | dentro de `cart-icon.ejs` — mapea a `data-cart-count` |
-| `atoms/input.ejs` | Input de texto, variantes claro/oscuro | atom | Login, Register |
-| `atoms/menu-item.ejs` | Un ítem de menú suelto (ej. "Inicio") | atom | dentro de `menu-desktop.ejs`/`menu-mobile.ejs` |
-| `molecules/search.ejs` | Input de búsqueda + ícono de lupa | molecule | `header.ejs`, `header-mobile.ejs` |
-| `molecules/profile-btn.ejs` | `atoms/profile-pic.ejs` + nombre | molecule | dentro de `header-right.ejs` |
-| `molecules/cart-icon.ejs` | Ícono de carrito + `atoms/badge-counter.ejs` | molecule | dentro de `header-right.ejs` |
-| `molecules/header-right.ejs` | `cart-icon.ejs` + `profile-btn.ejs` | molecule | dentro de `organisms/header.ejs` |
-| `molecules/numeric.ejs` | Control de cantidad `- N +` | molecule | dentro de `organisms/cart-item.ejs` — botones mapean a `data-cart-action` |
-| `molecules/breadcrumb.ejs` | "← Volver al Listado > Category" | molecule | Categoría, Detalle de producto |
-| `molecules/product-row.ejs` | Producto en fila horizontal compacta | molecule | sin página asignada todavía (futuro Historial/Mis Compras/Favoritos) |
-| `molecules/product.ejs` | Card de producto (imagen + nombre + precio + botón); el nombre es un link extendido a `/products/:id` (§6.8) | molecule | dentro de `organisms/product-grid.ejs` |
-| `organisms/header.ejs` | `search.ejs` + `header-right.ejs` + logo | organism | todas las páginas |
-| `organisms/header-mobile.ejs` | Header mobile compacto | organism | todas las páginas, breakpoint mobile |
-| `organisms/footer.ejs` | Footer desktop | organism | todas las páginas |
-| `organisms/footer-mobile.ejs` | Footer mobile | organism | todas las páginas, breakpoint mobile |
-| `organisms/categories-nav.ejs` | Barra horizontal de categorías con ícono | organism | Home (x2), filtro de listado |
-| `organisms/categories-dropdown.ejs` | Lista vertical de categorías, fondo oscuro | organism | menú mobile / filtro lateral |
-| `organisms/product-hero.ejs` | Banner grande con imagen + overlay + texto | organism | carrusel de Home (`banners`, §6.6b) |
-| `organisms/product-grid.ejs` | Grilla de productos con título (envuelve N `molecules/product.ejs`) | organism | "Te puede interesar", "Los más pedidos", Categoría, Relacionados — **un solo componente, cuatro usos** |
-| `organisms/cart-item.ejs` | Fila del carrito: imagen, nombre, "Quitar", `numeric.ejs`, precio | organism | `/cart` — raíz con `data-cart-item` |
-| `organisms/dialog.ejs` | Modal genérico: título, cuerpo, botón secundario + primario | organism | sin uso en el alcance actual — listo para futuro |
-| `organisms/menu-desktop.ejs` | Dropdown de usuario: avatar+nombre + `atoms/menu-item.ejs` | organism | se abre desde `ProfileBtn` — bonus/futuro |
-| `organisms/menu-mobile.ejs` | Igual, versión fullscreen/mobile | organism | análogo mobile |
-| `templates/layout.ejs` | Shell: header + slot + footer | layout | todas las páginas vía `express-ejs-layouts` |
+| Partial (`templates/...`)           | Qué es                                                                                                       | Tipo     | Usado en                                                                                               |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------ |
+| `atoms/profile-pic.ejs`             | Círculo de foto de usuario, sin nombre                                                                       | atom     | dentro de `profile-btn.ejs`, `menu-desktop.ejs`, `menu-mobile.ejs`                                     |
+| `atoms/badge-counter.ejs`           | Círculo rojo numérico                                                                                        | atom     | dentro de `cart-icon.ejs` — mapea a `data-cart-count`                                                  |
+| `atoms/input.ejs`                   | Input de texto, variantes claro/oscuro                                                                       | atom     | Login, Register                                                                                        |
+| `atoms/menu-item.ejs`               | Un ítem de menú suelto (ej. "Inicio")                                                                        | atom     | dentro de `menu-desktop.ejs`/`menu-mobile.ejs`                                                         |
+| `molecules/search.ejs`              | Input de búsqueda + ícono de lupa                                                                            | molecule | `header.ejs`, `header-mobile.ejs`                                                                      |
+| `molecules/profile-btn.ejs`         | `atoms/profile-pic.ejs` + nombre                                                                             | molecule | dentro de `header-right.ejs`                                                                           |
+| `molecules/cart-icon.ejs`           | Ícono de carrito + `atoms/badge-counter.ejs`                                                                 | molecule | dentro de `header-right.ejs`                                                                           |
+| `molecules/header-right.ejs`        | `cart-icon.ejs` + `profile-btn.ejs`                                                                          | molecule | dentro de `organisms/header.ejs`                                                                       |
+| `molecules/numeric.ejs`             | Control de cantidad `- N +`                                                                                  | molecule | dentro de `organisms/cart-item.ejs` — botones mapean a `data-cart-action`                              |
+| `molecules/breadcrumb.ejs`          | "← Volver al Listado > Category"                                                                             | molecule | Categoría, Detalle de producto                                                                         |
+| `molecules/product-row.ejs`         | Producto en fila horizontal compacta                                                                         | molecule | sin página asignada todavía (futuro Historial/Mis Compras/Favoritos)                                   |
+| `molecules/product.ejs`             | Card de producto (imagen + nombre + precio + botón); el nombre es un link extendido a `/products/:id` (§6.8) | molecule | dentro de `organisms/product-grid.ejs`                                                                 |
+| `organisms/header.ejs`              | `search.ejs` + `header-right.ejs` + logo                                                                     | organism | todas las páginas                                                                                      |
+| `organisms/header-mobile.ejs`       | Header mobile compacto                                                                                       | organism | todas las páginas, breakpoint mobile                                                                   |
+| `organisms/footer.ejs`              | Footer desktop                                                                                               | organism | todas las páginas                                                                                      |
+| `organisms/footer-mobile.ejs`       | Footer mobile                                                                                                | organism | todas las páginas, breakpoint mobile                                                                   |
+| `organisms/categories-nav.ejs`      | Barra horizontal de categorías con ícono                                                                     | organism | Home (x2), filtro de listado                                                                           |
+| `organisms/categories-dropdown.ejs` | Lista vertical de categorías, fondo oscuro                                                                   | organism | menú mobile / filtro lateral                                                                           |
+| `organisms/product-hero.ejs`        | Banner grande con imagen + overlay + texto                                                                   | organism | carrusel de Home (`banners`, §6.6b)                                                                    |
+| `organisms/product-grid.ejs`        | Grilla de productos con título (envuelve N `molecules/product.ejs`)                                          | organism | "Te puede interesar", "Los más pedidos", Categoría, Relacionados — **un solo componente, cuatro usos** |
+| `organisms/cart-item.ejs`           | Fila del carrito: imagen, nombre, "Quitar", `numeric.ejs`, precio                                            | organism | `/cart` — raíz con `data-cart-item`                                                                    |
+| `organisms/dialog.ejs`              | Modal genérico: título, cuerpo, botón secundario + primario                                                  | organism | sin uso en el alcance actual — listo para futuro                                                       |
+| `organisms/menu-desktop.ejs`        | Dropdown de usuario: avatar+nombre + `atoms/menu-item.ejs`                                                   | organism | se abre desde `ProfileBtn` — bonus/futuro                                                              |
+| `organisms/menu-mobile.ejs`         | Igual, versión fullscreen/mobile                                                                             | organism | análogo mobile                                                                                         |
+| `templates/layout.ejs`              | Shell: header + slot + footer                                                                                | layout   | todas las páginas vía `express-ejs-layouts`                                                            |
 
 Clases utilitarias definidas en `src/styles.css` (Tailwind): `.btn-primary`,
 `.btn-secondary`, `.btn-disabled`, `.badge`, `.badge-out-of-stock`, guía
@@ -369,41 +373,41 @@ tipográfica `h1/h2/h3`.
 
 Una sola vista `pages/index.ejs`, orden de arriba hacia abajo:
 
-| # | Bloque | Organism | Dato (`pages.controller.getHome`) |
-|---|---|---|---|
-| 1 | Header | `organisms/header.ejs` | `cartCount` (vía `injectCartCount`) |
-| 2 | Nav de categorías (arriba) | `organisms/categories-nav.ejs` | `categories` |
-| 3 | Carrusel de banners promocionales | `organisms/product-hero.ejs` | `banners` (`promoService.getActiveBanners()`, §6.6b) |
-| 4 | "Te puede interesar" | `organisms/product-grid.ejs` | `suggested` (§6.6) |
-| 5 | "Los más pedidos" | mismo `product-grid.ejs` | `mostOrdered` (§6.7) |
-| 6 | Nav de categorías (abajo) | misma instancia de `categories-nav.ejs` | `categories` (mismo dato) |
-| 7 | Footer | `organisms/footer.ejs` | estático |
+| #   | Bloque                            | Organism                                | Dato (`pages.controller.getHome`)                    |
+| --- | --------------------------------- | --------------------------------------- | ---------------------------------------------------- |
+| 1   | Header                            | `organisms/header.ejs`                  | `cartCount` (vía `injectCartCount`)                  |
+| 2   | Nav de categorías (arriba)        | `organisms/categories-nav.ejs`          | `categories`                                         |
+| 3   | Carrusel de banners promocionales | `organisms/product-hero.ejs`            | `banners` (`promoService.getActiveBanners()`, §6.6b) |
+| 4   | "Te puede interesar"              | `organisms/product-grid.ejs`            | `suggested` (§6.6)                                   |
+| 5   | "Los más pedidos"                 | mismo `product-grid.ejs`                | `mostOrdered` (§6.7)                                 |
+| 6   | Nav de categorías (abajo)         | misma instancia de `categories-nav.ejs` | `categories` (mismo dato)                            |
+| 7   | Footer                            | `organisms/footer.ejs`                  | estático                                             |
 
 ### §4.2 Carrito
 
-| Bloque | Organism | Dato / atributo |
-|---|---|---|
-| Header | `organisms/header.ejs` | `cartCount` |
-| Link "Volver" | — | `<a href="/">← Volver</a>` |
-| Lista de ítems | `organisms/cart-item.ejs` × N | `items` — cada fila `data-cart-item="<productId>"` |
-| Total | — | `total` → `data-cart-total` |
-| Botón "Ir a Pagar" | `.btn-primary` | link a `/checkout`, no AJAX |
-| Footer | `organisms/footer.ejs` | estático |
+| Bloque             | Organism                      | Dato / atributo                                    |
+| ------------------ | ----------------------------- | -------------------------------------------------- |
+| Header             | `organisms/header.ejs`        | `cartCount`                                        |
+| Link "Volver"      | —                             | `<a href="/">← Volver</a>`                         |
+| Lista de ítems     | `organisms/cart-item.ejs` × N | `items` — cada fila `data-cart-item="<productId>"` |
+| Total              | —                             | `total` → `data-cart-total`                        |
+| Botón "Ir a Pagar" | `.btn-primary`                | link a `/checkout`, no AJAX                        |
+| Footer             | `organisms/footer.ejs`        | estático                                           |
 
 Si `items` está vacío: bloque `data-cart-empty` con mensaje amigable +
 botón volver al inicio.
 
 ### §4.3 Detalle de producto
 
-| Bloque | Organism | Dato |
-|---|---|---|
-| Header | `organisms/header.ejs` | `cartCount` |
-| Breadcrumb | `molecules/breadcrumb.ejs` | nombre de categoría + producto |
-| Info principal | imagen + nombre + precio + descripción + categorías | `product` (§6.8) |
-| Badge "Sin stock" | `.badge-out-of-stock` | `!product.inStock` (§6.10) |
-| Botón "Agregar al carrito" | `.btn-primary`, disabled si sin stock | `data-cart-action="add"` `data-product-id` |
-| Productos relacionados | `organisms/product-grid.ejs` | `related` (hasta 4, §6.8) |
-| Footer | `organisms/footer.ejs` | estático |
+| Bloque                     | Organism                                            | Dato                                       |
+| -------------------------- | --------------------------------------------------- | ------------------------------------------ |
+| Header                     | `organisms/header.ejs`                              | `cartCount`                                |
+| Breadcrumb                 | `molecules/breadcrumb.ejs`                          | nombre de categoría + producto             |
+| Info principal             | imagen + nombre + precio + descripción + categorías | `product` (§6.8)                           |
+| Badge "Sin stock"          | `.badge-out-of-stock`                               | `!product.inStock` (§6.10)                 |
+| Botón "Agregar al carrito" | `.btn-primary`, disabled si sin stock               | `data-cart-action="add"` `data-product-id` |
+| Productos relacionados     | `organisms/product-grid.ejs`                        | `related` (hasta 4, §6.8)                  |
+| Footer                     | `organisms/footer.ejs`                              | estático                                   |
 
 ### §4.4 Login
 
@@ -452,29 +456,29 @@ Todo elemento interactivo necesita estos atributos exactos para que
 `cart.js` pueda encontrar y actualizar el DOM sin recargar la página. Se
 generan **junto con** el HTML del componente:
 
-| Componente | Atributo | Dónde va | Usado por |
-|---|---|---|---|
-| Card de producto | `data-product-id="<id>"` | contenedor raíz de `molecules/product.ejs` | futuros JS |
-| Botón agregar al carrito | `data-cart-action="add"` `data-product-id="<id>"` | `<button>` en `molecules/product.ejs` | `cart.js` |
-| Fila de ítem en `/cart` | `data-cart-item="<productId>"` | contenedor raíz de `organisms/cart-item.ejs` | `cart.js` (`updateCartUI`) |
-| Cantidad del ítem | `data-quantity` | `<span>` en `molecules/numeric.ejs` | `cart.js` |
-| Subtotal del ítem | `data-subtotal` | `<span>` en `organisms/cart-item.ejs` | `cart.js` |
-| Botón `+` | `data-cart-action="increase"` `data-product-id="<id>"` | `<button>` en `molecules/numeric.ejs` | `cart.js` |
-| Botón `-` | `data-cart-action="decrease"` `data-product-id="<id>"` | `<button>` en `molecules/numeric.ejs` | `cart.js` |
-| Botón "Quitar" | `data-cart-action="remove"` `data-product-id="<id>"` | `<button>` en `organisms/cart-item.ejs` | `cart.js` |
-| Botón "Vaciar carrito" | `data-cart-action="clear"` | `<button>` en `pages/cart.ejs` | `cart.js` |
-| Total del carrito | `data-cart-total` | `<span>` del total en `pages/cart.ejs` | `cart.js` |
-| Contador del header | `data-cart-count` | `atoms/badge-counter.ejs` → `cart-icon.ejs` → `header-right.ejs` → `header.ejs` | `cart.js` (hidratado con `GET /api/cart`, §24) |
-| Mensaje de carrito vacío | `data-cart-empty` (con clase `hidden` por defecto) | `pages/cart.ejs` | `cart.js` |
-| Plantilla de fila del carrito | `id="cart-item-template"` | `<template>` en `pages/cart.ejs` | `cart.js` (clona y rellena, §24) |
-| Formulario de checkout | `data-checkout-form` | `<form>` en `pages/checkout.ejs` | `checkout-validation.js` + `checkout.js` (§19/§24) |
-| Botón de confirmar compra | `data-checkout-submit` | `<button type="submit">` en `pages/checkout.ejs` | `checkout.js` (§19/§24) |
-| Resumen del checkout | `data-checkout-summary` `data-checkout-total` | `pages/checkout.ejs` (aside) | `checkout.js` (`GET /api/checkout`) |
-| Errores del checkout | `data-checkout-errors` | `pages/checkout.ejs` | `checkout.js` (400 del server) |
-| Formulario de login/registro | `data-auth-form` `data-auth-endpoint` | `<form>` en `pages/login.ejs` / `pages/register.ejs` | `auth.js` (§23.4) |
-| Caja de errores de auth | `data-auth-error` | `<div role="alert">` en los forms de auth | `auth.js` (400/409/401 del server) |
-| Botón de logout | `data-auth-logout` | `<button>` (header, solo renderizado si hay usuario) | `auth.js` (POST /api/auth/logout, C9) |
-| Estado de sesión en `<body>` | `data-logged-in="true\|false"` | `templates/layout.ejs` | `cart.js` (¿hay sesión? para el carrito, §24.3) y páginas |
+| Componente                    | Atributo                                               | Dónde va                                                                        | Usado por                                                 |
+| ----------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Card de producto              | `data-product-id="<id>"`                               | contenedor raíz de `molecules/product.ejs`                                      | futuros JS                                                |
+| Botón agregar al carrito      | `data-cart-action="add"` `data-product-id="<id>"`      | `<button>` en `molecules/product.ejs`                                           | `cart.js`                                                 |
+| Fila de ítem en `/cart`       | `data-cart-item="<productId>"`                         | contenedor raíz de `organisms/cart-item.ejs`                                    | `cart.js` (`updateCartUI`)                                |
+| Cantidad del ítem             | `data-quantity`                                        | `<span>` en `molecules/numeric.ejs`                                             | `cart.js`                                                 |
+| Subtotal del ítem             | `data-subtotal`                                        | `<span>` en `organisms/cart-item.ejs`                                           | `cart.js`                                                 |
+| Botón `+`                     | `data-cart-action="increase"` `data-product-id="<id>"` | `<button>` en `molecules/numeric.ejs`                                           | `cart.js`                                                 |
+| Botón `-`                     | `data-cart-action="decrease"` `data-product-id="<id>"` | `<button>` en `molecules/numeric.ejs`                                           | `cart.js`                                                 |
+| Botón "Quitar"                | `data-cart-action="remove"` `data-product-id="<id>"`   | `<button>` en `organisms/cart-item.ejs`                                         | `cart.js`                                                 |
+| Botón "Vaciar carrito"        | `data-cart-action="clear"`                             | `<button>` en `pages/cart.ejs`                                                  | `cart.js`                                                 |
+| Total del carrito             | `data-cart-total`                                      | `<span>` del total en `pages/cart.ejs`                                          | `cart.js`                                                 |
+| Contador del header           | `data-cart-count`                                      | `atoms/badge-counter.ejs` → `cart-icon.ejs` → `header-right.ejs` → `header.ejs` | `cart.js` (hidratado con `GET /api/cart`, §24)            |
+| Mensaje de carrito vacío      | `data-cart-empty` (con clase `hidden` por defecto)     | `pages/cart.ejs`                                                                | `cart.js`                                                 |
+| Plantilla de fila del carrito | `id="cart-item-template"`                              | `<template>` en `pages/cart.ejs`                                                | `cart.js` (clona y rellena, §24)                          |
+| Formulario de checkout        | `data-checkout-form`                                   | `<form>` en `pages/checkout.ejs`                                                | `checkout-validation.js` + `checkout.js` (§19/§24)        |
+| Botón de confirmar compra     | `data-checkout-submit`                                 | `<button type="submit">` en `pages/checkout.ejs`                                | `checkout.js` (§19/§24)                                   |
+| Resumen del checkout          | `data-checkout-summary` `data-checkout-total`          | `pages/checkout.ejs` (aside)                                                    | `checkout.js` (`GET /api/checkout`)                       |
+| Errores del checkout          | `data-checkout-errors`                                 | `pages/checkout.ejs`                                                            | `checkout.js` (400 del server)                            |
+| Formulario de login/registro  | `data-auth-form` `data-auth-endpoint`                  | `<form>` en `pages/login.ejs` / `pages/register.ejs`                            | `auth.js` (§23.4)                                         |
+| Caja de errores de auth       | `data-auth-error`                                      | `<div role="alert">` en los forms de auth                                       | `auth.js` (400/409/401 del server)                        |
+| Botón de logout               | `data-auth-logout`                                     | `<button>` (header, solo renderizado si hay usuario)                            | `auth.js` (POST /api/auth/logout, C9)                     |
+| Estado de sesión en `<body>`  | `data-logged-in="true\|false"`                         | `templates/layout.ejs`                                                          | `cart.js` (¿hay sesión? para el carrito, §24.3) y páginas |
 
 > **Nota — perfil (spec §23.4, enmienda cookie httpOnly):** el botón de perfil
 > (`profile-btn.ejs`) y el nombre del header ya **no** se hidratan por JS: los
@@ -638,7 +642,7 @@ export function normalizeId(raw: string): number | null {
   `/api/categories/:segmento`): no tienen rutas, así que el guard
   `validateCollectionId` preserva el 400 heredado del antiguo middleware global.
   **Deuda documentada (§22.5):** ese middleware tenía un bug (capturaba el grupo
-  1 de la regex, la colección, en vez del id) y responde 400 a *todo* id,
+  1 de la regex, la colección, en vez del id) y responde 400 a _todo_ id,
   incluidos los numéricos.
 - Órdenes (`/api/orders/:id`): ya tiene rutas, así que valida su id por ruta con
   `validateId("id")` antes de `authenticate` (spec §23.6) — no usa el guard
@@ -651,8 +655,9 @@ export function normalizeId(raw: string): number | null {
 **No es AJAX.** En `product.service.ts`, cada `ProductView` lleva
 `inStock: product.stock > 0`. En `molecules/product.ejs` y
 `pages/product-detail.ejs`, si `!product.inStock` → badge `.badge-out-of-stock`
-+ botón deshabilitado (`.btn-disabled`). El backend también rechaza
-`stock === 0` en el carrito (400 "Product out of stock", sesión intacta).
+
+- botón deshabilitado (`.btn-disabled`). El backend también rechaza
+  `stock === 0` en el carrito (400 "Product out of stock", sesión intacta).
 
 ### §6.11 Total del carrito en el header
 
@@ -662,6 +667,7 @@ los `[data-cart-count]` con el `count` del JSON). Se mantiene client-side para
 no meter a Redis en cada render de página (C7): si Redis cae, las páginas
 siguen funcionando. Con la cookie httpOnly, la página sabe si hay sesión por
 `data-logged-in` y `cart.js` solo hidrata con sesión.
+
 > ⚠️ **Reemplazado:** el antiguo middleware `injectCartCount` (server-side) se
 > eliminó con la sesión.
 
@@ -701,21 +707,21 @@ por todas las páginas vía `express-ejs-layouts`
 
 Resumen de pasos completados (ver `resultado-primer-sprint.md`):
 
-| Paso | Alcance | PR |
-|---|---|---|
-| 0–1 | Saneamiento base + capa de datos + seed | #29 |
-| 2 | Cloudinary (integrado y luego eliminado, ver §2) | #30 → #71 |
-| 3 | Nav de categorías + íconos | #30 |
-| 4 | Componentes de producto | #31 |
-| 5 | Home completo | #32 |
-| 6 | Carrito completo (backend + vista + AJAX) | #33 |
-| 7 | Contador de carrito | #34 |
-| 8 | Detalle de producto + breadcrumb + relacionados | #34 |
-| 9 | Login/Register + validación | #35 |
-| 10 | Páginas 404/500 | #36 |
-| 11 | Categoría + Checkout placeholder | #37 |
-| 12 | Ordenar y buscar + carrito global | #38 |
-| 13 | Componentes opcionales (menús + dialog) | #39 |
+| Paso | Alcance                                          | PR        |
+| ---- | ------------------------------------------------ | --------- |
+| 0–1  | Saneamiento base + capa de datos + seed          | #29       |
+| 2    | Cloudinary (integrado y luego eliminado, ver §2) | #30 → #71 |
+| 3    | Nav de categorías + íconos                       | #30       |
+| 4    | Componentes de producto                          | #31       |
+| 5    | Home completo                                    | #32       |
+| 6    | Carrito completo (backend + vista + AJAX)        | #33       |
+| 7    | Contador de carrito                              | #34       |
+| 8    | Detalle de producto + breadcrumb + relacionados  | #34       |
+| 9    | Login/Register + validación                      | #35       |
+| 10   | Páginas 404/500                                  | #36       |
+| 11   | Categoría + Checkout placeholder                 | #37       |
+| 12   | Ordenar y buscar + carrito global                | #38       |
+| 13   | Componentes opcionales (menús + dialog)          | #39       |
 
 ---
 
@@ -947,6 +953,7 @@ src/
 ```
 
 Notas:
+
 - `orders.routes.ts` ya tiene `GET /api/orders` y `GET /api/orders/:id`
   (autenticadas, §23.6); `auth.routes.ts` tiene register/login/me (§23).
   `products.routes.ts` y `categories.routes.ts` siguen sin endpoints reales.
@@ -989,6 +996,7 @@ app.set("views", path.join(__dirname, "views"));
 ```
 
 Resolución de rutas en Express:
+
 - `res.render("templates/pages/404", {...})` → `src/views/templates/pages/404.ejs` (dev)
 - `res.render("templates/pages/404", {...})` → `dist/views/templates/pages/404.ejs` (prod)
 
@@ -1015,16 +1023,16 @@ fueron eliminadas en el PR #51.
 > **Sección nueva.** Coherentes con `.env.example`; leídas por
 > `src/config/env.ts` (y `process.env.PORT` en `app.ts`).
 
-| Variable | Uso | Default en código | Validación |
-|---|---|---|---|
-| `PORT` | Puerto del servidor Express | `3000` | numérico; si falta/inválido usa default |
-| `REDIS_URL` | URL de conexión del carrito (§24) | `redis://localhost:6379` (dev) | en producción es obligatoria (falla al arrancar) |
-| `JWT_SECRET` | Secreto de firma de los JWT (`§23.1`) | `""` | texto; **en producción** falta o <32 chars → falla al arrancar |
-| `JWT_EXPIRES_IN` | Vida del access token JWT | `"2h"` | formato de `jsonwebtoken` (`2h`, `30m`, `7d`) |
-| `CSP_UPGRADE_INSECURE` | Fuerza HTTPS en subrecursos (`upgrade-insecure-requests`) | `false` | booleano (`true/1/yes/on`, `false/0/no/off`); inválido → warning + `false` |
-| `FALLBACK_IMAGE_URL` | Imagen fallback de productos | `https://placehold.co/600x600?text=Sin+imagen` | URL `http(s)://...` o ruta que empiece con `/`; si falta/inválida → warning + default |
-| `COOKIE_SECURE` | Cookie httpOnly con `Secure` (§23.1/C5, enmienda) | `false` | booleano (`true/1/yes/on`, `false/0/no/off`); si falta o es inválido → warning + `false`. Se activa **solo detrás de HTTPS** |
-| `DB_PATH` | Ruta del archivo SQLite | `dev.db` en la raíz del proyecto | si falta o está vacía → default; los tests de checkout usan una DB temporal (§19.6) |
+| Variable               | Uso                                                       | Default en código                              | Validación                                                                                                                   |
+| ---------------------- | --------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                 | Puerto del servidor Express                               | `3000`                                         | numérico; si falta/inválido usa default                                                                                      |
+| `REDIS_URL`            | URL de conexión del carrito (§24)                         | `redis://localhost:6379` (dev)                 | en producción es obligatoria (falla al arrancar)                                                                             |
+| `JWT_SECRET`           | Secreto de firma de los JWT (`§23.1`)                     | `""`                                           | texto; **en producción** falta o <32 chars → falla al arrancar                                                               |
+| `JWT_EXPIRES_IN`       | Vida del access token JWT                                 | `"2h"`                                         | formato de `jsonwebtoken` (`2h`, `30m`, `7d`)                                                                                |
+| `CSP_UPGRADE_INSECURE` | Fuerza HTTPS en subrecursos (`upgrade-insecure-requests`) | `false`                                        | booleano (`true/1/yes/on`, `false/0/no/off`); inválido → warning + `false`                                                   |
+| `FALLBACK_IMAGE_URL`   | Imagen fallback de productos                              | `https://placehold.co/600x600?text=Sin+imagen` | URL `http(s)://...` o ruta que empiece con `/`; si falta/inválida → warning + default                                        |
+| `COOKIE_SECURE`        | Cookie httpOnly con `Secure` (§23.1/C5, enmienda)         | `false`                                        | booleano (`true/1/yes/on`, `false/0/no/off`); si falta o es inválido → warning + `false`. Se activa **solo detrás de HTTPS** |
+| `DB_PATH`              | Ruta del archivo SQLite                                   | `dev.db` en la raíz del proyecto               | si falta o está vacía → default; los tests de checkout usan una DB temporal (§19.6)                                          |
 
 `.env.example`:
 
@@ -1111,18 +1119,18 @@ Todos los archivos TypeScript usan JSDoc con:
 Checkout real, **síncrono**, sobre `better-sqlite3` (D1). Decisiones tomadas
 en el plan de ejecución (no re-discutir):
 
-| Decisión | Detalle |
-|---|---|
-| D1 | Se mantiene `better-sqlite3` síncrono; no se migra a async (ver §19.7) |
-| D2 | La seguridad ante concurrencia sale de la DB: transacción real + `UPDATE` atómico de stock |
-| D3 | Nunca read-then-write de stock en JS: `UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?` + verificar `changes` |
-| D4 | Precios **siempre** desde la DB, leídos dentro de la transacción |
-| D5 | ~~Usuario guest temporal~~ **Reemplazado** por el usuario autenticado real (`req.user.id`, spec §23/§24). `ensureGuestUser` se eliminó. |
-| D6 | Idempotencia por `checkout_token` UNIQUE: un reenvío del mismo formulario devuelve la orden ya creada |
-| D7 | La confirmación se accede por token, nunca por `orders.id` |
-| D8 | El stock se descuenta al crear la orden (estado `pending`) |
-| D9 | No se piden ni guardan datos de tarjeta; `payment_method` es solo preferencia |
-| D10 | No se crea ninguna tabla nueva; solo columnas aditivas en `orders` (§1.1) |
+| Decisión | Detalle                                                                                                                                 |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| D1       | Se mantiene `better-sqlite3` síncrono; no se migra a async (ver §19.7)                                                                  |
+| D2       | La seguridad ante concurrencia sale de la DB: transacción real + `UPDATE` atómico de stock                                              |
+| D3       | Nunca read-then-write de stock en JS: `UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?` + verificar `changes`         |
+| D4       | Precios **siempre** desde la DB, leídos dentro de la transacción                                                                        |
+| D5       | ~~Usuario guest temporal~~ **Reemplazado** por el usuario autenticado real (`req.user.id`, spec §23/§24). `ensureGuestUser` se eliminó. |
+| D6       | Idempotencia por `checkout_token` UNIQUE: un reenvío del mismo formulario devuelve la orden ya creada                                   |
+| D7       | La confirmación se accede por token, nunca por `orders.id`                                                                              |
+| D8       | El stock se descuenta al crear la orden (estado `pending`)                                                                              |
+| D9       | No se piden ni guardan datos de tarjeta; `payment_method` es solo preferencia                                                           |
+| D10      | No se crea ninguna tabla nueva; solo columnas aditivas en `orders` (§1.1)                                                               |
 
 ### §19.2 Flujo
 
@@ -1263,11 +1271,11 @@ páginas (incluidas 404 y 500, que también usan el layout base, §6.14).
 
 ### §20.1 Archivos
 
-| Archivo (`public/`) | Formato | Detalle |
-|---|---|---|
-| `favicon.svg` | SVG | Logo vectorial (carrito blanco sobre teal `#0f766e`, coherente con la banda teal de Login/Register, §4.4); nítido a cualquier tamaño |
-| `favicon.ico` | ICO | 16/32/48 px; fallback para navegadores viejos + la petición implícita `GET /favicon.ico` (antes caía en el catch-all 404, §6.1) |
-| `apple-touch-icon.png` | PNG | 180×180; ícono al guardar en pantalla de inicio (iOS) |
+| Archivo (`public/`)    | Formato | Detalle                                                                                                                              |
+| ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `favicon.svg`          | SVG     | Logo vectorial (carrito blanco sobre teal `#0f766e`, coherente con la banda teal de Login/Register, §4.4); nítido a cualquier tamaño |
+| `favicon.ico`          | ICO     | 16/32/48 px; fallback para navegadores viejos + la petición implícita `GET /favicon.ico` (antes caía en el catch-all 404, §6.1)      |
+| `apple-touch-icon.png` | PNG     | 180×180; ícono al guardar en pantalla de inicio (iOS)                                                                                |
 
 Los tres están en la raíz de `public/` (junto a `js/`); el build los
 copia a `dist/public/` y `express.static` los sirve desde ahí. No hay
@@ -1318,14 +1326,14 @@ merge del PR a main ─────► CI ──► si pasa ──► build de i
 
 ### §21.2 Archivos
 
-| Archivo | Propósito |
-|---|---|
-| `Dockerfile` | Imagen multi-stage: build tools solo en stage 1, runtime sin herramientas de compilación |
-| `.dockerignore` | Excluye secretos, DBs locales, node_modules, git, etc. de la imagen |
+| Archivo                       | Propósito                                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `Dockerfile`                  | Imagen multi-stage: build tools solo en stage 1, runtime sin herramientas de compilación                               |
+| `.dockerignore`               | Excluye secretos, DBs locales, node_modules, git, etc. de la imagen                                                    |
 | `.github/workflows/ci-cd.yml` | Pipeline: `ci` (build + test:checkout + test:middlewares + test:auth + test:cart) y `publish` (build + push a ghcr.io) |
-| `docker-compose.prod.yml` | Plantilla de despliegue para el servidor (app + cloudflared) |
-| `.env.prod.example` | Placeholder de variables de producción (JWT_SECRET, JWT_EXPIRES_IN, REDIS_PASSWORD, TUNNEL_TOKEN) |
-| `AGENTS.md` | Marco de trabajo para agentes: regla de actualización del CI al crear tests |
+| `docker-compose.prod.yml`     | Plantilla de despliegue para el servidor (app + cloudflared)                                                           |
+| `.env.prod.example`           | Placeholder de variables de producción (JWT_SECRET, JWT_EXPIRES_IN, REDIS_PASSWORD, TUNNEL_TOKEN)                      |
+| `AGENTS.md`                   | Marco de trabajo para agentes: regla de actualización del CI al crear tests                                            |
 
 ### §21.3 Dockerfile
 
@@ -1390,33 +1398,37 @@ Archivo: `.github/workflows/ci-cd.yml`.
 
 ### §21.5 docker-compose.prod.yml
 
-- Servicio `tienda`: imagen `ghcr.io/<usuario>/<repo>:latest`, `restart: unless-stopped`,
-  variables desde `.env`, volumen nombrado `tienda-data:/data`, **sin `ports`**
-  (detrás de Cloudflare Tunnel) y `depends_on: redis` (healthy). Recibe
-  `REDIS_URL=redis://:<REDIS_PASSWORD>@redis:6379`, `COOKIE_SECURE`
-  (`${COOKIE_SECURE:-false}`, enmienda cookie httpOnly §23.1/C5) y
-  `CSP_UPGRADE_INSECURE` (default `false`).
-- Servicio `redis` (spec §24): `redis:7-alpine`, `--appendonly yes` + volumen
-  `redis-data` (persistencia del carrito), `--maxmemory 128mb` +
-  `--maxmemory-policy noeviction` (no descartar carritos), `--requirepass` y
-  healthcheck `redis-cli ping`. **Sin `ports`**: solo red interna de Compose.
-- Servicio `cloudflared`: `cloudflare/cloudflared:latest`, comando
-  `tunnel --no-autoupdate run`, `TUNNEL_TOKEN` desde `.env`.
-- Volúmenes `tienda-data` (SQLite) y `redis-data` (Redis).
+- Proyecto Compose `ecommerce-two`. Los secretos (`JWT_SECRET`, `REDIS_PASSWORD`)
+  se leen de `.env` por interpolación `${...}`; si faltan, `docker compose` aborta
+  con un mensaje claro. No hay Cloudflare Tunnel.
+- Servicio `tienda`: imagen `ghcr.io/elses2/ecommerce-two:latest`,
+  `restart: unless-stopped`, **publica `18480:3000`**, `NODE_ENV=production`,
+  `PORT=3000`, `DB_PATH=/data/shop.db`, `JWT_SECRET`, `JWT_EXPIRES_IN`
+  (default `2h`), `FALLBACK_IMAGE_URL`, `COOKIE_SECURE` y `CSP_UPGRADE_INSECURE`
+  (ambos default `false`, enmienda cookie httpOnly §23.1/C5 y §22.2).
+  Recibe `REDIS_URL=redis://:<REDIS_PASSWORD>@redis:6379`. Persiste SQLite en el
+  bind mount `/mnt/nas/EcommerceTwo/data:/data` (el contenedor corre como usuario
+  `node`, uid 1000: la carpeta debe ser escribible por él). `depends_on: redis`
+  (healthy).
+- Servicio `redis` (spec §24): `redis:7-alpine`, `--appendonly yes`,
+  `--requirepass`, `--maxmemory 128mb` + `--maxmemory-policy noeviction` (no
+  descartar carritos). Persiste en el bind mount
+  `/mnt/nas/EcommerceTwo/redis:/data`. Healthcheck con `redis-cli -a
+"$REDIS_PASSWORD" ping`. **Sin `ports`**: solo red interna de Compose.
+- Datos persistentes: SQLite (`.../data`) y Redis (`.../redis`) en bind mounts del NAS.
 
 ### §21.6 Variables de producción
 
-| Variable | Propósito | Dónde se define |
-|---|---|---|
-| `JWT_SECRET` | Secreto de firma de JWT (≥ 32 chars) | `.env` en el servidor (ver `.env.prod.example`) |
-| `JWT_EXPIRES_IN` | Vida del access token (default `2h`) | `.env` o default |
-| `REDIS_PASSWORD` | Contraseña de Redis; compose arma `REDIS_URL` | `.env` en el servidor |
-| `CSP_UPGRADE_INSECURE` | `true` solo detrás de HTTPS; `false` para `http://IP:PUERTO` (default `false`) | `.env` o default |
-| `TUNNEL_TOKEN` | Token de Cloudflare Tunnel | `.env` en el servidor (ver `.env.prod.example`) |
-| `COOKIE_SECURE` | Cookie httpOnly con `Secure` (§23.1/C5); `true` solo detrás de HTTPS | `.env` o default `false` (ver `.env.prod.example`) |
-| `PORT` | Puerto (default 3000, heredado de §16) | `.env` o default |
-| `DB_PATH` | Ruta de la DB (default `/data/shop.db`, heredado de §16) | `.env` o default |
-| `FALLBACK_IMAGE_URL` | URL de imagen por defecto (heredado de §16) | `.env` o default |
+| Variable               | Propósito                                                                              | Dónde se define                                 |
+| ---------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `JWT_SECRET`           | Secreto de firma de JWT (≥ 32 chars). Obligatorio                                      | `.env` en el servidor (ver `.env.prod.example`) |
+| `REDIS_PASSWORD`       | Contraseña de Redis; el compose arma `REDIS_URL`. Obligatoria; usar hex                | `.env` en el servidor                           |
+| `JWT_EXPIRES_IN`       | Vida del access token (default `2h`)                                                   | `.env` o default                                |
+| `COOKIE_SECURE`        | Cookie httpOnly con `Secure` (§23.1/C5); `true` solo detrás de HTTPS (default `false`) | `.env` o default                                |
+| `CSP_UPGRADE_INSECURE` | `true` solo detrás de HTTPS; `false` para `http://IP:PUERTO` (default `false`)         | `.env` o default                                |
+| `FALLBACK_IMAGE_URL`   | URL de imagen por defecto (heredado de §16)                                            | `.env` o default                                |
+| `PORT`                 | Puerto interno (fijo en `3000` en el compose; se publica como `18480`)                 | compose                                         |
+| `DB_PATH`              | Ruta de la DB (fija en `/data/shop.db` en el compose)                                  | compose                                         |
 
 Ninguna se hornea en la imagen.
 
@@ -1448,16 +1460,16 @@ docker compose pull && docker compose up -d
 ## §22. Arquitectura de middlewares
 
 > **Sección nueva** (issue #91). Refactor puro: reorganiza los middlewares en
-tres grupos y saca de `app.ts` la configuración de librerías y el 404 inline,
-sin cambiar el comportamiento (verificado con `npm run test:middlewares`).
+> tres grupos y saca de `app.ts` la configuración de librerías y el 404 inline,
+> sin cambiar el comportamiento (verificado con `npm run test:middlewares`).
 
 ### §22.1 Los tres tipos
 
-| Tipo | Qué es | Dónde se define | Dónde se monta |
-|---|---|---|---|
-| **Global** | Corre en (casi) todas las peticiones | `src/middlewares/global/` | `app.ts` con `app.use(...)` |
-| **Route** | Solo en rutas concretas, encadenado antes del controller | `src/middlewares/route/` | `src/routes/**/*.ts` |
-| **Error / terminal** | Cierra la cadena: 404 y manejo de errores | `src/middlewares/error/` | `app.ts`, al final, en orden fijo |
+| Tipo                 | Qué es                                                   | Dónde se define           | Dónde se monta                    |
+| -------------------- | -------------------------------------------------------- | ------------------------- | --------------------------------- |
+| **Global**           | Corre en (casi) todas las peticiones                     | `src/middlewares/global/` | `app.ts` con `app.use(...)`       |
+| **Route**            | Solo en rutas concretas, encadenado antes del controller | `src/middlewares/route/`  | `src/routes/**/*.ts`              |
+| **Error / terminal** | Cierra la cadena: 404 y manejo de errores                | `src/middlewares/error/`  | `app.ts`, al final, en orden fijo |
 
 ### §22.2 Estructura
 
@@ -1484,7 +1496,7 @@ src/middlewares/
 - **Sin barrel files** (`index.ts`): cada consumidor importa el archivo directo.
 - El CSP de `helmet` (en `base.middleware.ts`) declara los orígenes reales del
   layout: `'self'` para `/css`, `/js`, favicons y `fetch` a `/api/*`; `img-src
-  'self' data: https:` para las imágenes de productos/banners y el fallback de
+'self' data: https:` para las imágenes de productos/banners y el fallback de
   `placehold.co`; `script-src-attr 'unsafe-inline'` porque las imágenes usan
   `onerror` inline; y `upgrade-insecure-requests` controlado por
   `CSP_UPGRADE_INSECURE` (default `false`, spec §16).
@@ -1531,19 +1543,19 @@ Dentro de `baseMiddlewares` el orden interno también es contrato:
 
 ### §22.5 Middlewares e inventario
 
-| Middleware | Origen | Definición | Montaje | Alcance real | Grupo | ¿SPEC previa? |
-|---|---|---|---|---|---|---|
-| `helmet`, `express.static`, `cookieParser`, `express.json`, `express.urlencoded`, `expressLayouts` | librería | `global/base.middleware.ts` | `app.ts` (`baseMiddlewares`) | global | global | parcial (§14/§15/§6.14/§24/§23.1) |
-| `attachUser` | propio | `global/attach-user.middleware.ts` | `app.ts` (`app.use`) | global, blando: identidad para vistas | global | §23.3 (enmienda cookie httpOnly) |
-| `csrfOrigin` | propio | `global/csrf-origin.middleware.ts` | `app.ts` (`app.use`) | global: mutaciones con origen ajeno → 403 | global | §23.5 (C4, enmienda) |
-| `validateId(param)` | propio | `route/validate-id.middleware.ts` | `routes/api/cart.routes.ts` y `routes/api/orders.routes.ts` | `/api/cart/*/:productId` y `/api/orders/:id` | route | §6.9 |
-| `validateCollectionId` | propio | `route/validate-id.middleware.ts` | `routes/api/{products,categories}.routes.ts` | `/api/{colecciones}/:segmento` | route | §6.9 (deuda) |
-| `authenticate` | propio | `route/authenticate.middleware.ts` | `routes/api/auth.routes.ts` (me) y `routes/api/orders.routes.ts` | rutas protegidas | route | §23.3 (header o cookie, C3) |
-| `requirePageAuth` | propio | `route/require-page-auth.middleware.ts` | `routes/pages.routes.ts` (`/cart`, `/checkout`) | páginas con sesión | route | §24.3 (enmienda) |
-| `authorize(...roles)` | propio | `route/authorize.middleware.ts` | sin endpoints admin todavía (cubierto por A7) | rutas admin | route | §23.6 |
-| `notFound` | propio | `error/not-found.middleware.ts` | `app.ts` | terminal | error | §6.1 |
-| `errorHandler` | propio | `error/error-handler.middleware.ts` | `app.ts` | terminal último | error | §6.2 |
-| `swaggerUi.serve` / `swaggerUi.setup` | librería | `routes/docs.routes.ts` | router `/api-docs` | `/api-docs` | (router) | §10 |
+| Middleware                                                                                         | Origen   | Definición                              | Montaje                                                          | Alcance real                                 | Grupo    | ¿SPEC previa?                     |
+| -------------------------------------------------------------------------------------------------- | -------- | --------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------- | -------- | --------------------------------- |
+| `helmet`, `express.static`, `cookieParser`, `express.json`, `express.urlencoded`, `expressLayouts` | librería | `global/base.middleware.ts`             | `app.ts` (`baseMiddlewares`)                                     | global                                       | global   | parcial (§14/§15/§6.14/§24/§23.1) |
+| `attachUser`                                                                                       | propio   | `global/attach-user.middleware.ts`      | `app.ts` (`app.use`)                                             | global, blando: identidad para vistas        | global   | §23.3 (enmienda cookie httpOnly)  |
+| `csrfOrigin`                                                                                       | propio   | `global/csrf-origin.middleware.ts`      | `app.ts` (`app.use`)                                             | global: mutaciones con origen ajeno → 403    | global   | §23.5 (C4, enmienda)              |
+| `validateId(param)`                                                                                | propio   | `route/validate-id.middleware.ts`       | `routes/api/cart.routes.ts` y `routes/api/orders.routes.ts`      | `/api/cart/*/:productId` y `/api/orders/:id` | route    | §6.9                              |
+| `validateCollectionId`                                                                             | propio   | `route/validate-id.middleware.ts`       | `routes/api/{products,categories}.routes.ts`                     | `/api/{colecciones}/:segmento`               | route    | §6.9 (deuda)                      |
+| `authenticate`                                                                                     | propio   | `route/authenticate.middleware.ts`      | `routes/api/auth.routes.ts` (me) y `routes/api/orders.routes.ts` | rutas protegidas                             | route    | §23.3 (header o cookie, C3)       |
+| `requirePageAuth`                                                                                  | propio   | `route/require-page-auth.middleware.ts` | `routes/pages.routes.ts` (`/cart`, `/checkout`)                  | páginas con sesión                           | route    | §24.3 (enmienda)                  |
+| `authorize(...roles)`                                                                              | propio   | `route/authorize.middleware.ts`         | sin endpoints admin todavía (cubierto por A7)                    | rutas admin                                  | route    | §23.6                             |
+| `notFound`                                                                                         | propio   | `error/not-found.middleware.ts`         | `app.ts`                                                         | terminal                                     | error    | §6.1                              |
+| `errorHandler`                                                                                     | propio   | `error/error-handler.middleware.ts`     | `app.ts`                                                         | terminal último                              | error    | §6.2                              |
+| `swaggerUi.serve` / `swaggerUi.setup`                                                              | librería | `routes/docs.routes.ts`                 | router `/api-docs`                                               | `/api-docs`                                  | (router) | §10                               |
 
 No se encontraron más middlewares. Quedan fuera de este inventario (no son
 middlewares): los handlers de páginas `renderRegisterPage`/`renderLoginPage`
@@ -1553,7 +1565,7 @@ controller del carrito.
 **Deuda documentada (bug de la validación de colecciones).** El antiguo
 middleware global de ids capturaba con su regex el **grupo 1** (el nombre de la
 colección `products|categories|orders`) en vez del grupo 2 (el id), así que
-respondía 400 a *toda* ruta de un segmento bajo esas colecciones, incluidos ids
+respondía 400 a _toda_ ruta de un segmento bajo esas colecciones, incluidos ids
 numéricos (`/api/products/5`, `/api/products/999999`). En el PR de middlewares
 se conservó ese 400 en `validateCollectionId` (refactor puro). En el PR de
 autorización, **órdenes dejó de usar el guard** (ya tiene rutas y valida su `:id`
@@ -1606,12 +1618,12 @@ sigue siendo deuda: cambiaría el baseline M7/M8/M9 de
 
 ### §23.2 Endpoints y service
 
-| Endpoint | Protegido | Respuestas |
-|---|---|---|
-| `POST /api/auth/register` | No | `201 { user }` + cookie · `400 { errors }` · `409 { errors }` |
-| `POST /api/auth/login` | No | `200 { user }` + cookie · `401 { errors }` |
-| `POST /api/auth/logout` | No | `204` (borra la cookie, C9) |
-| `GET /api/auth/me` | Sí | `200 { user }` · `401 { error }` |
+| Endpoint                  | Protegido | Respuestas                                                    |
+| ------------------------- | --------- | ------------------------------------------------------------- |
+| `POST /api/auth/register` | No        | `201 { user }` + cookie · `400 { errors }` · `409 { errors }` |
+| `POST /api/auth/login`    | No        | `200 { user }` + cookie · `401 { errors }`                    |
+| `POST /api/auth/logout`   | No        | `204` (borra la cookie, C9)                                   |
+| `GET /api/auth/me`        | Sí        | `200 { user }` · `401 { error }`                              |
 
 - `src/services/auth.service.ts` (`authService`): no conoce Express ni SQL (regla
   §0). Los errores de negocio **se devuelven** como resultado tipado
@@ -1699,10 +1711,10 @@ su dueño o es admin; si no, `null` y el controller responde **404** (nunca 403,
 para no revelar que la orden existe). `listForUser(userId)` lista solo las
 propias.
 
-| Endpoint | Protegido | Respuestas |
-|---|---|---|
-| `GET /api/orders` | Sí | `200 { orders }` (con items) · `401` |
-| `GET /api/orders/:id` | Sí | `200 { order, items }` · `400` id malformado · `401` · `404` inexistente o ajena |
+| Endpoint              | Protegido | Respuestas                                                                       |
+| --------------------- | --------- | -------------------------------------------------------------------------------- |
+| `GET /api/orders`     | Sí        | `200 { orders }` (con items) · `401`                                             |
+| `GET /api/orders/:id` | Sí        | `200 { order, items }` · `400` id malformado · `401` · `404` inexistente o ajena |
 
 - `src/repositories/order.repository.ts` suma `findById` y `findByUserId`.
 - `src/controllers/api/order.controller.ts` orquesta; `routes/api/orders.routes.ts`
@@ -1740,16 +1752,16 @@ crea con rol `admin` e `INSERT OR IGNORE` (idempotente).
 
 ### §24.2 Endpoints
 
-| Endpoint | Protegido | Notas |
-|---|---|---|
-| `GET /api/cart` | Sí | Carga inicial + contador del header. |
-| `POST /api/cart/add/:productId` | Sí | Igual que antes (existencia/stock en el controller). |
-| `PATCH /api/cart/increase|decrease/:productId` | Sí | `validateId` encadenado. |
-| `DELETE /api/cart/remove/:productId` | Sí | — |
-| `DELETE /api/cart/clear` | Sí | — |
-| `GET /api/checkout` | Sí | `{ checkoutToken, cart }`. |
-| `POST /api/checkout` | Sí | `201 { confirmationToken }`; líneas **siempre** de Redis. |
-| `GET /checkout/confirmation/:token` | No | SSR; el token de 128 bits es la credencial (D7). |
+| Endpoint                             | Protegido            | Notas                                                     |
+| ------------------------------------ | -------------------- | --------------------------------------------------------- |
+| `GET /api/cart`                      | Sí                   | Carga inicial + contador del header.                      |
+| `POST /api/cart/add/:productId`      | Sí                   | Igual que antes (existencia/stock en el controller).      |
+| `PATCH /api/cart/increase            | decrease/:productId` | Sí                                                        | `validateId` encadenado. |
+| `DELETE /api/cart/remove/:productId` | Sí                   | —                                                         |
+| `DELETE /api/cart/clear`             | Sí                   | —                                                         |
+| `GET /api/checkout`                  | Sí                   | `{ checkoutToken, cart }`.                                |
+| `POST /api/checkout`                 | Sí                   | `201 { confirmationToken }`; líneas **siempre** de Redis. |
+| `GET /checkout/confirmation/:token`  | No                   | SSR; el token de 128 bits es la credencial (D7).          |
 
 - El checkout lee el carrito de Redis **antes** de la transacción SQLite y lo
   limpia **después** del commit (D1/D2/D3 intactas, §19.7).
@@ -1786,70 +1798,70 @@ crea con rol `admin` e `INSERT OR IGNORE` (idempotente).
 
 ## Tabla de equivalencias — `§` original → `SPEC.md`
 
-| `§` original (spec sprint 1) | `§` en `SPEC.md` | Estado |
-|---|---|---|
-| §0 Contexto del proyecto | §0 | Vigente (árbol actualizado) |
-| §1 Base de datos | §1 | Vigente |
-| §1.1 Esquema | §1.1 | Vigente |
-| §1.2 Categorías N:M | §1.2 | Vigente |
-| §1.3 Atributos derivados | §1.3 | Vigente |
-| §1.4 Migración de datos | §1.4 | Reemplazado (→ seed, §12) |
-| §2 Integración con Cloudinary | §2 Imágenes — fallback configurable | Reemplazado (PR #71) |
-| §2.1 Config | §2.1 | Reemplazado (PR #71) |
-| §2.2 Escenarios de uso | §2.2 | Reemplazado (PR #71) |
-| §2.3 Helper de fallback | §2.3 | Reemplazado (PR #71) |
-| §3 Sistema de diseño | §3 | Vigente |
-| §4 Mapeo de páginas | §4 | Vigente |
-| §4.1–§4.6 | §4.1–§4.6 | Vigente |
-| §5 Contrato `data-*` | §5 | Vigente |
-| §6 Funcionalidades | §6 | Vigente |
-| §6.1–§6.14 | §6.1–§6.14 | Vigente (con notas de persistencia §11) |
-| §7 Checklist de pasos | §7 | Histórico (completado) |
-| §8 Fase futura WebSockets | §8 | Vigente (futuro, no implementado) |
-| §9 Checklist de validación | §9 | Vigente |
-| — (nuevo) | §10 Swagger / OpenAPI | Nuevo |
-| — (nuevo) | §11 Persistencia de sesión SQLite | Nuevo |
-| — (nuevo) | §12 Seed idempotente | Nuevo |
-| — (nuevo) | §13 `.gitattributes` EOL | Nuevo |
-| — (nuevo) | §14 Estructura de directorios | Nuevo |
-| — (nuevo) | §15 Árbol atómico de views | Nuevo |
-| — (nuevo) | §16 Variables de entorno | Nuevo |
-| — (nuevo) | §17 Documentación generada `docs/` | Nuevo |
-| — (nuevo) | §18 Convención JSDoc | Nuevo |
-| — (nuevo) | §19 Checkout | Nuevo |
-| — (nuevo) | §20 Favicon / logo de pestaña | Nuevo |
-| — (nuevo) | §21 CI/CD y despliegue | Nuevo |
-| — (nuevo) | §22 Arquitectura de middlewares | Nuevo |
-| — (nuevo) | §23 Autenticación y autorización (JWT) | Nuevo |
-| — (nuevo) | §24 Carrito en Redis y arquitectura stateless | Nuevo |
+| `§` original (spec sprint 1)  | `§` en `SPEC.md`                              | Estado                                  |
+| ----------------------------- | --------------------------------------------- | --------------------------------------- |
+| §0 Contexto del proyecto      | §0                                            | Vigente (árbol actualizado)             |
+| §1 Base de datos              | §1                                            | Vigente                                 |
+| §1.1 Esquema                  | §1.1                                          | Vigente                                 |
+| §1.2 Categorías N:M           | §1.2                                          | Vigente                                 |
+| §1.3 Atributos derivados      | §1.3                                          | Vigente                                 |
+| §1.4 Migración de datos       | §1.4                                          | Reemplazado (→ seed, §12)               |
+| §2 Integración con Cloudinary | §2 Imágenes — fallback configurable           | Reemplazado (PR #71)                    |
+| §2.1 Config                   | §2.1                                          | Reemplazado (PR #71)                    |
+| §2.2 Escenarios de uso        | §2.2                                          | Reemplazado (PR #71)                    |
+| §2.3 Helper de fallback       | §2.3                                          | Reemplazado (PR #71)                    |
+| §3 Sistema de diseño          | §3                                            | Vigente                                 |
+| §4 Mapeo de páginas           | §4                                            | Vigente                                 |
+| §4.1–§4.6                     | §4.1–§4.6                                     | Vigente                                 |
+| §5 Contrato `data-*`          | §5                                            | Vigente                                 |
+| §6 Funcionalidades            | §6                                            | Vigente                                 |
+| §6.1–§6.14                    | §6.1–§6.14                                    | Vigente (con notas de persistencia §11) |
+| §7 Checklist de pasos         | §7                                            | Histórico (completado)                  |
+| §8 Fase futura WebSockets     | §8                                            | Vigente (futuro, no implementado)       |
+| §9 Checklist de validación    | §9                                            | Vigente                                 |
+| — (nuevo)                     | §10 Swagger / OpenAPI                         | Nuevo                                   |
+| — (nuevo)                     | §11 Persistencia de sesión SQLite             | Nuevo                                   |
+| — (nuevo)                     | §12 Seed idempotente                          | Nuevo                                   |
+| — (nuevo)                     | §13 `.gitattributes` EOL                      | Nuevo                                   |
+| — (nuevo)                     | §14 Estructura de directorios                 | Nuevo                                   |
+| — (nuevo)                     | §15 Árbol atómico de views                    | Nuevo                                   |
+| — (nuevo)                     | §16 Variables de entorno                      | Nuevo                                   |
+| — (nuevo)                     | §17 Documentación generada `docs/`            | Nuevo                                   |
+| — (nuevo)                     | §18 Convención JSDoc                          | Nuevo                                   |
+| — (nuevo)                     | §19 Checkout                                  | Nuevo                                   |
+| — (nuevo)                     | §20 Favicon / logo de pestaña                 | Nuevo                                   |
+| — (nuevo)                     | §21 CI/CD y despliegue                        | Nuevo                                   |
+| — (nuevo)                     | §22 Arquitectura de middlewares               | Nuevo                                   |
+| — (nuevo)                     | §23 Autenticación y autorización (JWT)        | Nuevo                                   |
+| — (nuevo)                     | §24 Carrito en Redis y arquitectura stateless | Nuevo                                   |
 
 ---
 
 ## Historial de cambios
 
-| Fecha | PR / Issue | Resumen | Detalle histórico |
-|---|---|---|---|
-| 2026-09-08 | PR #29 | Base del proyecto: saneamiento, capa de datos (6 tablas N:M), seed inicial, imagen fallback | `resultado-primer-sprint.md` |
-| 2026-09-08 | PRs #30–#39 | Pasos 2–13 del sprint: Cloudinary, componentes, Home, carrito, detalle, auth vistas, 404/500, categoría/checkout, orden/búsqueda, componentes opcionales | `resultado-primer-sprint.md` |
-| 2026-09-14 | PR #47 | Persistencia de sesión en SQLite (`better-sqlite3-session-store`); el carrito sobrevive reinicios | `cambios-no-registrados.md` §2 |
-| 2026-09-17 | PR #51 | Reestructuración de views: raíz única `src/views/templates`, legacy eliminado | `reestructuracion-views.md` |
-| 2026-09-27 | PR #56 | JSDoc en todo el código TypeScript + `.gitattributes` EOL | `cambios-no-registrados.md` §3–§4 |
-| 2026-09-28 | PR #58 | Configuración Swagger completa en `/api-docs` | `cambios-no-registrados.md` §1 |
-| 2026-09-28 | PR #64 | Carpeta `docs/` con documentación TypeDoc versionada | `documentacion-typedoc.md` |
-| 2026-09-29 | PR #67 | Documentación de cambios no registrados en `spectsEccomerce` | `documentacion-typedoc.md`, `cambios-no-registrados.md` |
-| 2026-10-03 | PR #71 / issue #70 | Eliminación de Cloudinary; `FALLBACK_IMAGE_URL` configurable; `onerror` en `<img>` | `cambios-no-registrados.md` §6 |
-| 2026-10-03 | PR #73 / issue #72 | Sincronización de `.env.example`, README, JSDoc y `docs/` | `cambios-no-registrados.md`, `README.md` |
-| 2026-10-03 | Este PR | Creación de la SPEC viva; históricos marcados | — |
-| 2026-10-07 | Este PR / issue #77 | Card de producto clickeable a /products/:id (link extendido) | — |
-| 2026-10-07 | Este PR / issue #68 | Checkout real (§19): formulario, orden atómica con descuento de stock, idempotencia por token, confirmación y tests T1–T7 | — |
-| 2026-10-08 | Este PR / issue #80 | Favicon / logo de la pestaña (§20): tres archivos en `public/` + `<link>` en el `<head>` del layout; `GET /favicon.ico` deja de caer en el 404 | — |
-| 2026-10-08 | PR #? / issue #? | Dockerización y CI/CD (§21): Dockerfile multi-stage, .dockerignore, workflow CI/CD, docker-compose.prod.yml, .env.prod.example, AGENTS.md | — |
-| 2026-10-11 | Este PR / issue #91 | Arquitectura de middlewares (§22): reorganización en `global/route/error`, base y sesión extraídos de `app.ts`, tests M1–M18 en CI y bug de validación de colecciones documentado como deuda | — |
-| 2026-10-11 | Este PR / issue #93 | Autenticación JWT stateless (§23, parte 1/3): `authService` (register/login/me), middleware `authenticate`, API `/api/auth/*`, `role` en `users`, frontend de login/registro con token y tests A1–A6 en CI | — |
-| 2026-10-11 | Este PR / issue #95 | Autorización (§23.6, parte 2/3): middleware `authorize` por rol, ownership de órdenes (`GET /api/orders` y `/:id`), `orderService`, seed de admin por env y tests A7–A8 | — |
-| 2026-10-11 | Este PR / issue #97 | Carrito en Redis y stateless (§24, parte 3/3): `cart.repository` (Hash + TTL), carrito/checkout autenticados por API JSON, `helmet`, eliminación de `express-session` y de `injectCartCount`, compose con Redis, tests C1–C6 y M1–M22 actualizados | — |
-| 2026-10-11 | Este PR / issue #102 | CSP `upgrade-insecure-requests` configurable por `CSP_UPGRADE_INSECURE` (default `false`); `script-src-attr` para los `onerror` inline; docs en §16/§21.5/§21.6/§22.2 y compose; test M23 | — |
-| 2026-10-11 | Este PR / issue #105 | Cookie httpOnly para el JWT (enmienda §23/§24): `auth_token` (`httpOnly`, `SameSite=Lax`, `Secure` según `COOKIE_SECURE`), sin token en el body (C2), `attachUser`/`csrfOrigin`/`requirePageAuth`, header SSR sin hidratación, `auth.js` mínimo con limpieza del token legacy, tests A1–A11 y M1–M23+M24–M27 | `decision-auth-cookie-httponly.md` |
+| Fecha      | PR / Issue           | Resumen                                                                                                                                                                                                                                                                                                      | Detalle histórico                                       |
+| ---------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| 2026-09-08 | PR #29               | Base del proyecto: saneamiento, capa de datos (6 tablas N:M), seed inicial, imagen fallback                                                                                                                                                                                                                  | `resultado-primer-sprint.md`                            |
+| 2026-09-08 | PRs #30–#39          | Pasos 2–13 del sprint: Cloudinary, componentes, Home, carrito, detalle, auth vistas, 404/500, categoría/checkout, orden/búsqueda, componentes opcionales                                                                                                                                                     | `resultado-primer-sprint.md`                            |
+| 2026-09-14 | PR #47               | Persistencia de sesión en SQLite (`better-sqlite3-session-store`); el carrito sobrevive reinicios                                                                                                                                                                                                            | `cambios-no-registrados.md` §2                          |
+| 2026-09-17 | PR #51               | Reestructuración de views: raíz única `src/views/templates`, legacy eliminado                                                                                                                                                                                                                                | `reestructuracion-views.md`                             |
+| 2026-09-27 | PR #56               | JSDoc en todo el código TypeScript + `.gitattributes` EOL                                                                                                                                                                                                                                                    | `cambios-no-registrados.md` §3–§4                       |
+| 2026-09-28 | PR #58               | Configuración Swagger completa en `/api-docs`                                                                                                                                                                                                                                                                | `cambios-no-registrados.md` §1                          |
+| 2026-09-28 | PR #64               | Carpeta `docs/` con documentación TypeDoc versionada                                                                                                                                                                                                                                                         | `documentacion-typedoc.md`                              |
+| 2026-09-29 | PR #67               | Documentación de cambios no registrados en `spectsEccomerce`                                                                                                                                                                                                                                                 | `documentacion-typedoc.md`, `cambios-no-registrados.md` |
+| 2026-10-03 | PR #71 / issue #70   | Eliminación de Cloudinary; `FALLBACK_IMAGE_URL` configurable; `onerror` en `<img>`                                                                                                                                                                                                                           | `cambios-no-registrados.md` §6                          |
+| 2026-10-03 | PR #73 / issue #72   | Sincronización de `.env.example`, README, JSDoc y `docs/`                                                                                                                                                                                                                                                    | `cambios-no-registrados.md`, `README.md`                |
+| 2026-10-03 | Este PR              | Creación de la SPEC viva; históricos marcados                                                                                                                                                                                                                                                                | —                                                       |
+| 2026-10-07 | Este PR / issue #77  | Card de producto clickeable a /products/:id (link extendido)                                                                                                                                                                                                                                                 | —                                                       |
+| 2026-10-07 | Este PR / issue #68  | Checkout real (§19): formulario, orden atómica con descuento de stock, idempotencia por token, confirmación y tests T1–T7                                                                                                                                                                                    | —                                                       |
+| 2026-10-08 | Este PR / issue #80  | Favicon / logo de la pestaña (§20): tres archivos en `public/` + `<link>` en el `<head>` del layout; `GET /favicon.ico` deja de caer en el 404                                                                                                                                                               | —                                                       |
+| 2026-10-08 | PR #? / issue #?     | Dockerización y CI/CD (§21): Dockerfile multi-stage, .dockerignore, workflow CI/CD, docker-compose.prod.yml, .env.prod.example, AGENTS.md                                                                                                                                                                    | —                                                       |
+| 2026-10-11 | Este PR / issue #91  | Arquitectura de middlewares (§22): reorganización en `global/route/error`, base y sesión extraídos de `app.ts`, tests M1–M18 en CI y bug de validación de colecciones documentado como deuda                                                                                                                 | —                                                       |
+| 2026-10-11 | Este PR / issue #93  | Autenticación JWT stateless (§23, parte 1/3): `authService` (register/login/me), middleware `authenticate`, API `/api/auth/*`, `role` en `users`, frontend de login/registro con token y tests A1–A6 en CI                                                                                                   | —                                                       |
+| 2026-10-11 | Este PR / issue #95  | Autorización (§23.6, parte 2/3): middleware `authorize` por rol, ownership de órdenes (`GET /api/orders` y `/:id`), `orderService`, seed de admin por env y tests A7–A8                                                                                                                                      | —                                                       |
+| 2026-10-11 | Este PR / issue #97  | Carrito en Redis y stateless (§24, parte 3/3): `cart.repository` (Hash + TTL), carrito/checkout autenticados por API JSON, `helmet`, eliminación de `express-session` y de `injectCartCount`, compose con Redis, tests C1–C6 y M1–M22 actualizados                                                           | —                                                       |
+| 2026-10-11 | Este PR / issue #102 | CSP `upgrade-insecure-requests` configurable por `CSP_UPGRADE_INSECURE` (default `false`); `script-src-attr` para los `onerror` inline; docs en §16/§21.5/§21.6/§22.2 y compose; test M23                                                                                                                    | —                                                       |
+| 2026-10-11 | Este PR / issue #105 | Cookie httpOnly para el JWT (enmienda §23/§24): `auth_token` (`httpOnly`, `SameSite=Lax`, `Secure` según `COOKIE_SECURE`), sin token en el body (C2), `attachUser`/`csrfOrigin`/`requirePageAuth`, header SSR sin hidratación, `auth.js` mínimo con limpieza del token legacy, tests A1–A11 y M1–M23+M24–M27 | `decision-auth-cookie-httponly.md`                      |
 
 ---
 
