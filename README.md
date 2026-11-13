@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./assets/images/landing.png" alt="Página principal de MiEcommerce" width="880">
+
 
 <br><br>
 
